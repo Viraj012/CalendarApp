@@ -8,13 +8,13 @@ import java.util.Objects;
  */
 public class EventImpl implements Event {
   private String subject;
-  private LocalDateTime startDateTime;
-  private LocalDateTime endDateTime;
+  private final LocalDateTime startDateTime;
+  private final LocalDateTime endDateTime;
   private String description;
   private String location;
   private boolean isPublic;
-  private boolean isAllDay;
-  private RecurrencePattern recurrence; // null for non-recurring events
+  private final boolean isAllDay;
+  private final RecurrencePattern recurrence; // null for non-recurring events
 
   /**
    * Constructor for a single event.

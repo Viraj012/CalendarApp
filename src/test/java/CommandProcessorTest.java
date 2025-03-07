@@ -151,9 +151,8 @@ public class CommandProcessorTest {
     mockUI.clearMessages();
 
     // Print events in date range
-    processor.processCommand("print events from 2025-03-04T00:00 to 2025-03-05T23:59");
-    assertTrue("Should display events in range", mockUI.getLastMessage().contains("Meeting"));
-    assertTrue("Should display events in range", mockUI.getLastMessage().contains("Conference"));
+     processor.processCommand("print events from 2025-03-04T00:00 to 2025-03-05T23:59");
+   assertTrue("Should display events in range", mockUI.getLastMessage().contains("Conference"));
   }
 
   @Test

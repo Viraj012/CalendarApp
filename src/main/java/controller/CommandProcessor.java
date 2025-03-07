@@ -37,7 +37,7 @@ public class CommandProcessor {
   public boolean processCommand(String command) {
     String[] parts = command.trim().split("\\s+");
 
-    if (parts.length == 0) {
+    if (parts.length == 0 || (parts.length == 1 && parts[0].isEmpty())) {
       view.displayError("Empty command");
       return true;
     }
@@ -330,17 +330,20 @@ public class CommandProcessor {
     // Example: edit event name "Meeting" from 2023-04-01T10:00 to 2023-04-01T11:00 with "Team Meeting"
 
     try {
-      // Extract event name
-      int nameStartIdx = rest.indexOf(" ");
+      // Extract event name correctly
       int fromIdx = rest.indexOf(" from ");
 
-      if (nameStartIdx == -1 || fromIdx == -1) {
+      if (fromIdx == -1) {
         view.displayError("Invalid edit event format");
         return;
       }
 
-      String eventName = rest.substring(nameStartIdx, fromIdx).trim();
+      String eventName = rest.substring(0, fromIdx).trim();
 
+      // Remove quotes if present
+      if (eventName.startsWith("\"") && eventName.endsWith("\"")) {
+        eventName = eventName.substring(1, eventName.length() - 1);
+      }
       // Extract time range
       int toIdx = rest.indexOf(" to ", fromIdx);
       int withIdx = rest.indexOf(" with ", toIdx);
@@ -381,19 +384,16 @@ public class CommandProcessor {
    * Process an edit events from command.
    */
   private void processEditEventsFrom(String property, String rest) {
-    // Example: edit events name "Meeting" from 2023-04-01T10:00 with "Team Meeting"
-
     try {
-      // Extract event name
-      int nameStartIdx = rest.indexOf(" ");
+      // Extract event name correctly
       int fromIdx = rest.indexOf(" from ");
 
-      if (nameStartIdx == -1 || fromIdx == -1) {
+      if (fromIdx == -1) {
         view.displayError("Invalid edit events format");
         return;
       }
 
-      String eventName = rest.substring(nameStartIdx, fromIdx).trim();
+      String eventName = rest.substring(0, fromIdx).trim();
 
       // Extract from time and new value
       int withIdx = rest.indexOf(" with ", fromIdx);
@@ -427,37 +427,33 @@ public class CommandProcessor {
       view.displayError("Error processing edit events command: " + e.getMessage());
     }
   }
-
   /**
    * Process an edit all events command.
    */
   private void processEditAllEvents(String property, String rest) {
-    // Example: edit events name "Meeting" "Team Meeting"
-
     try {
-      // The rest should be like: name "Meeting" "Team Meeting"
-      String[] parts = rest.split("\"");
+      // More robust parsing using regular expressions
+      java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\"([^\"]*)\"\\s+\"([^\"]*)\"");
+      java.util.regex.Matcher matcher = pattern.matcher(rest);
 
-      if (parts.length < 5) {
-        view.displayError("Invalid edit all events format");
-        return;
-      }
+      if (matcher.find()) {
+        String eventName = matcher.group(1);
+        String newValue = matcher.group(2);
 
-      String eventName = parts[1];
-      String newValue = parts[3];
+        boolean success = calendar.editAllEvents(property, eventName, newValue);
 
-      boolean success = calendar.editAllEvents(property, eventName, newValue);
-
-      if (success) {
-        view.displayMessage("All events updated successfully");
+        if (success) {
+          view.displayMessage("All events updated successfully");
+        } else {
+          view.displayError("Failed to update events (not found or invalid property)");
+        }
       } else {
-        view.displayError("Failed to update events (not found or invalid property)");
+        view.displayError("Invalid edit all events format");
       }
     } catch (Exception e) {
       view.displayError("Error processing edit all events command: " + e.getMessage());
     }
   }
-
   /**
    * Process a print events command.
    */

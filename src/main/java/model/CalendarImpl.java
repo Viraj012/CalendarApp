@@ -149,33 +149,49 @@ public class CalendarImpl implements Calendar {
       LocalDateTime startDateTime, String newValue) {
     boolean modified = false;
 
-    // Find all events with the name that start on or after the given date
+    // Find all events with the name
     for (Event event : events) {
-      if (event.getSubject().equals(eventName) &&
-          !event.getStartDateTime().isBefore(startDateTime)) {
+      if (event.getSubject().equals(eventName)) {
+        boolean shouldEdit = false;
 
-        // Update the property
-        EventImpl eventImpl = (EventImpl) event;
-        switch (property.toLowerCase()) {
-          case "name":
-          case "subject":
-            eventImpl.setSubject(newValue);
-            modified = true;
-            break;
-          case "description":
-            eventImpl.setDescription(newValue);
-            modified = true;
-            break;
-          case "location":
-            eventImpl.setLocation(newValue);
-            modified = true;
-            break;
-          case "public":
-            eventImpl.setPublic(Boolean.parseBoolean(newValue));
-            modified = true;
-            break;
-          default:
-            return false; // Property not recognized
+        // For non-recurring events, check start time directly
+        if (!event.isRecurring()) {
+          shouldEdit = !event.getStartDateTime().isBefore(startDateTime);
+        }
+        // For recurring events, check if any recurrences are on or after the start date
+        else {
+          RecurrencePattern pattern = ((EventImpl)event).getRecurrence();
+          List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(event.getStartDateTime());
+
+          // Check if any occurrences happen on or after the target date
+          shouldEdit = recurrenceDates.stream()
+              .anyMatch(dt -> !dt.isBefore(startDateTime));
+        }
+
+        if (shouldEdit) {
+          // Update the property
+          EventImpl eventImpl = (EventImpl) event;
+          switch (property.toLowerCase()) {
+            case "name":
+            case "subject":
+              eventImpl.setSubject(newValue);
+              modified = true;
+              break;
+            case "description":
+              eventImpl.setDescription(newValue);
+              modified = true;
+              break;
+            case "location":
+              eventImpl.setLocation(newValue);
+              modified = true;
+              break;
+            case "public":
+              eventImpl.setPublic(Boolean.parseBoolean(newValue));
+              modified = true;
+              break;
+            default:
+              return false; // Property not recognized
+          }
         }
       }
     }
