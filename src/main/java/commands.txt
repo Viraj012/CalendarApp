@@ -3,5 +3,4 @@ create event "All-day Conference" on 2025-03-05
 print events on 2025-03-04
 print events from 2025-03-01T00:00 to 2025-03-10T23:59
 show status on 2025-03-04T10:15
-export cal mycalendar.csv
 exit

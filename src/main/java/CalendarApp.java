@@ -3,8 +3,8 @@
 import controller.CommandProcessor;
 import model.Calendar;
 import model.CalendarImpl;
-import view.ConsoleUI;
-import view.FileUI;
+import view.InteractiveUI;
+import view.HeadlessUI;
 import view.TextUI;
 
 import java.io.IOException;
@@ -25,16 +25,14 @@ public class CalendarApp {
       System.exit(1);
     }
 
-    // Create the model
     Calendar calendar = new CalendarImpl();
 
-    // Create the appropriate view
     TextUI ui;
     if (args[1].equalsIgnoreCase("interactive")) {
-      ui = new ConsoleUI();
+      ui = new InteractiveUI();
     } else if (args[1].equalsIgnoreCase("headless") && args.length >= 3) {
       try {
-        ui = new FileUI(args[2]);
+        ui = new HeadlessUI(args[2]);
       } catch (IOException e) {
         System.err.println("Error opening commands file: " + e.getMessage());
         System.exit(1);
@@ -46,10 +44,8 @@ public class CalendarApp {
       return;
     }
 
-    // Create the controller
     CommandProcessor processor = new CommandProcessor(calendar, ui);
 
-    // Run the application
     try {
       boolean keepRunning = true;
       while (keepRunning) {

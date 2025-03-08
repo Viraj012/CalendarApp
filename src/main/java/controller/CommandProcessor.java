@@ -105,10 +105,8 @@ public class CommandProcessor {
     String cmdWithoutAutoDecline = command.replace("--autoDecline", "").trim();
 
     if (cmdWithoutAutoDecline.contains(" on ")) {
-      // All-day event
       processCreateAllDayCommand(cmdWithoutAutoDecline, autoDecline);
     } else if (cmdWithoutAutoDecline.contains(" from ")) {
-      // Regular event with start and end time
       processCreateRegularCommand(cmdWithoutAutoDecline, autoDecline);
     } else {
       view.displayError("Invalid create event command format");
@@ -119,7 +117,6 @@ public class CommandProcessor {
    * Process a create all-day event command.
    */
   private void processCreateAllDayCommand(String command, boolean autoDecline) {
-    // Parse command for all-day event
     String[] parts = command.split(" on ");
     if (parts.length != 2) {
       view.displayError("Invalid all-day event format");
@@ -129,11 +126,14 @@ public class CommandProcessor {
     String eventName = parts[0].substring("create event".length()).trim();
     String dateTimeStr = parts[1].trim();
 
-    // Check if it's a recurring event
+    if (eventName.isEmpty()) {
+      view.displayError("Event subject cannot be empty");
+      return;
+    }
+
     if (dateTimeStr.contains(" repeats ")) {
       processCreateRecurringAllDayCommand(eventName, dateTimeStr, autoDecline);
     } else {
-      // Single all-day event
       try {
         LocalDateTime dateTime = parseDateTime(dateTimeStr);
         boolean success = calendar.createAllDayEvent(eventName, dateTime, autoDecline);
@@ -169,12 +169,10 @@ public class CommandProcessor {
       LocalDateTime untilDate = null;
 
       if (recurrenceStr.contains(" for ")) {
-        // Recurs for N times
         String[] recParts = recurrenceStr.split(" for ");
         weekdays = recParts[0].trim();
         occurrences = Integer.parseInt(recParts[1].replace("times", "").trim());
       } else if (recurrenceStr.contains(" until ")) {
-        // Recurs until a date
         String[] recParts = recurrenceStr.split(" until ");
         weekdays = recParts[0].trim();
         untilDate = parseDateTime(recParts[1].trim());
@@ -211,6 +209,11 @@ public class CommandProcessor {
     String eventName = parts[0].substring("create event".length()).trim();
     String timeRangeStr = parts[1].trim();
 
+    if (eventName.isEmpty()) {
+      view.displayError("Event subject cannot be empty");
+      return;
+    }
+
     String[] timeRangeParts = timeRangeStr.split(" to ");
     if (timeRangeParts.length != 2) {
       view.displayError("Invalid time range format");
@@ -220,7 +223,6 @@ public class CommandProcessor {
     String startTimeStr = timeRangeParts[0].trim();
     String endTimeOrRest = timeRangeParts[1].trim();
 
-    // Check if it's a recurring event
     boolean isRecurring = endTimeOrRest.contains(" repeats ");
 
     if (isRecurring) {
@@ -230,10 +232,14 @@ public class CommandProcessor {
 
       processCreateRecurringRegularCommand(eventName, startTimeStr, endTimeStr, recurrenceStr, autoDecline);
     } else {
-      // Single regular event
       try {
         LocalDateTime startDateTime = parseDateTime(startTimeStr);
         LocalDateTime endDateTime = parseDateTime(endTimeOrRest);
+
+        if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
+          view.displayError("End time must be later than start time");
+          return;
+        }
 
         boolean success = calendar.createEvent(eventName, startDateTime, endDateTime, autoDecline);
 
@@ -258,17 +264,20 @@ public class CommandProcessor {
       LocalDateTime startDateTime = parseDateTime(startTimeStr);
       LocalDateTime endDateTime = parseDateTime(endTimeStr);
 
+      if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
+        view.displayError("End time must be later than start time");
+        return;
+      }
+
       String weekdays;
       int occurrences = -1;
       LocalDateTime untilDate = null;
 
       if (recurrenceStr.contains(" for ")) {
-        // Recurs for N times
         String[] recParts = recurrenceStr.split(" for ");
         weekdays = recParts[0].trim();
         occurrences = Integer.parseInt(recParts[1].replace("times", "").trim());
       } else if (recurrenceStr.contains(" until ")) {
-        // Recurs until a date
         String[] recParts = recurrenceStr.split(" until ");
         weekdays = recParts[0].trim();
         untilDate = parseDateTime(recParts[1].trim());
@@ -296,19 +305,15 @@ public class CommandProcessor {
    * Process an edit event command.
    */
   private void processEditCommand(String command) {
-    // Example: edit event name "Meeting" from 2023-04-01T10:00 to 2023-04-01T11:00 with "Team Meeting"
-    // Example: edit events name "Meeting" from 2023-04-01T10:00 with "Team Meeting"
-    // Example: edit events name "Meeting" "Team Meeting"
-
     String[] parts = command.split("\\s+", 4);
     if (parts.length < 4) {
       view.displayError("Invalid edit command format");
       return;
     }
 
-    String editType = parts[1]; // "event" or "events"
-    String property = parts[2]; // property to edit
-    String rest = parts[3]; // rest of the command
+    String editType = parts[1];
+    String property = parts[2];
+    String rest = parts[3];
 
     if ("event".equals(editType)) {
       processEditSingleEvent(property, rest);
@@ -327,10 +332,8 @@ public class CommandProcessor {
    * Process an edit single event command.
    */
   private void processEditSingleEvent(String property, String rest) {
-    // Example: edit event name "Meeting" from 2023-04-01T10:00 to 2023-04-01T11:00 with "Team Meeting"
 
     try {
-      // Extract event name correctly
       int fromIdx = rest.indexOf(" from ");
 
       if (fromIdx == -1) {
@@ -340,11 +343,9 @@ public class CommandProcessor {
 
       String eventName = rest.substring(0, fromIdx).trim();
 
-      // Remove quotes if present
       if (eventName.startsWith("\"") && eventName.endsWith("\"")) {
         eventName = eventName.substring(1, eventName.length() - 1);
       }
-      // Extract time range
       int toIdx = rest.indexOf(" to ", fromIdx);
       int withIdx = rest.indexOf(" with ", toIdx);
 
@@ -357,7 +358,6 @@ public class CommandProcessor {
       String endTimeStr = rest.substring(toIdx + 4, withIdx).trim();
       String newValue = rest.substring(withIdx + 6).trim();
 
-      // Remove quotes if present
       if (eventName.startsWith("\"") && eventName.endsWith("\"")) {
         eventName = eventName.substring(1, eventName.length() - 1);
       }
@@ -385,7 +385,6 @@ public class CommandProcessor {
    */
   private void processEditEventsFrom(String property, String rest) {
     try {
-      // Extract event name correctly
       int fromIdx = rest.indexOf(" from ");
 
       if (fromIdx == -1) {
@@ -395,7 +394,6 @@ public class CommandProcessor {
 
       String eventName = rest.substring(0, fromIdx).trim();
 
-      // Extract from time and new value
       int withIdx = rest.indexOf(" with ", fromIdx);
 
       if (withIdx == -1) {
@@ -406,7 +404,6 @@ public class CommandProcessor {
       String startTimeStr = rest.substring(fromIdx + 6, withIdx).trim();
       String newValue = rest.substring(withIdx + 6).trim();
 
-      // Remove quotes if present
       if (eventName.startsWith("\"") && eventName.endsWith("\"")) {
         eventName = eventName.substring(1, eventName.length() - 1);
       }
@@ -432,7 +429,6 @@ public class CommandProcessor {
    */
   private void processEditAllEvents(String property, String rest) {
     try {
-      // More robust parsing using regular expressions
       java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\"([^\"]*)\"\\s+\"([^\"]*)\"");
       java.util.regex.Matcher matcher = pattern.matcher(rest);
 
@@ -458,9 +454,8 @@ public class CommandProcessor {
    * Process a print events command.
    */
   private void processPrintCommand(String command) {
-    // Handle: print events on <date>
-    // Handle: print events from <startDate> to <endDate>
 
+    int eventNumber = 1;
     if (command.contains(" on ")) {
       String[] parts = command.split(" on ");
       if (parts.length != 2) {
@@ -474,12 +469,14 @@ public class CommandProcessor {
         LocalDateTime dateTime = parseDateTime(dateTimeStr);
         List<Event> events = calendar.getEventsOn(dateTime);
 
+
         if (events.isEmpty()) {
           view.displayMessage("No events on " + dateTime.toLocalDate());
         } else {
           view.displayMessage("Events on " + dateTime.toLocalDate() + ":");
           for (Event event : events) {
-            view.displayMessage(" • " + event.toString());
+            view.displayMessage(eventNumber + "." + event.toString());
+            eventNumber++;
           }
         }
       } catch (DateTimeParseException e) {
@@ -516,7 +513,8 @@ public class CommandProcessor {
           view.displayMessage("Events from " + startDateTime.toLocalDate() +
               " to " + endDateTime.toLocalDate() + ":");
           for (Event event : events) {
-            view.displayMessage(" • " + event.toString());
+            view.displayMessage(eventNumber + "." + event.toString());
+            eventNumber++;
           }
         }
       } catch (DateTimeParseException e) {
@@ -531,8 +529,6 @@ public class CommandProcessor {
    * Process an export calendar command.
    */
   private void processExportCommand(String command) {
-    // Handle: export cal filename.csv
-
     String[] parts = command.split("\\s+");
     if (parts.length != 3) {
       view.displayError("Invalid export command format");
@@ -554,8 +550,6 @@ public class CommandProcessor {
    * Process a show status command.
    */
   private void processShowCommand(String command) {
-    // Handle: show status on <dateTime>
-
     String[] parts = command.split(" on ");
     if (parts.length != 2) {
       view.displayError("Invalid show status command");
@@ -587,7 +581,6 @@ public class CommandProcessor {
    */
   private LocalDateTime parseDateTime(String dateTimeStr) {
     if (dateTimeStr.contains("T")) {
-      // Format: yyyy-MM-ddThh:mm
       String[] parts = dateTimeStr.split("T");
       if (parts.length != 2) {
         throw new DateTimeParseException("Invalid date-time format", dateTimeStr, 0);
@@ -598,7 +591,6 @@ public class CommandProcessor {
 
       return LocalDateTime.of(date, time);
     } else {
-      // Format: yyyy-MM-dd (without time)
       LocalDate date = LocalDate.parse(dateTimeStr);
       return LocalDateTime.of(date, LocalTime.MIDNIGHT);
     }

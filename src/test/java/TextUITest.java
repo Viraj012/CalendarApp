@@ -4,8 +4,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.*;
-import view.ConsoleUI;
-import view.FileUI;
+import view.InteractiveUI;
+import view.HeadlessUI;
 import view.TextUI;
 
 import static org.junit.Assert.*;
@@ -42,7 +42,7 @@ public class TextUITest {
 
   @Test
   public void testConsoleUIDisplayMessage() {
-    TextUI ui = new ConsoleUI();
+    TextUI ui = new InteractiveUI();
     ui.displayMessage("Test message");
 
     assertEquals("Test message" + System.lineSeparator(), outContent.toString());
@@ -50,7 +50,7 @@ public class TextUITest {
 
   @Test
   public void testConsoleUIDisplayError() {
-    TextUI ui = new ConsoleUI();
+    TextUI ui = new InteractiveUI();
     ui.displayError("Test error");
 
     assertEquals("Error: Test error" + System.lineSeparator(), errContent.toString());
@@ -70,7 +70,7 @@ public class TextUITest {
       System.setIn(inputStream);
 
       // Create a new ConsoleUI that will use our test InputStream
-      TextUI ui = new ConsoleUI();
+      TextUI ui = new InteractiveUI();
 
       // Get the command
       String command = ui.getCommand();
@@ -98,7 +98,7 @@ public class TextUITest {
     }
 
     // Create FileUI with the temp file
-    TextUI ui = new FileUI(tempFile.getAbsolutePath());
+    TextUI ui = new HeadlessUI(tempFile.getAbsolutePath());
 
     // Test displayMessage
     ui.displayMessage("Test message");
@@ -118,7 +118,7 @@ public class TextUITest {
     }
 
     // Create FileUI with the temp file
-    TextUI ui = new FileUI(tempFile.getAbsolutePath());
+    TextUI ui = new HeadlessUI(tempFile.getAbsolutePath());
 
     // We can't directly test System.exit(), but we can check if the error message is displayed
     try {
@@ -146,7 +146,7 @@ public class TextUITest {
     }
 
     // Create FileUI with the temp file
-    TextUI ui = new FileUI(tempFile.getAbsolutePath());
+    TextUI ui = new HeadlessUI(tempFile.getAbsolutePath());
 
     // Get the first command
     String command1 = ui.getCommand();
@@ -173,7 +173,7 @@ public class TextUITest {
     }
 
     // Create FileUI with the temp file
-    TextUI ui = new FileUI(tempFile.getAbsolutePath());
+    TextUI ui = new HeadlessUI(tempFile.getAbsolutePath());
 
     // Test that close works without exceptions
     ui.close();
@@ -185,6 +185,6 @@ public class TextUITest {
   @Test(expected = IOException.class)
   public void testFileUIWithNonexistentFile() throws IOException {
     // Attempt to create FileUI with a non-existent file
-    new FileUI("nonexistent_file.txt");
+    new HeadlessUI("nonexistent_file.txt");
   }
 }

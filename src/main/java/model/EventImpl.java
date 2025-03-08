@@ -1,6 +1,7 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 /**
@@ -207,7 +208,9 @@ public class EventImpl implements Event {
 
   @Override
   public String toString() {
+    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     return subject + " - " +
+        startDateTime.format(dateFormatter) + " " +
         (isAllDay ? "All Day" : startDateTime.toLocalTime() + " to " +
             (endDateTime != null ? endDateTime.toLocalTime() : "")) +
         (location.isEmpty() ? "" : " at " + location);

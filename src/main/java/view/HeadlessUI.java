@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Implementation of TextUI that reads commands from a file.
  */
-public class FileUI implements TextUI {
+public class HeadlessUI implements TextUI {
   private BufferedReader reader;
   private List<String> commands;
   private int currentCommandIndex;
@@ -20,7 +20,7 @@ public class FileUI implements TextUI {
    * @param filename the file to read commands from
    * @throws IOException if an I/O error occurs
    */
-  public FileUI(String filename) throws IOException {
+  public HeadlessUI(String filename) throws IOException {
     this.reader = new BufferedReader(new FileReader(filename));
     this.commands = new ArrayList<>();
     this.currentCommandIndex = 0;
@@ -41,7 +41,6 @@ public class FileUI implements TextUI {
   @Override
   public void displayError(String error) {
     System.err.println("Error: " + error);
-    // In headless mode, errors should terminate the program
     System.exit(1);
   }
 
@@ -50,10 +49,10 @@ public class FileUI implements TextUI {
     if (currentCommandIndex < commands.size()) {
       String command = commands.get(currentCommandIndex);
       currentCommandIndex++;
-      System.out.println("> " + command); // Echo the command
+      System.out.println("> " + command);
       return command;
     }
-    return "exit"; // Return exit when no more commands
+    return "exit";
   }
 
   @Override

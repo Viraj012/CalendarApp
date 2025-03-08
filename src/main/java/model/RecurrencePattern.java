@@ -111,16 +111,13 @@ public class RecurrencePattern {
         dates.add(currentDate);
         count++;
 
-        // Check termination conditions
         if (occurrences != -1 && count >= occurrences) {
           break;
         }
       }
 
-      // Move to next day
       currentDate = currentDate.plusDays(1);
 
-      // Check untilDate condition
       if (untilDate != null && currentDate.isAfter(untilDate)) {
         break;
       }

@@ -5,13 +5,13 @@ import java.util.Scanner;
 /**
  * Implementation of TextUI that uses the console for input/output.
  */
-public class ConsoleUI implements TextUI {
+public class InteractiveUI implements TextUI {
   private Scanner scanner;
 
   /**
    * Creates a new console UI.
    */
-  public ConsoleUI() {
+  public InteractiveUI() {
     this.scanner = new Scanner(System.in);
   }
 
