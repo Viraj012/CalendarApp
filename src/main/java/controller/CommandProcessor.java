@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Processes user commands and interacts with the Calendar model.
@@ -104,19 +106,37 @@ public class CommandProcessor {
     boolean autoDecline = command.contains("--autoDecline");
     String cmdWithoutAutoDecline = command.replace("--autoDecline", "").trim();
 
+    String description = "";
+    Pattern descPattern = Pattern.compile("--description\\s+\"([^\"]*)\"");
+    Matcher descMatcher = descPattern.matcher(cmdWithoutAutoDecline);
+    if (descMatcher.find()) {
+      description = descMatcher.group(1);
+      cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace(descMatcher.group(0), "").trim();
+    }
+
+    String location = "";
+    Pattern locPattern = Pattern.compile("--location\\s+\"([^\"]*)\"");
+    Matcher locMatcher = locPattern.matcher(cmdWithoutAutoDecline);
+    if (locMatcher.find()) {
+      location = locMatcher.group(1);
+      cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace(locMatcher.group(0), "").trim();
+    }
+
+    boolean isPrivate = command.contains("--private");
+    cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace("--private", "").trim();
+
     if (cmdWithoutAutoDecline.contains(" on ")) {
-      processCreateAllDayCommand(cmdWithoutAutoDecline, autoDecline);
+      processCreateAllDayCommand(cmdWithoutAutoDecline, autoDecline, description, location, !isPrivate);
     } else if (cmdWithoutAutoDecline.contains(" from ")) {
-      processCreateRegularCommand(cmdWithoutAutoDecline, autoDecline);
+      processCreateRegularCommand(cmdWithoutAutoDecline, autoDecline, description, location, !isPrivate);
     } else {
       view.displayError("Invalid create event command format");
     }
   }
-
   /**
    * Process a create all-day event command.
    */
-  private void processCreateAllDayCommand(String command, boolean autoDecline) {
+  private void processCreateAllDayCommand(String command, boolean autoDecline, String description, String location, boolean isPublic) {
     String[] parts = command.split(" on ");
     if (parts.length != 2) {
       view.displayError("Invalid all-day event format");
@@ -132,11 +152,11 @@ public class CommandProcessor {
     }
 
     if (dateTimeStr.contains(" repeats ")) {
-      processCreateRecurringAllDayCommand(eventName, dateTimeStr, autoDecline);
+      processCreateRecurringAllDayCommand(eventName, dateTimeStr, autoDecline, description, location, isPublic);
     } else {
       try {
         LocalDateTime dateTime = parseDateTime(dateTimeStr);
-        boolean success = calendar.createAllDayEvent(eventName, dateTime, autoDecline);
+        boolean success = calendar.createAllDayEvent(eventName, dateTime, autoDecline, description, location, isPublic);
 
         if (success) {
           view.displayMessage("All-day event created successfully: " + eventName);
@@ -152,7 +172,9 @@ public class CommandProcessor {
   /**
    * Process a create recurring all-day event command.
    */
-  private void processCreateRecurringAllDayCommand(String eventName, String dateTimeStr, boolean autoDecline) {
+  private void processCreateRecurringAllDayCommand(String eventName, String dateTimeStr,
+      boolean autoDecline, String description,
+      String location, boolean isPublic) {
     String[] parts = dateTimeStr.split(" repeats ");
     if (parts.length != 2) {
       view.displayError("Invalid recurring event format");
@@ -182,7 +204,7 @@ public class CommandProcessor {
       }
 
       boolean success = calendar.createRecurringAllDayEvent(
-          eventName, dateTime, weekdays, occurrences, untilDate, autoDecline);
+          eventName, dateTime, weekdays, occurrences, untilDate, autoDecline, description, location, isPublic);
 
       if (success) {
         view.displayMessage("Recurring all-day event created successfully: " + eventName);
@@ -199,7 +221,7 @@ public class CommandProcessor {
   /**
    * Process a create regular event command.
    */
-  private void processCreateRegularCommand(String command, boolean autoDecline) {
+  private void processCreateRegularCommand(String command, boolean autoDecline, String description, String location, boolean isPublic) {
     String[] parts = command.split(" from ");
     if (parts.length != 2) {
       view.displayError("Invalid event format");
@@ -230,7 +252,8 @@ public class CommandProcessor {
       String endTimeStr = endTimeParts[0].trim();
       String recurrenceStr = endTimeParts[1].trim();
 
-      processCreateRecurringRegularCommand(eventName, startTimeStr, endTimeStr, recurrenceStr, autoDecline);
+      processCreateRecurringRegularCommand(eventName, startTimeStr, endTimeStr, recurrenceStr,
+          autoDecline, description, location, isPublic);
     } else {
       try {
         LocalDateTime startDateTime = parseDateTime(startTimeStr);
@@ -241,7 +264,7 @@ public class CommandProcessor {
           return;
         }
 
-        boolean success = calendar.createEvent(eventName, startDateTime, endDateTime, autoDecline);
+        boolean success = calendar.createEvent(eventName, startDateTime, endDateTime, autoDecline, description, location, isPublic);
 
         if (success) {
           view.displayMessage("Event created successfully: " + eventName);
@@ -258,8 +281,8 @@ public class CommandProcessor {
    * Process a create recurring regular event command.
    */
   private void processCreateRecurringRegularCommand(String eventName, String startTimeStr,
-      String endTimeStr, String recurrenceStr,
-      boolean autoDecline) {
+      String endTimeStr, String recurrenceStr, boolean autoDecline, String description,
+      String location, boolean isPublic) {
     try {
       LocalDateTime startDateTime = parseDateTime(startTimeStr);
       LocalDateTime endDateTime = parseDateTime(endTimeStr);
@@ -287,7 +310,7 @@ public class CommandProcessor {
       }
 
       boolean success = calendar.createRecurringEvent(
-          eventName, startDateTime, endDateTime, weekdays, occurrences, untilDate, autoDecline);
+          eventName, startDateTime, endDateTime, weekdays, occurrences, untilDate, autoDecline, description, location, isPublic);
 
       if (success) {
         view.displayMessage("Recurring event created successfully: " + eventName);
@@ -332,7 +355,6 @@ public class CommandProcessor {
    * Process an edit single event command.
    */
   private void processEditSingleEvent(String property, String rest) {
-
     try {
       int fromIdx = rest.indexOf(" from ");
 
@@ -343,9 +365,10 @@ public class CommandProcessor {
 
       String eventName = rest.substring(0, fromIdx).trim();
 
-      if (eventName.startsWith("\"") && eventName.endsWith("\"")) {
-        eventName = eventName.substring(1, eventName.length() - 1);
-      }
+
+      // Store the event name as is - don't remove quotes
+      // We'll handle the quote matching in CalendarImpl.editEvent
+
       int toIdx = rest.indexOf(" to ", fromIdx);
       int withIdx = rest.indexOf(" with ", toIdx);
 
@@ -358,12 +381,11 @@ public class CommandProcessor {
       String endTimeStr = rest.substring(toIdx + 4, withIdx).trim();
       String newValue = rest.substring(withIdx + 6).trim();
 
-      if (eventName.startsWith("\"") && eventName.endsWith("\"")) {
-        eventName = eventName.substring(1, eventName.length() - 1);
-      }
+      // Remove quotes from newValue if present
       if (newValue.startsWith("\"") && newValue.endsWith("\"")) {
         newValue = newValue.substring(1, newValue.length() - 1);
       }
+
 
       LocalDateTime startDateTime = parseDateTime(startTimeStr);
       LocalDateTime endDateTime = parseDateTime(endTimeStr);
@@ -377,9 +399,9 @@ public class CommandProcessor {
       }
     } catch (Exception e) {
       view.displayError("Error processing edit event command: " + e.getMessage());
+      e.printStackTrace();
     }
   }
-
   /**
    * Process an edit events from command.
    */

@@ -24,7 +24,8 @@ public class CalendarImpl implements Calendar {
 
   @Override
   public boolean createEvent(String eventName, LocalDateTime startDateTime,
-      LocalDateTime endDateTime, boolean autoDecline) {
+      LocalDateTime endDateTime, boolean autoDecline, String description,
+      String location, boolean isPublic) {
     if (autoDecline && hasConflicts(startDateTime, endDateTime)) {
       return false;
     }
@@ -38,17 +39,46 @@ public class CalendarImpl implements Calendar {
     }
 
     Event newEvent = new EventImpl(eventName, startDateTime, endDateTime);
+
+    // Set description if provided
+    if (description != null && !description.isEmpty()) {
+      ((EventImpl) newEvent).setDescription(description);
+    }
+
+    // Set location if provided
+    if (location != null && !location.isEmpty()) {
+      ((EventImpl) newEvent).setLocation(location);
+    }
+
+    // Set public/private status
+    ((EventImpl) newEvent).setPublic(isPublic);
+
     events.add(newEvent);
     return true;
   }
 
   @Override
-  public boolean createAllDayEvent(String eventName, LocalDateTime dateTime, boolean autoDecline) {
+  public boolean createAllDayEvent(String eventName, LocalDateTime dateTime, boolean autoDecline,
+      String description, String location, boolean isPublic) {
     if (autoDecline && hasAllDayConflicts(dateTime)) {
       return false;
     }
 
     Event newEvent = new EventImpl(eventName, dateTime);
+
+    // Set description if provided
+    if (description != null && !description.isEmpty()) {
+      ((EventImpl) newEvent).setDescription(description);
+    }
+
+    // Set location if provided
+    if (location != null && !location.isEmpty()) {
+      ((EventImpl) newEvent).setLocation(location);
+    }
+
+    // Set public/private status
+    ((EventImpl) newEvent).setPublic(isPublic);
+
     events.add(newEvent);
     return true;
   }
@@ -57,7 +87,7 @@ public class CalendarImpl implements Calendar {
   public boolean createRecurringEvent(String eventName, LocalDateTime startDateTime,
       LocalDateTime endDateTime, String weekdays,
       int occurrences, LocalDateTime untilDate,
-      boolean autoDecline) {
+      boolean autoDecline, String description, String location, boolean isPublic) {
     if (!startDateTime.toLocalDate().equals(endDateTime.toLocalDate())) {
       return false;
     }
@@ -73,17 +103,29 @@ public class CalendarImpl implements Calendar {
     Event tempEvent = new EventImpl(eventName, startDateTime, endDateTime,
         weekdays, occurrences, untilDate);
 
+    // Set description if provided
+    if (description != null && !description.isEmpty()) {
+      ((EventImpl) tempEvent).setDescription(description);
+    }
+
+    // Set location if provided
+    if (location != null && !location.isEmpty()) {
+      ((EventImpl) tempEvent).setLocation(location);
+    }
+
+    // Set public/private status
+    ((EventImpl) tempEvent).setPublic(isPublic);
 
     RecurrencePattern pattern = ((EventImpl)tempEvent).getRecurrence();
     List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(startDateTime);
 
-      for (LocalDateTime date : recurrenceDates) {
-        LocalDateTime start = date;
-        LocalDateTime end = date.plusHours(endDateTime.getHour() - startDateTime.getHour())
-            .plusMinutes(endDateTime.getMinute() - startDateTime.getMinute());
+    for (LocalDateTime date : recurrenceDates) {
+      LocalDateTime start = date;
+      LocalDateTime end = date.plusHours(endDateTime.getHour() - startDateTime.getHour())
+          .plusMinutes(endDateTime.getMinute() - startDateTime.getMinute());
 
-        if (hasConflicts(start, end)) {
-          return false;
+      if (hasConflicts(start, end)) {
+        return false;
 
       }
     }
@@ -95,22 +137,35 @@ public class CalendarImpl implements Calendar {
   @Override
   public boolean createRecurringAllDayEvent(String eventName, LocalDateTime dateTime,
       String weekdays, int occurrences,
-      LocalDateTime untilDate, boolean autoDecline) {
+      LocalDateTime untilDate, boolean autoDecline, String description,
+      String location, boolean isPublic) {
     Event tempEvent = new EventImpl(eventName, dateTime, weekdays, occurrences, untilDate);
 
     if (eventName == null || eventName.trim().isEmpty()) {
       return false;
     }
 
+    // Set description if provided
+    if (description != null && !description.isEmpty()) {
+      ((EventImpl) tempEvent).setDescription(description);
+    }
 
-      RecurrencePattern pattern = ((EventImpl)tempEvent).getRecurrence();
-      List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(dateTime);
+    // Set location if provided
+    if (location != null && !location.isEmpty()) {
+      ((EventImpl) tempEvent).setLocation(location);
+    }
 
-      for (LocalDateTime date : recurrenceDates) {
-        if (hasAllDayConflicts(date)) {
-          return false;
-        }
+    // Set public/private status
+    ((EventImpl) tempEvent).setPublic(isPublic);
+
+    RecurrencePattern pattern = ((EventImpl)tempEvent).getRecurrence();
+    List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(dateTime);
+
+    for (LocalDateTime date : recurrenceDates) {
+      if (hasAllDayConflicts(date)) {
+        return false;
       }
+    }
 
 
     events.add(tempEvent);
@@ -121,13 +176,32 @@ public class CalendarImpl implements Calendar {
   public boolean editEvent(String property, String eventName,
       LocalDateTime startDateTime, LocalDateTime endDateTime,
       String newValue) {
-    for (Event event : events) {
-      if (event.getSubject().equals(eventName) &&
-          event.getStartDateTime().equals(startDateTime) &&
-          ((event.getEndDateTime() == null && endDateTime == null) ||
-              (event.getEndDateTime() != null && event.getEndDateTime().equals(endDateTime)))) {
 
+
+    // Handle quoted and unquoted event names
+    String quotedEventName = "\"" + eventName + "\"";
+    String unquotedEventName = eventName;
+    if (eventName.startsWith("\"") && eventName.endsWith("\"")) {
+      unquotedEventName = eventName.substring(1, eventName.length() - 1);
+    }
+
+
+    for (Event event : events) {
+      String storedSubject = event.getSubject();
+
+      boolean nameMatches = storedSubject.equals(eventName) ||
+          storedSubject.equals(quotedEventName) ||
+          storedSubject.equals(unquotedEventName);
+
+      boolean timeMatches = event.getStartDateTime().equals(startDateTime) &&
+          ((event.getEndDateTime() == null && endDateTime == null) ||
+              (event.getEndDateTime() != null && event.getEndDateTime().equals(endDateTime)));
+
+
+      if (nameMatches && timeMatches) {
         EventImpl eventImpl = (EventImpl) event;
+
+
         switch (property.toLowerCase()) {
           case "name":
           case "subject":
@@ -140,7 +214,8 @@ public class CalendarImpl implements Calendar {
             eventImpl.setLocation(newValue);
             return true;
           case "public":
-            eventImpl.setPublic(Boolean.parseBoolean(newValue));
+            boolean isPublic = Boolean.parseBoolean(newValue);
+            eventImpl.setPublic(isPublic);
             return true;
           default:
             return false;

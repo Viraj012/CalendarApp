@@ -13,20 +13,27 @@ public interface Calendar {
    * @param startDateTime the start date and time
    * @param endDateTime the end date and time
    * @param autoDecline whether to automatically decline if conflicts exist
+   * @param description optional description for the event
+   * @param location optional location for the event
+   * @param isPublic whether the event is public (true) or private (false)
    * @return true if the event was created successfully, false otherwise
    */
   boolean createEvent(String eventName, LocalDateTime startDateTime,
-      LocalDateTime endDateTime, boolean autoDecline);
+      LocalDateTime endDateTime, boolean autoDecline, String description,
+      String location, boolean isPublic);
 
   /**
    * Creates a single all-day event.
    * @param eventName the name of the event
    * @param dateTime the date of the all-day event
    * @param autoDecline whether to automatically decline if conflicts exist
+   * @param description optional description for the event
+   * @param location optional location for the event
+   * @param isPublic whether the event is public (true) or private (false)
    * @return true if the event was created successfully, false otherwise
    */
   boolean createAllDayEvent(String eventName, LocalDateTime dateTime,
-      boolean autoDecline);
+      boolean autoDecline, String description, String location, boolean isPublic);
 
   /**
    * Creates a recurring event in the calendar.
@@ -37,12 +44,15 @@ public interface Calendar {
    * @param occurrences the number of occurrences (used if untilDate is null)
    * @param untilDate the end date for recurrence (used if occurrences is -1)
    * @param autoDecline whether to automatically decline if conflicts exist
+   * @param description optional description for the event
+   * @param location optional location for the event
+   * @param isPublic whether the event is public (true) or private (false)
    * @return true if the event was created successfully, false otherwise
    */
   boolean createRecurringEvent(String eventName, LocalDateTime startDateTime,
       LocalDateTime endDateTime, String weekdays,
       int occurrences, LocalDateTime untilDate,
-      boolean autoDecline);
+      boolean autoDecline, String description, String location, boolean isPublic);
 
   /**
    * Creates a recurring all-day event.
@@ -52,11 +62,15 @@ public interface Calendar {
    * @param occurrences the number of occurrences (used if untilDate is null)
    * @param untilDate the end date for recurrence (used if occurrences is -1)
    * @param autoDecline whether to automatically decline if conflicts exist
+   * @param description optional description for the event
+   * @param location optional location for the event
+   * @param isPublic whether the event is public (true) or private (false)
    * @return true if the event was created successfully, false otherwise
    */
   boolean createRecurringAllDayEvent(String eventName, LocalDateTime dateTime,
       String weekdays, int occurrences,
-      LocalDateTime untilDate, boolean autoDecline);
+      LocalDateTime untilDate, boolean autoDecline, String description,
+      String location, boolean isPublic);
 
   /**
    * Edits a specific property of a single event.
