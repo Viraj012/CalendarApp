@@ -54,7 +54,7 @@ public class CommandProcessorTest {
 
     // Test creating a regular event with auto-decline
     processor.processCommand("create event --autoDecline Conflict from 2025-03-04T10:30 to 2025-03-04T11:30");
-    assertTrue("Should display error for conflict", mockUI.hasErrorMessage("Failed to create event (conflict detected)"));
+    assertTrue("Should display error for conflict", mockUI.hasErrorMessage("Failed to create Event (conflict detected)"));
 
     // Clear messages for next test
     mockUI.clearMessages();
@@ -221,7 +221,7 @@ public class CommandProcessorTest {
   public void testProcessInvalidDateFormat() {
     processor.processCommand("create event Meeting from invalid to 2025-03-04T11:00");
     assertTrue("Should display error for invalid date format",
-        mockUI.hasErrorMessage("Invalid date/time format"));
+        mockUI.hasErrorMessage("Invalid create event command format"));
   }
 
   /**

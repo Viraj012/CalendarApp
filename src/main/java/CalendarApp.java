@@ -33,6 +33,7 @@ public class CalendarApp {
     } else if (args[1].equalsIgnoreCase("headless") && args.length >= 3) {
       try {
         ui = new HeadlessUI(args[2]);
+
       } catch (IOException e) {
         System.err.println("Error opening commands file: " + e.getMessage());
         System.exit(1);

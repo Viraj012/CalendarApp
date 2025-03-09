@@ -26,32 +26,19 @@ public class CalendarImpl implements Calendar {
   public boolean createEvent(String eventName, LocalDateTime startDateTime,
       LocalDateTime endDateTime, boolean autoDecline, String description,
       String location, boolean isPublic) {
-    if (autoDecline && hasConflicts(startDateTime, endDateTime)) {
+
+    // Validate inputs
+    if (!validateEventInputs(eventName, startDateTime, endDateTime)) {
       return false;
     }
 
-    if (eventName == null || eventName.trim().isEmpty()) {
+    // Check for conflicts
+    if (autoDecline && hasConflicts(startDateTime, endDateTime, false)) {
       return false;
     }
 
-    if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
-      return false;
-    }
-
-    Event newEvent = new EventImpl(eventName, startDateTime, endDateTime);
-
-    // Set description if provided
-    if (description != null && !description.isEmpty()) {
-      ((EventImpl) newEvent).setDescription(description);
-    }
-
-    // Set location if provided
-    if (location != null && !location.isEmpty()) {
-      ((EventImpl) newEvent).setLocation(location);
-    }
-
-    // Set public/private status
-    ((EventImpl) newEvent).setPublic(isPublic);
+    Event newEvent = createEventObject(eventName, startDateTime, endDateTime,
+        description, location, isPublic, false, null, -1, null);
 
     events.add(newEvent);
     return true;
@@ -60,24 +47,19 @@ public class CalendarImpl implements Calendar {
   @Override
   public boolean createAllDayEvent(String eventName, LocalDateTime dateTime, boolean autoDecline,
       String description, String location, boolean isPublic) {
-    if (autoDecline && hasAllDayConflicts(dateTime)) {
+
+    // Validate inputs
+    if (!validateEventInputs(eventName, dateTime, null)) {
       return false;
     }
 
-    Event newEvent = new EventImpl(eventName, dateTime);
-
-    // Set description if provided
-    if (description != null && !description.isEmpty()) {
-      ((EventImpl) newEvent).setDescription(description);
+    // Check for conflicts
+    if (autoDecline && hasConflicts(dateTime, null, true)) {
+      return false;
     }
 
-    // Set location if provided
-    if (location != null && !location.isEmpty()) {
-      ((EventImpl) newEvent).setLocation(location);
-    }
-
-    // Set public/private status
-    ((EventImpl) newEvent).setPublic(isPublic);
+    Event newEvent = createEventObject(eventName, dateTime, null,
+        description, location, isPublic, true, null, -1, null);
 
     events.add(newEvent);
     return true;
@@ -88,45 +70,33 @@ public class CalendarImpl implements Calendar {
       LocalDateTime endDateTime, String weekdays,
       int occurrences, LocalDateTime untilDate,
       boolean autoDecline, String description, String location, boolean isPublic) {
+
+    // Validate inputs
+    if (!validateEventInputs(eventName, startDateTime, endDateTime)) {
+      return false;
+    }
+
+    // Ensure event doesn't span multiple days
     if (!startDateTime.toLocalDate().equals(endDateTime.toLocalDate())) {
       return false;
     }
-    if (eventName == null || eventName.trim().isEmpty()) {
-      return false;
-    }
 
-    if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
-      return false;
-    }
+    // Create a temporary event to calculate recurrences
+    Event tempEvent = createEventObject(eventName, startDateTime, endDateTime,
+        description, location, isPublic, false, weekdays, occurrences, untilDate);
 
+    // Check for conflicts on all recurrence dates
+    if (autoDecline) {
+      RecurrencePattern pattern = ((EventImpl)tempEvent).getRecurrence();
+      List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(startDateTime);
 
-    Event tempEvent = new EventImpl(eventName, startDateTime, endDateTime,
-        weekdays, occurrences, untilDate);
+      for (LocalDateTime date : recurrenceDates) {
+        LocalDateTime start = date;
+        LocalDateTime end = calculateRecurringEndTime(date, startDateTime, endDateTime);
 
-    // Set description if provided
-    if (description != null && !description.isEmpty()) {
-      ((EventImpl) tempEvent).setDescription(description);
-    }
-
-    // Set location if provided
-    if (location != null && !location.isEmpty()) {
-      ((EventImpl) tempEvent).setLocation(location);
-    }
-
-    // Set public/private status
-    ((EventImpl) tempEvent).setPublic(isPublic);
-
-    RecurrencePattern pattern = ((EventImpl)tempEvent).getRecurrence();
-    List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(startDateTime);
-
-    for (LocalDateTime date : recurrenceDates) {
-      LocalDateTime start = date;
-      LocalDateTime end = date.plusHours(endDateTime.getHour() - startDateTime.getHour())
-          .plusMinutes(endDateTime.getMinute() - startDateTime.getMinute());
-
-      if (hasConflicts(start, end)) {
-        return false;
-
+        if (hasConflicts(start, end, false)) {
+          return false;
+        }
       }
     }
 
@@ -139,34 +109,27 @@ public class CalendarImpl implements Calendar {
       String weekdays, int occurrences,
       LocalDateTime untilDate, boolean autoDecline, String description,
       String location, boolean isPublic) {
-    Event tempEvent = new EventImpl(eventName, dateTime, weekdays, occurrences, untilDate);
 
-    if (eventName == null || eventName.trim().isEmpty()) {
+    // Validate inputs
+    if (!validateEventInputs(eventName, dateTime, null)) {
       return false;
     }
 
-    // Set description if provided
-    if (description != null && !description.isEmpty()) {
-      ((EventImpl) tempEvent).setDescription(description);
-    }
+    // Create a temporary event to calculate recurrences
+    Event tempEvent = createEventObject(eventName, dateTime, null,
+        description, location, isPublic, true, weekdays, occurrences, untilDate);
 
-    // Set location if provided
-    if (location != null && !location.isEmpty()) {
-      ((EventImpl) tempEvent).setLocation(location);
-    }
+    // Check for conflicts on all recurrence dates
+    if (autoDecline) {
+      RecurrencePattern pattern = ((EventImpl)tempEvent).getRecurrence();
+      List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(dateTime);
 
-    // Set public/private status
-    ((EventImpl) tempEvent).setPublic(isPublic);
-
-    RecurrencePattern pattern = ((EventImpl)tempEvent).getRecurrence();
-    List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(dateTime);
-
-    for (LocalDateTime date : recurrenceDates) {
-      if (hasAllDayConflicts(date)) {
-        return false;
+      for (LocalDateTime date : recurrenceDates) {
+        if (hasConflicts(date, null, true)) {
+          return false;
+        }
       }
     }
-
 
     events.add(tempEvent);
     return true;
@@ -177,49 +140,12 @@ public class CalendarImpl implements Calendar {
       LocalDateTime startDateTime, LocalDateTime endDateTime,
       String newValue) {
 
-
     // Handle quoted and unquoted event names
-    String quotedEventName = "\"" + eventName + "\"";
-    String unquotedEventName = eventName;
-    if (eventName.startsWith("\"") && eventName.endsWith("\"")) {
-      unquotedEventName = eventName.substring(1, eventName.length() - 1);
-    }
-
+    String unquotedEventName = removeQuotes(eventName);
 
     for (Event event : events) {
-      String storedSubject = event.getSubject();
-
-      boolean nameMatches = storedSubject.equals(eventName) ||
-          storedSubject.equals(quotedEventName) ||
-          storedSubject.equals(unquotedEventName);
-
-      boolean timeMatches = event.getStartDateTime().equals(startDateTime) &&
-          ((event.getEndDateTime() == null && endDateTime == null) ||
-              (event.getEndDateTime() != null && event.getEndDateTime().equals(endDateTime)));
-
-
-      if (nameMatches && timeMatches) {
-        EventImpl eventImpl = (EventImpl) event;
-
-
-        switch (property.toLowerCase()) {
-          case "name":
-          case "subject":
-            eventImpl.setSubject(newValue);
-            return true;
-          case "description":
-            eventImpl.setDescription(newValue);
-            return true;
-          case "location":
-            eventImpl.setLocation(newValue);
-            return true;
-          case "public":
-            boolean isPublic = Boolean.parseBoolean(newValue);
-            eventImpl.setPublic(isPublic);
-            return true;
-          default:
-            return false;
-        }
+      if (isMatchingEvent(event, eventName, unquotedEventName, startDateTime, endDateTime)) {
+        return updateEventProperty((EventImpl) event, property, newValue);
       }
     }
 
@@ -233,41 +159,13 @@ public class CalendarImpl implements Calendar {
 
     for (Event event : events) {
       if (event.getSubject().equals(eventName)) {
-        boolean shouldEdit = false;
-
-        if (!event.isRecurring()) {
-          shouldEdit = !event.getStartDateTime().isBefore(startDateTime);
-        }
-        else {
-          RecurrencePattern pattern = ((EventImpl)event).getRecurrence();
-          List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(event.getStartDateTime());
-
-          shouldEdit = recurrenceDates.stream()
-              .anyMatch(dt -> !dt.isBefore(startDateTime));
-        }
+        boolean shouldEdit = isEventAfterDate(event, startDateTime);
 
         if (shouldEdit) {
-          EventImpl eventImpl = (EventImpl) event;
-          switch (property.toLowerCase()) {
-            case "name":
-            case "subject":
-              eventImpl.setSubject(newValue);
-              modified = true;
-              break;
-            case "description":
-              eventImpl.setDescription(newValue);
-              modified = true;
-              break;
-            case "location":
-              eventImpl.setLocation(newValue);
-              modified = true;
-              break;
-            case "public":
-              eventImpl.setPublic(Boolean.parseBoolean(newValue));
-              modified = true;
-              break;
-            default:
-              return false;
+          if (updateEventProperty((EventImpl) event, property, newValue)) {
+            modified = true;
+          } else {
+            return false; // Invalid property
           }
         }
       }
@@ -282,28 +180,10 @@ public class CalendarImpl implements Calendar {
 
     for (Event event : events) {
       if (event.getSubject().equals(eventName)) {
-
-        EventImpl eventImpl = (EventImpl) event;
-        switch (property.toLowerCase()) {
-          case "name":
-          case "subject":
-            eventImpl.setSubject(newValue);
-            modified = true;
-            break;
-          case "description":
-            eventImpl.setDescription(newValue);
-            modified = true;
-            break;
-          case "location":
-            eventImpl.setLocation(newValue);
-            modified = true;
-            break;
-          case "public":
-            eventImpl.setPublic(Boolean.parseBoolean(newValue));
-            modified = true;
-            break;
-          default:
-            return false;
+        if (updateEventProperty((EventImpl) event, property, newValue)) {
+          modified = true;
+        } else {
+          return false; // Invalid property
         }
       }
     }
@@ -336,42 +216,53 @@ public class CalendarImpl implements Calendar {
     File file = new File(fileName);
 
     try (FileWriter writer = new FileWriter(file)) {
+      // Write CSV header
       writer.write("Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n");
 
       DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
       DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
 
+      // Export each event
       for (Event event : events) {
         StringBuilder line = new StringBuilder();
 
+        // Subject
         line.append(escapeCSV(event.getSubject())).append(",");
 
+        // Start Date
         line.append(event.getStartDateTime().format(dateFormatter)).append(",");
 
+        // Start Time (empty for all-day events)
         if (event.isAllDay()) {
           line.append(",");
         } else {
           line.append(event.getStartDateTime().format(timeFormatter)).append(",");
         }
 
+        // End Date
         if (event.getEndDateTime() == null) {
           line.append(event.getStartDateTime().format(dateFormatter)).append(",");
         } else {
           line.append(event.getEndDateTime().format(dateFormatter)).append(",");
         }
 
+        // End Time (empty for all-day events)
         if (event.isAllDay() || event.getEndDateTime() == null) {
           line.append(",");
         } else {
           line.append(event.getEndDateTime().format(timeFormatter)).append(",");
         }
 
+        // All-day flag
         line.append(event.isAllDay() ? "True" : "False").append(",");
 
+        // Description
         line.append(escapeCSV(event.getDescription())).append(",");
 
+        // Location
         line.append(escapeCSV(event.getLocation())).append(",");
 
+        // Private flag
         line.append(!event.isPublic() ? "True" : "False");
 
         line.append("\n");
@@ -401,6 +292,127 @@ public class CalendarImpl implements Calendar {
   }
 
   /**
+   * Validates basic event inputs.
+   *
+   * @param eventName the event name
+   * @param startDateTime the start date/time
+   * @param endDateTime the end date/time (can be null for all-day events)
+   * @return true if inputs are valid
+   */
+  private boolean validateEventInputs(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+    if (eventName == null || eventName.trim().isEmpty()) {
+      return false;
+    }
+
+    if (startDateTime == null) {
+      return false;
+    }
+
+    if (endDateTime != null && (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime))) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Creates a new Event object.
+   */
+  private Event createEventObject(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime,
+      String description, String location, boolean isPublic, boolean isAllDay,
+      String weekdays, int occurrences, LocalDateTime untilDate) {
+
+    Event newEvent;
+
+    if (isAllDay) {
+      if (weekdays != null) {
+        // Recurring all-day event
+        newEvent = new EventImpl(eventName, startDateTime, weekdays, occurrences, untilDate);
+      } else {
+        // Single all-day event
+        newEvent = new EventImpl(eventName, startDateTime);
+      }
+    } else {
+      if (weekdays != null) {
+        // Recurring regular event
+        newEvent = new EventImpl(eventName, startDateTime, endDateTime, weekdays, occurrences, untilDate);
+      } else {
+        // Single regular event
+        newEvent = new EventImpl(eventName, startDateTime, endDateTime);
+      }
+    }
+
+    // Set additional properties
+    EventImpl eventImpl = (EventImpl) newEvent;
+
+    if (description != null && !description.isEmpty()) {
+      eventImpl.setDescription(description);
+    }
+
+    if (location != null && !location.isEmpty()) {
+      eventImpl.setLocation(location);
+    }
+
+    eventImpl.setPublic(isPublic);
+
+    return newEvent;
+  }
+
+  /**
+   * Updates a property on an event.
+   *
+   * @param eventImpl the event to update
+   * @param property the property name
+   * @param newValue the new value
+   * @return true if successful
+   */
+  private boolean updateEventProperty(EventImpl eventImpl, String property, String newValue) {
+    switch (property.toLowerCase()) {
+      case "name":
+      case "subject":
+        eventImpl.setSubject(newValue);
+        return true;
+      case "description":
+        eventImpl.setDescription(newValue);
+        return true;
+      case "location":
+        eventImpl.setLocation(newValue);
+        return true;
+      case "public":
+        eventImpl.setPublic(Boolean.parseBoolean(newValue));
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Check if an event matches the specified criteria.
+   */
+  private boolean isMatchingEvent(Event event, String eventName, String unquotedEventName,
+      LocalDateTime startDateTime, LocalDateTime endDateTime) {
+
+    String storedSubject = event.getSubject();
+    boolean nameMatches = storedSubject.equals(eventName) || storedSubject.equals(unquotedEventName);
+
+    boolean timeMatches = event.getStartDateTime().equals(startDateTime) &&
+        ((event.getEndDateTime() == null && endDateTime == null) ||
+            (event.getEndDateTime() != null && event.getEndDateTime().equals(endDateTime)));
+
+    return nameMatches && timeMatches;
+  }
+
+  /**
+   * Removes quotes from a string if present.
+   */
+  private String removeQuotes(String text) {
+    if (text.startsWith("\"") && text.endsWith("\"")) {
+      return text.substring(1, text.length() - 1);
+    }
+    return text;
+  }
+
+  /**
    * Check if the event is active at the specified date and time.
    */
   private boolean isEventActiveAt(Event event, LocalDateTime dateTime) {
@@ -417,9 +429,7 @@ public class CalendarImpl implements Calendar {
    */
   private boolean isEventOnDate(Event event, java.time.LocalDate date) {
     if (event.isRecurring()) {
-      RecurrencePattern pattern = ((EventImpl)event).getRecurrence();
-      List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(event.getStartDateTime());
-
+      List<LocalDateTime> recurrenceDates = getRecurrenceDates(event);
       return recurrenceDates.stream()
           .anyMatch(dt -> dt.toLocalDate().equals(date));
     }
@@ -434,9 +444,7 @@ public class CalendarImpl implements Calendar {
    */
   private boolean isEventInDateRange(Event event, LocalDateTime startDateTime, LocalDateTime endDateTime) {
     if (event.isRecurring()) {
-      RecurrencePattern pattern = ((EventImpl)event).getRecurrence();
-      List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(event.getStartDateTime());
-
+      List<LocalDateTime> recurrenceDates = getRecurrenceDates(event);
       return recurrenceDates.stream()
           .anyMatch(dt -> !dt.isBefore(startDateTime) && !dt.isAfter(endDateTime));
     }
@@ -446,26 +454,55 @@ public class CalendarImpl implements Calendar {
   }
 
   /**
-   * Check if there are any conflicts with existing events in the given time range.
+   * Check if an event starts after a given date.
    */
-  private boolean hasConflicts(LocalDateTime start, LocalDateTime end) {
-    return events.stream()
-        .anyMatch(event -> {
-          if (event.isAllDay()) {
-            return start.toLocalDate().equals(event.getStartDateTime().toLocalDate());
-          }
-
-          return !(end.isBefore(event.getStartDateTime()) ||
-              start.isAfter(event.getEndDateTime()));
-        });
+  private boolean isEventAfterDate(Event event, LocalDateTime startDateTime) {
+    if (!event.isRecurring()) {
+      return !event.getStartDateTime().isBefore(startDateTime);
+    } else {
+      List<LocalDateTime> recurrenceDates = getRecurrenceDates(event);
+      return recurrenceDates.stream()
+          .anyMatch(dt -> !dt.isBefore(startDateTime));
+    }
   }
 
   /**
-   * Check if there are any conflicts with existing all-day events on the given date.
+   * Get recurrence dates for an event.
    */
-  private boolean hasAllDayConflicts(LocalDateTime date) {
+  private List<LocalDateTime> getRecurrenceDates(Event event) {
+    RecurrencePattern pattern = ((EventImpl)event).getRecurrence();
+    return pattern.calculateRecurrences(event.getStartDateTime());
+  }
+
+  /**
+   * Calculate the end time for a recurring event occurrence.
+   */
+  private LocalDateTime calculateRecurringEndTime(LocalDateTime date,
+      LocalDateTime originalStart, LocalDateTime originalEnd) {
+
+    return date.plusHours(originalEnd.getHour() - originalStart.getHour())
+        .plusMinutes(originalEnd.getMinute() - originalStart.getMinute());
+  }
+
+  /**
+   * Check if there are any conflicts with existing events in the given time range.
+   *
+   * @param start the start time
+   * @param end the end time (null for all-day events)
+   * @param isAllDay whether this is an all-day event
+   * @return true if there are conflicts
+   */
+  private boolean hasConflicts(LocalDateTime start, LocalDateTime end, boolean isAllDay) {
     return events.stream()
-        .anyMatch(event -> event.isAllDay() &&
-            event.getStartDateTime().toLocalDate().equals(date.toLocalDate()));
+        .anyMatch(event -> {
+          if (isAllDay || event.isAllDay()) {
+            // All-day events conflict with any event on the same day
+            return start.toLocalDate().equals(event.getStartDateTime().toLocalDate());
+          }
+
+          // Regular events conflict if their time ranges overlap
+          return !(end.isBefore(event.getStartDateTime()) ||
+              start.isAfter(event.getEndDateTime()));
+        });
   }
 }
