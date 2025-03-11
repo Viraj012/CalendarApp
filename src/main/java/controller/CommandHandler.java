@@ -260,9 +260,28 @@ public class CommandHandler {
    * @param events the events to print
    */
   private void printEvents(List<Event> events) {
+    // Sort events by start time for better readability
+    events.sort((e1, e2) -> {
+      // First sort by date
+      int dateCompare = e1.getStartDateTime().toLocalDate().compareTo(e2.getStartDateTime().toLocalDate());
+      if (dateCompare != 0) {
+        return dateCompare;
+      }
+
+      // Then sort all-day events before timed events
+      if (e1.isAllDay() && !e2.isAllDay()) {
+        return -1;
+      } else if (!e1.isAllDay() && e2.isAllDay()) {
+        return 1;
+      }
+
+      // Finally sort by start time for timed events
+      return e1.getStartDateTime().compareTo(e2.getStartDateTime());
+    });
+
     int eventNumber = 1;
     for (Event event : events) {
-      view.displayMessage(eventNumber + "." + event.toString());
+      view.displayMessage(eventNumber + ". " + event.toString());
       eventNumber++;
     }
   }

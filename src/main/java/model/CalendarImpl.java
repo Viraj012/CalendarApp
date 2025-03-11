@@ -314,36 +314,94 @@ public class CalendarImpl implements Calendar {
 
   @Override
   public List<Event> getEventsOn(LocalDateTime dateTime) {
-    return events.stream()
-        .filter(event -> isEventOnDate(event, dateTime.toLocalDate()))
-        .collect(Collectors.toList());
+    List<Event> result = new ArrayList<>();
+
+    for (Event event : events) {
+      if (!event.isRecurring()) {
+        // For non-recurring events, check if they fall on the given date
+        if (isEventOnDate(event, dateTime.toLocalDate())) {
+          result.add(event);
+        }
+      } else {
+        // For recurring events, expand into individual occurrences
+        RecurrencePattern pattern = ((EventImpl)event).getRecurrence();
+        List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(event.getStartDateTime());
+
+        // Add a virtual event instance for each recurrence on the requested date
+        for (LocalDateTime recurrenceDate : recurrenceDates) {
+          if (recurrenceDate.toLocalDate().equals(dateTime.toLocalDate())) {
+            // Create a non-recurring event instance for this occurrence
+            Event occurrenceEvent = createOccurrenceEvent(event, recurrenceDate);
+            result.add(occurrenceEvent);
+          }
+        }
+      }
+    }
+
+    return result;
   }
+
 
   @Override
   public List<Event> getEventsFrom(LocalDateTime startDateTime, LocalDateTime endDateTime) {
     List<Event> result = new ArrayList<>();
 
     for (Event event : events) {
-      // For regular events, add them if they're in the date range
-      if (!event.isRecurring() && isEventInDateRange(event, startDateTime, endDateTime)) {
-        result.add(event);
-      }
-      // For recurring events, add them only once if any occurrence is in range
-      else if (event.isRecurring()) {
+      if (!event.isRecurring()) {
+        if (isEventInDateRange(event, startDateTime, endDateTime)) {
+          result.add(event);
+        }
+      } else {
         RecurrencePattern pattern = ((EventImpl)event).getRecurrence();
         List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(event.getStartDateTime());
 
-        // Check if any recurrence falls within the date range
-        boolean hasOccurrenceInRange = recurrenceDates.stream()
-            .anyMatch(date -> !date.isBefore(startDateTime) && !date.isAfter(endDateTime));
-
-        if (hasOccurrenceInRange) {
-          result.add(event);
+        for (LocalDateTime recurrenceDate : recurrenceDates) {
+          if (!recurrenceDate.toLocalDate().isBefore(startDateTime.toLocalDate()) &&
+              !recurrenceDate.toLocalDate().isAfter(endDateTime.toLocalDate())) {
+            // Create a non-recurring event instance for this occurrence
+            Event occurrenceEvent = createOccurrenceEvent(event, recurrenceDate);
+            result.add(occurrenceEvent);
+          }
         }
       }
     }
 
     return result;
+  }
+
+  /**
+   * Creates a non-recurring event instance for a specific occurrence of a recurring event.
+   *
+   * @param templateEvent the recurring event template
+   * @param occurrenceDate the date of this specific occurrence
+   * @return a new Event instance representing this occurrence
+   */
+  private Event createOccurrenceEvent(Event templateEvent, LocalDateTime occurrenceDate) {
+    EventImpl original = (EventImpl) templateEvent;
+    EventImpl occurrence;
+
+    if (original.isAllDay()) {
+      // Create an all-day event occurrence
+      occurrence = new EventImpl(original.getSubject(), occurrenceDate);
+    } else {
+      // For regular events, calculate the end time based on the duration of the original event
+      LocalDateTime occurrenceEndTime = calculateRecurringEndTime(
+          occurrenceDate, original.getStartDateTime(), original.getEndDateTime());
+      occurrence = new EventImpl(original.getSubject(), occurrenceDate, occurrenceEndTime);
+    }
+
+    // Copy other properties
+    occurrence.setDescription(original.getDescription());
+    occurrence.setLocation(original.getLocation());
+    occurrence.setPublic(original.isPublic());
+
+    // Add indication that this is a recurring event occurrence
+    String subject = occurrence.getSubject();
+    if (!subject.contains("[Recurring]")) {
+      occurrence.setSubject(subject + " [Recurring]");
+    }
+
+    return occurrence;
   }
   @Override
   public boolean isBusy(LocalDateTime dateTime) {
