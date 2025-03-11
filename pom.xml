@@ -22,4 +22,31 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.17.2</version>
+        <configuration>
+          <targetClasses>
+            <param>controller.*</param>
+            <param>model.*</param>
+            <param>view.*</param>
+          </targetClasses>
+          <targetTests>
+            <param>CalendarImpTest</param>
+            <param>CalendarIntegrationTest</param>
+            <param>CommandParserTest</param>
+            <param>DateTimeUtilTest</param>
+            <param>EventTest</param>
+            <param>EventImpTest</param>
+            <param>RecurrencePatternTest</param>
+            <param>MVCTest</param>
+          </targetTests>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>

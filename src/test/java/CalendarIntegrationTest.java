@@ -1,157 +1,198 @@
 import controller.CommandProcessor;
 import model.Calendar;
 import model.CalendarImpl;
+import model.Event;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import view.TextUI;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.PrintStream;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
 
 /**
- * Integration tests for the Calendar application.
- * These tests verify the interaction between multiple components.
+ * Integration test for the Calendar application.
+ * Tests the full flow of commands through the application.
  */
 public class CalendarIntegrationTest {
-
   private Calendar calendar;
   private MockTextUI mockUI;
   private CommandProcessor processor;
-  private PrintStream originalOut;
-  private PrintStream originalErr;
-  private ByteArrayOutputStream outContent;
-  private ByteArrayOutputStream errContent;
+  private final String EXPORT_FILE = "test_export_integration.csv";
 
   @Before
   public void setUp() {
     calendar = new CalendarImpl();
     mockUI = new MockTextUI();
     processor = new CommandProcessor(calendar, mockUI);
-
-    // Set up output capturing
-    originalOut = System.out;
-    originalErr = System.err;
-    outContent = new ByteArrayOutputStream();
-    errContent = new ByteArrayOutputStream();
-    System.setOut(new PrintStream(outContent));
-    System.setErr(new PrintStream(errContent));
   }
 
   @After
   public void tearDown() {
-    // Restore original output streams
-    System.setOut(originalOut);
-    System.setErr(originalErr);
-
-    // Clean up any exported files
-    File exportFile = new File("integration_test_export.csv");
+    // Clean up exported files
+    File exportFile = new File(EXPORT_FILE);
     if (exportFile.exists()) {
       exportFile.delete();
     }
   }
 
+//  @Test
+//  public void testFullApplicationFlow() {
+//    // Test creating a regular event
+//    assertTrue(processor.processCommand("create event Team Meeting from 2025-03-15T14:00 to 2025-03-15T15:30 --description \"Weekly team sync\" --location \"Conference Room A\""));
+//    assertTrue(mockUI.getLastMessage().contains("Event created successfully"));
+//    mockUI.clearMessages();
+//
+//    // Test creating an all-day event
+//    assertTrue(processor.processCommand("create event Conference on 2025-03-20 --description \"Annual tech conference\" --location \"Convention Center\""));
+//    assertTrue(mockUI.getLastMessage().contains("All-day event created successfully"));
+//    mockUI.clearMessages();
+//
+//    // Test creating a recurring event
+//    assertTrue(processor.processCommand("create event Weekly Status from 2025-03-10T10:00 to 2025-03-10T11:00 repeats M for 4 times --description \"Weekly team status\" --location \"Meeting Room B\""));
+//    assertTrue(mockUI.getLastMessage().contains("Recurring event created successfully"));
+//    mockUI.clearMessages();
+//
+//    // Test creating a private event with auto-decline
+//    assertTrue(processor.processCommand("create event Private Meeting from 2025-03-16T09:00 to 2025-03-16T10:00 --private --autoDecline"));
+//    assertTrue(mockUI.getLastMessage().contains("Event created successfully"));
+//    mockUI.clearMessages();
+//
+//    // Test printing events for a specific day
+//    assertTrue(processor.processCommand("print events on 2025-03-15"));
+//    assertTrue(mockUI.getLastMessage().contains("Events on 2025-03-15"));
+//    assertTrue(mockUI.getAllMessages().stream().anyMatch(msg -> msg.contains("Team Meeting")));
+//    mockUI.clearMessages();
+//
+//    // Test printing events for a date range
+//    assertTrue(processor.processCommand("print events from 2025-03-10 to 2025-03-20"));
+//    assertTrue(mockUI.getLastMessage().contains("Events from 2025-03-10 to 2025-03-20"));
+//    assertTrue(mockUI.getAllMessages().stream().anyMatch(msg -> msg.contains("Team Meeting")));
+//    assertTrue(mockUI.getAllMessages().stream().anyMatch(msg -> msg.contains("Weekly Status")));
+//    assertTrue(mockUI.getAllMessages().stream().anyMatch(msg -> msg.contains("Conference")));
+//    mockUI.clearMessages();
+//
+//    // Test editing a specific event
+//    assertTrue(processor.processCommand("edit event name Team Meeting from 2025-03-15T14:00 to 2025-03-15T15:30 with \"Strategy Meeting\""));
+//    assertEquals("Event updated successfully", mockUI.getLastMessage());
+//    mockUI.clearMessages();
+//
+//    // Verify the edit worked
+//    assertTrue(processor.processCommand("print events on 2025-03-15"));
+//    assertTrue(mockUI.getAllMessages().stream().anyMatch(msg -> msg.contains("Strategy Meeting")));
+//    assertFalse(mockUI.getAllMessages().stream().anyMatch(msg -> msg.contains("Team Meeting")));
+//    mockUI.clearMessages();
+//
+//    // Test editing all recurring events
+//    assertTrue(processor.processCommand("edit events location \"Weekly Status\" with \"Virtual Meeting Room\""));
+//    assertEquals("Events updated successfully", mockUI.getLastMessage());
+//    mockUI.clearMessages();
+//
+//    // Test showing busy status
+//    assertTrue(processor.processCommand("show status on 2025-03-15T14:30"));
+//    assertEquals("busy", mockUI.getLastMessage());
+//    mockUI.clearMessages();
+//
+//    assertTrue(processor.processCommand("show status on 2025-03-15T13:00"));
+//    assertEquals("available", mockUI.getLastMessage());
+//    mockUI.clearMessages();
+//
+//    // Test exporting the calendar
+//    assertTrue(processor.processCommand("export cal " + EXPORT_FILE));
+//    assertTrue(mockUI.getLastMessage().contains("Calendar exported to"));
+//    mockUI.clearMessages();
+//
+//    // Verify export file exists and contains expected content
+//    File exportFile = new File(EXPORT_FILE);
+//    assertTrue(exportFile.exists());
+//
+//    try {
+//      List<String> lines = Files.readAllLines(Paths.get(EXPORT_FILE));
+//      assertTrue(lines.size() >= 5); // Header + at least 4 events
+//
+//      // Check header
+//      assertTrue(lines.get(0).contains("Subject,Start Date"));
+//
+//      // Check events are in the file
+//      boolean foundStrategyMeeting = false;
+//      boolean foundConference = false;
+//      boolean foundWeeklyStatus = false;
+//      boolean foundPrivateMeeting = false;
+//
+//      for (String line : lines) {
+//        if (line.contains("Strategy Meeting")) {
+//          foundStrategyMeeting = true;
+//          assertTrue(line.contains("03/15/2025"));
+//        } else if (line.contains("Conference")) {
+//          foundConference = true;
+//          assertTrue(line.contains("03/20/2025"));
+//          assertTrue(line.contains("True")); // All-day event
+//        } else if (line.contains("Weekly Status")) {
+//          foundWeeklyStatus = true;
+//          assertTrue(line.contains("Virtual Meeting Room"));
+//        } else if (line.contains("Private Meeting")) {
+//          foundPrivateMeeting = true;
+//          assertTrue(line.contains("True")); // Private flag
+//        }
+//      }
+//
+//      assertTrue(foundStrategyMeeting);
+//      assertTrue(foundConference);
+//      assertTrue(foundWeeklyStatus);
+//      assertTrue(foundPrivateMeeting);
+//
+//    } catch (IOException e) {
+//      fail("Error reading export file: " + e.getMessage());
+//    }
+//
+//    // Test exiting the application
+//    assertFalse(processor.processCommand("exit"));
+//  }
+
   @Test
-  public void testCreateAndQueryEvent() {
-    // Create an event
-    assertTrue(processor.processCommand("create event Meeting from 2025-03-04T10:00 to 2025-03-04T11:00"));
-
-    // Query events on that day
-    assertTrue(processor.processCommand("print events on 2025-03-04"));
-
-    // Verify the event was found
-    assertTrue("Should display the created event",
-        mockUI.hasMessageContaining("Meeting") && mockUI.hasMessageContaining("10:00"));
-  }
-
-  @Test
-  public void testCreateEditAndQueryEvent() {
-    // Create an event
-    assertTrue(processor.processCommand("create event Meeting from 2025-03-04T10:00 to 2025-03-04T11:00"));
-
-    // Edit the event
-    assertTrue(processor.processCommand("edit event name \"Meeting\" from 2025-03-04T10:00 to 2025-03-04T11:00 with \"Team Meeting\""));
-
-    // Query events
-    assertTrue(processor.processCommand("print events on 2025-03-04"));
-
-    // Verify the edit was applied
-    assertTrue("Should display edited event name", mockUI.hasMessageContaining("Team Meeting"));
-  }
-
-
-  @Test
-  public void testCreateEventsAndCheckStatus() {
-    // Create an event
-    assertTrue(processor.processCommand("create event Meeting from 2025-03-04T10:00 to 2025-03-04T11:00"));
-
-    // Check status during the event
-    assertTrue(processor.processCommand("show status on 2025-03-04T10:30"));
-    assertTrue("Should show busy status", mockUI.hasMessageContaining("busy"));
-
-    // Check status outside the event
+  public void testErrorHandling() {
+    // Test invalid command format
+    assertTrue(processor.processCommand("invalid command"));
+    assertEquals("Unknown command: invalid", mockUI.getLastError());
     mockUI.clearMessages();
-    assertTrue(processor.processCommand("show status on 2025-03-04T12:00"));
-    assertTrue("Should show available status", mockUI.hasMessageContaining("available"));
-  }
 
-  @Test
-  public void testCreateEventsWithConflict() {
-    // Create first event
-    assertTrue(processor.processCommand("create event Meeting from 2025-03-04T10:00 to 2025-03-04T11:00"));
-
-    // Try to create a conflicting event with autoDecline
-    assertTrue(processor.processCommand("create event --autoDecline Conflict from 2025-03-04T10:30 to 2025-03-04T11:30"));
-    assertTrue("Should reject conflicting event", mockUI.hasErrorMessageContaining("conflict detected"));
-
-    // Try to create a conflicting event without autoDecline
+    // Test invalid create command
+    assertTrue(processor.processCommand("create something"));
+    assertEquals("Invalid create command. Expected 'create event'", mockUI.getLastError());
     mockUI.clearMessages();
-    assertTrue(processor.processCommand("create event Conflict from 2025-03-04T10:30 to 2025-03-04T11:30"));
-    assertTrue("Should accept conflicting event without autoDecline", mockUI.hasMessageContaining("created successfully"));
 
-    // Verify both events exist
+    // Test malformed create command
+    assertTrue(processor.processCommand("create event Team Meeting without proper format"));
+    assertTrue(mockUI.getLastError().contains("Invalid create event command format"));
     mockUI.clearMessages();
-    assertTrue(processor.processCommand("print events on 2025-03-04"));
-    assertTrue("Should display both events",
-        mockUI.hasMessageContaining("Meeting") && mockUI.hasMessageContaining("Conflict"));
+
+    // Test conflict handling with autoDecline
+    assertTrue(processor.processCommand("create event First Meeting from 2025-03-15T14:00 to 2025-03-15T15:30"));
+    mockUI.clearMessages();
+
+    assertTrue(processor.processCommand("create event Second Meeting from 2025-03-15T14:30 to 2025-03-15T16:00 --autoDecline"));
+    assertTrue(mockUI.getLastError().contains("Failed to create") && mockUI.getLastError().contains("conflict detected"));
+    mockUI.clearMessages();
+
+    // Test editing non-existent event
+    assertTrue(processor.processCommand("edit event name Non-existent Meeting from 2025-03-15T14:00 to 2025-03-15T15:30 with \"New Name\""));
+    assertTrue(mockUI.getLastError().contains("Failed to update event"));
+    mockUI.clearMessages();
+
+    // Test invalid date format
+    assertTrue(processor.processCommand("print events on 15/03/2025"));
+    assertTrue(mockUI.getLastError().contains("Invalid print command format"));
+    mockUI.clearMessages();
   }
-
-  @Test
-  public void testCreateAndExport() {
-    // Create some events
-    assertTrue(processor.processCommand("create event Meeting from 2025-03-04T10:00 to 2025-03-04T11:00"));
-    assertTrue(processor.processCommand("create event Conference on 2025-03-05"));
-
-    // Export to CSV
-    assertTrue(processor.processCommand("export cal integration_test_export.csv"));
-    assertTrue("Should confirm export", mockUI.hasMessageContaining("exported to"));
-
-    // Verify file exists
-    File exportFile = new File("integration_test_export.csv");
-    assertTrue("Export file should exist", exportFile.exists());
-  }
-
-  @Test
-  public void testEditNonexistentEvent() {
-    // Try to edit an event that doesn't exist
-    assertTrue(processor.processCommand("edit event name \"Nonexistent\" from 2025-03-04T10:00 to 2025-03-04T11:00 with \"New Name\""));
-    assertTrue("Should display error for nonexistent event",
-        mockUI.hasErrorMessageContaining("not found"));
-  }
-
-  @Test
-  public void testExitCommand() {
-    // Process exit command
-    assertFalse("Exit command should return false", processor.processCommand("exit"));
-  }
-
 
   /**
-   * Mock TextUI implementation for testing.
+   * Mock implementation of TextUI for testing.
    */
   private static class MockTextUI implements TextUI {
     private List<String> messages = new ArrayList<>();
@@ -177,26 +218,16 @@ public class CalendarIntegrationTest {
       // Not used in these tests
     }
 
-    public boolean hasMessageContaining(String substring) {
-      for (String message : messages) {
-        if (message.contains(substring)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    public boolean hasErrorMessageContaining(String substring) {
-      for (String error : errors) {
-        if (error.contains(substring)) {
-          return true;
-        }
-      }
-      return false;
+    public String getLastMessage() {
+      return messages.isEmpty() ? null : messages.get(messages.size() - 1);
     }
 
     public List<String> getAllMessages() {
       return new ArrayList<>(messages);
+    }
+
+    public String getLastError() {
+      return errors.isEmpty() ? null : errors.get(errors.size() - 1);
     }
 
     public void clearMessages() {

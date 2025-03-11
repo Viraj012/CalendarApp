@@ -3,10 +3,12 @@ package model;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -156,12 +158,95 @@ public class CalendarImpl implements Calendar {
   public boolean editEventsFrom(String property, String eventName,
       LocalDateTime startDateTime, String newValue) {
     boolean modified = false;
+    List<Event> eventsToAdd = new ArrayList<>();
+    List<Event> eventsToRemove = new ArrayList<>();
 
     for (Event event : events) {
-      if (event.getSubject().equals(eventName)) {
-        boolean shouldEdit = isEventAfterDate(event, startDateTime);
+      if (event.getSubject().equals(eventName) && event.isRecurring()) {
+        EventImpl originalEvent = (EventImpl) event;
+        RecurrencePattern originalPattern = originalEvent.getRecurrence();
 
-        if (shouldEdit) {
+        // Calculate the recurrence dates
+        List<LocalDateTime> recurrenceDates = originalPattern.calculateRecurrences(originalEvent.getStartDateTime());
+
+        // Check if any occurrences fall after startDateTime
+        boolean hasOccurrencesAfter = recurrenceDates.stream()
+            .anyMatch(date -> !date.isBefore(startDateTime));
+
+        if (hasOccurrencesAfter) {
+          // Create a shortened version of the original event that ends just before startDateTime
+          EventImpl shortenedOriginal;
+
+          if (originalEvent.isAllDay()) {
+            shortenedOriginal = new EventImpl(
+                originalEvent.getSubject(),
+                originalEvent.getStartDateTime(),
+                weekdaysToString(originalPattern.getWeekdays()),
+                -1,  // Use untilDate instead of occurrences
+                startDateTime.minusDays(1)
+            );
+          } else {
+            shortenedOriginal = new EventImpl(
+                originalEvent.getSubject(),
+                originalEvent.getStartDateTime(),
+                originalEvent.getEndDateTime(),
+                weekdaysToString(originalPattern.getWeekdays()),
+                -1,
+                startDateTime.minusDays(1)
+            );
+          }
+
+          // Copy other properties
+          shortenedOriginal.setDescription(originalEvent.getDescription());
+          shortenedOriginal.setLocation(originalEvent.getLocation());
+          shortenedOriginal.setPublic(originalEvent.isPublic());
+
+          // Create a modified version starting from startDateTime
+          EventImpl modifiedEvent;
+
+          if (originalEvent.isAllDay()) {
+            modifiedEvent = new EventImpl(
+                originalEvent.getSubject(),
+                startDateTime,
+                weekdaysToString(originalPattern.getWeekdays()),
+                originalPattern.getOccurrences(),
+                originalPattern.getUntilDate()
+            );
+          } else {
+            // For non-all-day events, calculate the equivalent end time
+            LocalDateTime newEndTime = calculateEquivalentEndTime(
+                originalEvent.getStartDateTime(),
+                originalEvent.getEndDateTime(),
+                startDateTime
+            );
+
+            modifiedEvent = new EventImpl(
+                originalEvent.getSubject(),
+                startDateTime,
+                newEndTime,
+                weekdaysToString(originalPattern.getWeekdays()),
+                originalPattern.getOccurrences(),
+                originalPattern.getUntilDate()
+            );
+          }
+
+          // Copy other properties
+          modifiedEvent.setDescription(originalEvent.getDescription());
+          modifiedEvent.setLocation(originalEvent.getLocation());
+          modifiedEvent.setPublic(originalEvent.isPublic());
+
+          if (updateEventProperty(modifiedEvent, property, newValue)) {
+            // Mark the original for removal and the new events for addition
+            eventsToRemove.add(originalEvent);
+            eventsToAdd.add(shortenedOriginal);
+            eventsToAdd.add(modifiedEvent);
+            modified = true;
+          } else {
+          }
+        }
+      } else if (event.getSubject().equals(eventName) && !event.isRecurring()) {
+        // For non-recurring events, check if they start after startDateTime
+        if (!event.getStartDateTime().isBefore(startDateTime)) {
           if (updateEventProperty((EventImpl) event, property, newValue)) {
             modified = true;
           } else {
@@ -171,9 +256,45 @@ public class CalendarImpl implements Calendar {
       }
     }
 
+    // Apply the changes
+    events.removeAll(eventsToRemove);
+    events.addAll(eventsToAdd);
+
     return modified;
   }
 
+  // Helper method to convert Set<DayOfWeek> to weekday string format
+  private String weekdaysToString(Set<DayOfWeek> weekdays) {
+    StringBuilder sb = new StringBuilder();
+
+    for (DayOfWeek day : weekdays) {
+      switch (day) {
+        case MONDAY: sb.append("M"); break;
+        case TUESDAY: sb.append("T"); break;
+        case WEDNESDAY: sb.append("W"); break;
+        case THURSDAY: sb.append("R"); break;
+        case FRIDAY: sb.append("F"); break;
+        case SATURDAY: sb.append("S"); break;
+        case SUNDAY: sb.append("U"); break;
+      }
+    }
+
+    return sb.toString();
+  }
+
+  // Helper method to calculate the equivalent end time for a new start time
+  private LocalDateTime calculateEquivalentEndTime(
+      LocalDateTime originalStart,
+      LocalDateTime originalEnd,
+      LocalDateTime newStart) {
+
+    // Calculate the duration of the original event
+    long hoursDifference = originalEnd.getHour() - originalStart.getHour();
+    long minutesDifference = originalEnd.getMinute() - originalStart.getMinute();
+
+    // Apply the same duration to the new start time
+    return newStart.plusHours(hoursDifference).plusMinutes(minutesDifference);
+  }
   @Override
   public boolean editAllEvents(String property, String eventName, String newValue) {
     boolean modified = false;
@@ -200,11 +321,30 @@ public class CalendarImpl implements Calendar {
 
   @Override
   public List<Event> getEventsFrom(LocalDateTime startDateTime, LocalDateTime endDateTime) {
-    return events.stream()
-        .filter(event -> isEventInDateRange(event, startDateTime, endDateTime))
-        .collect(Collectors.toList());
-  }
+    List<Event> result = new ArrayList<>();
 
+    for (Event event : events) {
+      // For regular events, add them if they're in the date range
+      if (!event.isRecurring() && isEventInDateRange(event, startDateTime, endDateTime)) {
+        result.add(event);
+      }
+      // For recurring events, add them only once if any occurrence is in range
+      else if (event.isRecurring()) {
+        RecurrencePattern pattern = ((EventImpl)event).getRecurrence();
+        List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(event.getStartDateTime());
+
+        // Check if any recurrence falls within the date range
+        boolean hasOccurrenceInRange = recurrenceDates.stream()
+            .anyMatch(date -> !date.isBefore(startDateTime) && !date.isAfter(endDateTime));
+
+        if (hasOccurrenceInRange) {
+          result.add(event);
+        }
+      }
+    }
+
+    return result;
+  }
   @Override
   public boolean isBusy(LocalDateTime dateTime) {
     return events.stream()
@@ -224,49 +364,26 @@ public class CalendarImpl implements Calendar {
 
       // Export each event
       for (Event event : events) {
-        StringBuilder line = new StringBuilder();
+        if (event.isRecurring()) {
+          // For recurring events, create individual entries for each occurrence
+          RecurrencePattern pattern = ((EventImpl)event).getRecurrence();
+          List<LocalDateTime> occurrences = pattern.calculateRecurrences(event.getStartDateTime());
 
-        // Subject
-        line.append(escapeCSV(event.getSubject())).append(",");
+          for (LocalDateTime occurrence : occurrences) {
+            // Calculate the equivalent end time for this occurrence
+            LocalDateTime occurrenceEndTime = null;
+            if (!event.isAllDay() && event.getEndDateTime() != null) {
+              long hoursDifference = event.getEndDateTime().getHour() - event.getStartDateTime().getHour();
+              long minutesDifference = event.getEndDateTime().getMinute() - event.getStartDateTime().getMinute();
+              occurrenceEndTime = occurrence.plusHours(hoursDifference).plusMinutes(minutesDifference);
+            }
 
-        // Start Date
-        line.append(event.getStartDateTime().format(dateFormatter)).append(",");
-
-        // Start Time (empty for all-day events)
-        if (event.isAllDay()) {
-          line.append(",");
+            writeSingleEventToCSV(writer, event, occurrence, occurrenceEndTime, dateFormatter, timeFormatter);
+          }
         } else {
-          line.append(event.getStartDateTime().format(timeFormatter)).append(",");
+          // For non-recurring events, just write a single entry
+          writeSingleEventToCSV(writer, event, event.getStartDateTime(), event.getEndDateTime(), dateFormatter, timeFormatter);
         }
-
-        // End Date
-        if (event.getEndDateTime() == null) {
-          line.append(event.getStartDateTime().format(dateFormatter)).append(",");
-        } else {
-          line.append(event.getEndDateTime().format(dateFormatter)).append(",");
-        }
-
-        // End Time (empty for all-day events)
-        if (event.isAllDay() || event.getEndDateTime() == null) {
-          line.append(",");
-        } else {
-          line.append(event.getEndDateTime().format(timeFormatter)).append(",");
-        }
-
-        // All-day flag
-        line.append(event.isAllDay() ? "True" : "False").append(",");
-
-        // Description
-        line.append(escapeCSV(event.getDescription())).append(",");
-
-        // Location
-        line.append(escapeCSV(event.getLocation())).append(",");
-
-        // Private flag
-        line.append(!event.isPublic() ? "True" : "False");
-
-        line.append("\n");
-        writer.write(line.toString());
       }
 
       return file.getAbsolutePath();
@@ -274,6 +391,58 @@ public class CalendarImpl implements Calendar {
       e.printStackTrace();
       return null;
     }
+  }
+
+  /**
+   * Helper method to write a single event entry to the CSV file.
+   */
+  private void writeSingleEventToCSV(FileWriter writer, Event event, LocalDateTime startDateTime,
+      LocalDateTime endDateTime, DateTimeFormatter dateFormatter, DateTimeFormatter timeFormatter)
+      throws IOException {
+
+    StringBuilder line = new StringBuilder();
+
+    // Subject
+    line.append(escapeCSV(event.getSubject())).append(",");
+
+    // Start Date
+    line.append(startDateTime.format(dateFormatter)).append(",");
+
+    // Start Time (empty for all-day events)
+    if (event.isAllDay()) {
+      line.append(",");
+    } else {
+      line.append(startDateTime.format(timeFormatter)).append(",");
+    }
+
+    // End Date
+    if (endDateTime == null) {
+      line.append(startDateTime.format(dateFormatter)).append(",");
+    } else {
+      line.append(endDateTime.format(dateFormatter)).append(",");
+    }
+
+    // End Time (empty for all-day events)
+    if (event.isAllDay() || endDateTime == null) {
+      line.append(",");
+    } else {
+      line.append(endDateTime.format(timeFormatter)).append(",");
+    }
+
+    // All-day flag
+    line.append(event.isAllDay() ? "True" : "False").append(",");
+
+    // Description
+    line.append(escapeCSV(event.getDescription())).append(",");
+
+    // Location
+    line.append(escapeCSV(event.getLocation())).append(",");
+
+    // Private flag
+    line.append(!event.isPublic() ? "True" : "False");
+
+    line.append("\n");
+    writer.write(line.toString());
   }
 
   /**

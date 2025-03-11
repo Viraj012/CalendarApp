@@ -1,5 +1,6 @@
 package model;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -209,10 +210,72 @@ public class EventImpl implements Event {
   @Override
   public String toString() {
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    return subject + " - " +
-        startDateTime.format(dateFormatter) + " " +
-        (isAllDay ? "All Day" : startDateTime.toLocalTime() + " to " +
-            (endDateTime != null ? endDateTime.toLocalTime() : "")) +
-        (location.isEmpty() ? "" : " at " + location);
+    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    StringBuilder sb = new StringBuilder();
+
+    sb.append(subject).append(" - ");
+
+    if (isAllDay) {
+      // All-day event format
+      sb.append(startDateTime.format(dateFormatter)).append(" All Day");
+    } else if (endDateTime != null) {
+      // Check if the event spans multiple days
+      boolean isMultiDayEvent = !startDateTime.toLocalDate().equals(endDateTime.toLocalDate());
+
+      if (isMultiDayEvent) {
+        // For multi-day events, show both start and end dates with times
+        sb.append(startDateTime.format(dateFormatter))
+            .append(" ")
+            .append(startDateTime.format(timeFormatter))
+            .append(" to ")
+            .append(endDateTime.format(dateFormatter))
+            .append(" ")
+            .append(endDateTime.format(timeFormatter));
+      } else {
+        // For same-day events, show only one date with start and end times
+        sb.append(startDateTime.format(dateFormatter))
+            .append(" ")
+            .append(startDateTime.format(timeFormatter))
+            .append(" to ")
+            .append(endDateTime.format(timeFormatter));
+      }
+    } else {
+      // Fallback for unexpected cases
+      sb.append(startDateTime.format(dateFormatter));
+    }
+
+    // Add location if available
+    if (!location.isEmpty()) {
+      sb.append(" at ").append(location);
+    }
+
+    // Add recurrence information
+    if (isRecurring()) {
+      sb.append(" (Repeats on: ");
+
+      // Convert weekday codes to readable format
+      if (recurrence.getWeekdays().contains(DayOfWeek.MONDAY)) sb.append("Mon,");
+      if (recurrence.getWeekdays().contains(DayOfWeek.TUESDAY)) sb.append("Tue,");
+      if (recurrence.getWeekdays().contains(DayOfWeek.WEDNESDAY)) sb.append("Wed,");
+      if (recurrence.getWeekdays().contains(DayOfWeek.THURSDAY)) sb.append("Thu,");
+      if (recurrence.getWeekdays().contains(DayOfWeek.FRIDAY)) sb.append("Fri,");
+      if (recurrence.getWeekdays().contains(DayOfWeek.SATURDAY)) sb.append("Sat,");
+      if (recurrence.getWeekdays().contains(DayOfWeek.SUNDAY)) sb.append("Sun,");
+
+      // Remove trailing comma
+      if (sb.toString().endsWith(",")) {
+        sb.deleteCharAt(sb.length() - 1);
+      }
+
+      if (recurrence.getOccurrences() != -1) {
+        sb.append(" for ").append(recurrence.getOccurrences()).append(" times");
+      } else if (recurrence.getUntilDate() != null) {
+        sb.append(" until ").append(recurrence.getUntilDate().format(dateFormatter));
+      }
+
+      sb.append(")");
+    }
+
+    return sb.toString();
   }
 }

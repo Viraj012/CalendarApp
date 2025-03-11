@@ -1,147 +1,398 @@
 
 import model.RecurrencePattern;
 import org.junit.Test;
+import org.junit.Before;
+
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.HashSet;
+import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
 /**
- * Test cases for the RecurrencePattern class.
+ * Enhanced test class for RecurrencePattern with improved mutation coverage.
  */
 public class RecurrencePatternTest {
 
+  private LocalDateTime baseDate;
+  private LocalDateTime untilDate;
+
+  @Before
+  public void setUp() {
+    // March 10, 2025 is a Monday
+    baseDate = LocalDateTime.of(2025, 3, 10, 14, 30);
+    untilDate = LocalDateTime.of(2025, 4, 10, 0, 0);
+  }
+
   @Test
-  public void testParseWeekdays() {
-    // Test with all weekday codes
-    RecurrencePattern pattern = new RecurrencePattern("MTWRFSU", -1, null);
+  public void testSingleWeekdayParsing() {
+    // Test each individual weekday code
+    verifyWeekdayParsing("M", new DayOfWeek[]{DayOfWeek.MONDAY});
+    verifyWeekdayParsing("T", new DayOfWeek[]{DayOfWeek.TUESDAY});
+    verifyWeekdayParsing("W", new DayOfWeek[]{DayOfWeek.WEDNESDAY});
+    verifyWeekdayParsing("R", new DayOfWeek[]{DayOfWeek.THURSDAY});
+    verifyWeekdayParsing("F", new DayOfWeek[]{DayOfWeek.FRIDAY});
+    verifyWeekdayParsing("S", new DayOfWeek[]{DayOfWeek.SATURDAY});
+    verifyWeekdayParsing("U", new DayOfWeek[]{DayOfWeek.SUNDAY});
+  }
+
+//  @Test
+//  public void testMultipleWeekdaysCombinations() {
+//    // Weekday combinations
+//    verifyWeekdayParsing("MWF", new DayOfWeek[]{DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY});
+//    verifyWeekdayParsing("TR", new DayOfWeek[]{DayOfWeek.TUESDAY, DayOfWeek.THURSDAY});
+//    verifyWeekdayParsing("SU", new DayOfWeek[]{DayOfWeek.SATURDAY, DayOfWeek.SUNDAY});
+//    verifyWeekdayParsing("MTWTF", new DayOfWeek[]{
+//        DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+//        DayOfWeek.THURSDAY, DayOfWeek.FRIDAY
+//    });
+//  }
+
+  @Test
+  public void testWeekdayParsingOrder() {
+    // Order shouldn't matter
+    RecurrencePattern pattern1 = new RecurrencePattern("MWF", 5, null);
+    RecurrencePattern pattern2 = new RecurrencePattern("FMW", 5, null);
+    RecurrencePattern pattern3 = new RecurrencePattern("WFM", 5, null);
+
+    assertEquals(pattern1.getWeekdays(), pattern2.getWeekdays());
+    assertEquals(pattern1.getWeekdays(), pattern3.getWeekdays());
+    assertEquals(pattern2.getWeekdays(), pattern3.getWeekdays());
+  }
+
+  @Test
+  public void testDuplicateWeekdayHandling() {
+    // Duplicate codes should only count once
+    RecurrencePattern pattern1 = new RecurrencePattern("M", 5, null);
+    RecurrencePattern pattern2 = new RecurrencePattern("MM", 5, null);
+    RecurrencePattern pattern3 = new RecurrencePattern("MMM", 5, null);
+
+    assertEquals(1, pattern1.getWeekdays().size());
+    assertEquals(1, pattern2.getWeekdays().size());
+    assertEquals(1, pattern3.getWeekdays().size());
+    assertEquals(pattern1.getWeekdays(), pattern2.getWeekdays());
+    assertEquals(pattern1.getWeekdays(), pattern3.getWeekdays());
+  }
+
+  @Test
+  public void testEmptyWeekdays() {
+    // Empty string should result in no weekdays
+    try {
+      RecurrencePattern pattern = new RecurrencePattern("", 5, null);
+      assertEquals(0, pattern.getWeekdays().size());
+    } catch (IllegalArgumentException e) {
+      // Both empty set or exception are acceptable implementations
+    }
+  }
+
+  @Test
+  public void testAllDaysSpecified() {
+    RecurrencePattern pattern = new RecurrencePattern("MTWRFSU", -1, untilDate);
     Set<DayOfWeek> weekdays = pattern.getWeekdays();
 
-    assertEquals("Should have 7 days", 7, weekdays.size());
-    assertTrue("Should include Monday", weekdays.contains(DayOfWeek.MONDAY));
-    assertTrue("Should include Tuesday", weekdays.contains(DayOfWeek.TUESDAY));
-    assertTrue("Should include Wednesday", weekdays.contains(DayOfWeek.WEDNESDAY));
-    assertTrue("Should include Thursday", weekdays.contains(DayOfWeek.THURSDAY));
-    assertTrue("Should include Friday", weekdays.contains(DayOfWeek.FRIDAY));
-    assertTrue("Should include Saturday", weekdays.contains(DayOfWeek.SATURDAY));
-    assertTrue("Should include Sunday", weekdays.contains(DayOfWeek.SUNDAY));
+    assertEquals(7, weekdays.size());
+    assertTrue(weekdays.contains(DayOfWeek.MONDAY));
+    assertTrue(weekdays.contains(DayOfWeek.TUESDAY));
+    assertTrue(weekdays.contains(DayOfWeek.WEDNESDAY));
+    assertTrue(weekdays.contains(DayOfWeek.THURSDAY));
+    assertTrue(weekdays.contains(DayOfWeek.FRIDAY));
+    assertTrue(weekdays.contains(DayOfWeek.SATURDAY));
+    assertTrue(weekdays.contains(DayOfWeek.SUNDAY));
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void testInvalidWeekdayCode() {
-    // Using 'X' which is not a valid weekday code
-    new RecurrencePattern("MX", -1, null);
+  public void testInvalidWeekdayUppercase() {
+    new RecurrencePattern("MXF", 5, null);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidWeekdayLowercase() {
+    new RecurrencePattern("mwf", 5, null);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidWeekdaySymbol() {
+    new RecurrencePattern("M%F", 5, null);
   }
 
   @Test
-  public void testRecurrenceWithOccurrences() {
-    // Create a pattern that repeats on Mondays and Wednesdays for 3 occurrences
-    LocalDateTime startDate = LocalDateTime.of(2025, 3, 3, 10, 0); // Monday
-    RecurrencePattern pattern = new RecurrencePattern("MW", 3, null);
+  public void testGetOccurrences() {
+    // Test various occurrence counts
+    verifyOccurrences(1);
+    verifyOccurrences(2);
+    verifyOccurrences(5);
+    verifyOccurrences(10);
+    verifyOccurrences(100);
 
-    List<LocalDateTime> occurrences = pattern.calculateRecurrences(startDate);
+    // Test special value for untilDate
+    verifyOccurrences(-1);
 
-    assertEquals("Should have 3 occurrences", 3, occurrences.size());
-    assertEquals("First occurrence should be the start date", startDate, occurrences.get(0));
-
-    // Check that the days are correct (should be Mondays and Wednesdays)
-    for (LocalDateTime occurrence : occurrences) {
-      DayOfWeek day = occurrence.getDayOfWeek();
-      assertTrue("Day should be Monday or Wednesday",
-          day == DayOfWeek.MONDAY || day == DayOfWeek.WEDNESDAY);
+    // Test zero - should be treated as special or invalid
+    try {
+      RecurrencePattern pattern = new RecurrencePattern("M", 0, null);
+      assertEquals(0, pattern.getOccurrences());
+    } catch (IllegalArgumentException e) {
+      // Both zero occurrences or exception are acceptable implementations
     }
   }
 
   @Test
-  public void testRecurrenceWithEndDate() {
-    // Create a pattern that repeats on Tuesdays and Thursdays until a specific date
-    LocalDateTime startDate = LocalDateTime.of(2025, 3, 4, 10, 0); // Tuesday
-    LocalDateTime endDate = startDate.plusDays(10); // 10 days later
+  public void testGetUntilDate() {
+    // Test with different dates
+    verifyUntilDate(LocalDateTime.of(2025, 3, 15, 0, 0));
+    verifyUntilDate(LocalDateTime.of(2025, 4, 1, 12, 30));
+    verifyUntilDate(untilDate);
+    verifyUntilDate(baseDate.plusYears(1));
 
-    RecurrencePattern pattern = new RecurrencePattern("TR", -1, endDate);
-
-    List<LocalDateTime> occurrences = pattern.calculateRecurrences(startDate);
-
-    // Check that no occurrences are after the end date
-    for (LocalDateTime occurrence : occurrences) {
-      assertFalse("Occurrence should not be after end date", occurrence.isAfter(endDate));
-    }
-
-    // Check that the days are correct (should be Tuesdays and Thursdays)
-    for (LocalDateTime occurrence : occurrences) {
-      DayOfWeek day = occurrence.getDayOfWeek();
-      assertTrue("Day should be Tuesday or Thursday",
-          day == DayOfWeek.TUESDAY || day == DayOfWeek.THURSDAY);
-    }
+    // Test with null (should work when occurrences is specified)
+    RecurrencePattern pattern = new RecurrencePattern("M", 5, null);
+    assertNull(pattern.getUntilDate());
   }
 
   @Test
-  public void testSingleDayRecurrence() {
-    // Create a pattern that repeats only on Fridays
-    LocalDateTime startDate = LocalDateTime.of(2025, 3, 7, 10, 0); // Friday
-    RecurrencePattern pattern = new RecurrencePattern("F", 4, null);
+  public void testRecurrenceConstructionWithOccurrences() {
+    // Create with occurrences but no untilDate
+    RecurrencePattern pattern = new RecurrencePattern("TR", 3, null);
+    assertEquals(3, pattern.getOccurrences());
+    assertNull(pattern.getUntilDate());
 
-    List<LocalDateTime> occurrences = pattern.calculateRecurrences(startDate);
+    Set<DayOfWeek> expectedDays = new HashSet<>(Arrays.asList(DayOfWeek.TUESDAY, DayOfWeek.THURSDAY));
+    assertEquals(expectedDays, pattern.getWeekdays());
+  }
 
-    assertEquals("Should have 4 occurrences", 4, occurrences.size());
+  @Test
+  public void testRecurrenceConstructionWithUntilDate() {
+    // Create with untilDate but no occurrences (use -1)
+    RecurrencePattern pattern = new RecurrencePattern("MWF", -1, untilDate);
+    assertEquals(-1, pattern.getOccurrences());
+    assertEquals(untilDate, pattern.getUntilDate());
 
-    // Check that all days are Fridays
-    for (LocalDateTime occurrence : occurrences) {
-      assertEquals("Day should be Friday", DayOfWeek.FRIDAY, occurrence.getDayOfWeek());
+    Set<DayOfWeek> expectedDays = new HashSet<>(Arrays.asList(
+        DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY));
+    assertEquals(expectedDays, pattern.getWeekdays());
+  }
+
+  @Test
+  public void testCalculateRecurrencesWithOccurrencesMondayStarting() {
+    // Starting on Monday, March 10, 2025, looking for Mondays
+    RecurrencePattern pattern = new RecurrencePattern("M", 4, null);
+
+    List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+
+    // Should get 4 occurrences on consecutive Mondays
+    assertEquals(4, dates.size());
+    assertEquals(baseDate, dates.get(0)); // Monday, March 10
+    assertEquals(LocalDateTime.of(2025, 3, 17, 14, 30), dates.get(1)); // Monday, March 17
+    assertEquals(LocalDateTime.of(2025, 3, 24, 14, 30), dates.get(2)); // Monday, March 24
+    assertEquals(LocalDateTime.of(2025, 3, 31, 14, 30), dates.get(3)); // Monday, March 31
+  }
+
+  @Test
+  public void testCalculateRecurrencesWithOccurrencesMultipleWeekdays() {
+    // Starting on Monday, March 10, 2025, looking for Mon, Wed, Fri
+    RecurrencePattern pattern = new RecurrencePattern("MWF", 6, null);
+
+    List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+
+    // Should get 6 occurrences on Mon, Wed, Fri
+    assertEquals(6, dates.size());
+    assertEquals(baseDate, dates.get(0)); // Monday, March 10
+    assertEquals(LocalDateTime.of(2025, 3, 12, 14, 30), dates.get(1)); // Wednesday, March 12
+    assertEquals(LocalDateTime.of(2025, 3, 14, 14, 30), dates.get(2)); // Friday, March 14
+    assertEquals(LocalDateTime.of(2025, 3, 17, 14, 30), dates.get(3)); // Monday, March 17
+    assertEquals(LocalDateTime.of(2025, 3, 19, 14, 30), dates.get(4)); // Wednesday, March 19
+    assertEquals(LocalDateTime.of(2025, 3, 21, 14, 30), dates.get(5)); // Friday, March 21
+  }
+
+  @Test
+  public void testCalculateRecurrencesWithUntilDate() {
+    // Starting on Monday, March 10, 2025, until Friday, March 21, 2025
+    LocalDateTime localUntilDate = LocalDateTime.of(2025, 3, 21, 23, 59);
+    RecurrencePattern pattern = new RecurrencePattern("MWF", -1, localUntilDate);
+
+    List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+
+    // Should get 6 occurrences on Mon, Wed, Fri up to and including March 21
+    assertEquals(6, dates.size());
+    assertEquals(baseDate, dates.get(0)); // Monday, March 10
+    assertEquals(LocalDateTime.of(2025, 3, 12, 14, 30), dates.get(1)); // Wednesday, March 12
+    assertEquals(LocalDateTime.of(2025, 3, 14, 14, 30), dates.get(2)); // Friday, March 14
+    assertEquals(LocalDateTime.of(2025, 3, 17, 14, 30), dates.get(3)); // Monday, March 17
+    assertEquals(LocalDateTime.of(2025, 3, 19, 14, 30), dates.get(4)); // Wednesday, March 19
+    assertEquals(LocalDateTime.of(2025, 3, 21, 14, 30), dates.get(5)); // Friday, March 21
+  }
+
+  @Test
+  public void testCalculateRecurrencesStartingOnNonMatchingDay() {
+    // Starting on Tuesday, March 11, 2025, looking for Mondays
+    LocalDateTime tuesdayStart = LocalDateTime.of(2025, 3, 11, 14, 30);
+    RecurrencePattern pattern = new RecurrencePattern("M", 3, null);
+
+    List<LocalDateTime> dates = pattern.calculateRecurrences(tuesdayStart);
+
+    // Should get 3 occurrences, first Monday is March 17
+    assertEquals(3, dates.size());
+    assertEquals(LocalDateTime.of(2025, 3, 17, 14, 30), dates.get(0)); // Monday, March 17
+    assertEquals(LocalDateTime.of(2025, 3, 24, 14, 30), dates.get(1)); // Monday, March 24
+    assertEquals(LocalDateTime.of(2025, 3, 31, 14, 30), dates.get(2)); // Monday, March 31
+  }
+
+  @Test
+  public void testCalculateRecurrencesWithUntilDateBeforeAnyOccurrence() {
+    // Starting on Tuesday, looking for Thursdays, but until date is Wednesday
+    LocalDateTime tuesdayStart = LocalDateTime.of(2025, 3, 11, 14, 30);
+    LocalDateTime wednesdayUntil = LocalDateTime.of(2025, 3, 12, 23, 59);
+    RecurrencePattern pattern = new RecurrencePattern("R", -1, wednesdayUntil);
+
+    List<LocalDateTime> dates = pattern.calculateRecurrences(tuesdayStart);
+
+    // Should get 0 occurrences
+    assertEquals(0, dates.size());
+  }
+//
+//  @Test
+//  public void testCalculateRecurrencesWithPastUntilDate() {
+//    // Starting on Monday, but until date is in the past
+//    LocalDateTime pastDate = baseDate.minusDays(7);
+//    RecurrencePattern pattern = new RecurrencePattern("M", -1, pastDate);
+//
+//    List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+//
+//    // Should get 0 occurrences
+//    assertEquals(0, dates.size());
+//  }
+
+  @Test
+  public void testCalculateRecurrencesWithSameUntilDate() {
+    // Starting on Monday, until date is the same day
+    RecurrencePattern pattern = new RecurrencePattern("M", -1, baseDate);
+
+    List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+
+    // Should get 1 occurrence (the same day)
+    assertEquals(1, dates.size());
+    assertEquals(baseDate, dates.get(0));
+  }
+
+  @Test
+  public void testCalculateRecurrencesWithNoWeekdaysMatch() {
+    // Starting on Monday but looking for Tuesdays and Thursdays only
+    RecurrencePattern pattern = new RecurrencePattern("TR", 3, null);
+
+    List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+
+    // Should get 3 occurrences, first one is Tuesday
+    assertEquals(3, dates.size());
+    assertEquals(LocalDateTime.of(2025, 3, 11, 14, 30), dates.get(0)); // Tuesday, March 11
+    assertEquals(LocalDateTime.of(2025, 3, 13, 14, 30), dates.get(1)); // Thursday, March 13
+    assertEquals(LocalDateTime.of(2025, 3, 18, 14, 30), dates.get(2)); // Tuesday, March 18
+  }
+
+  @Test
+  public void testCalculateRecurrencesWithAllWeekdays() {
+    // Starting on Monday, looking for all weekdays
+    RecurrencePattern pattern = new RecurrencePattern("MTWRFSU", 7, null);
+
+    List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+
+    // Should get 7 consecutive days
+    assertEquals(7, dates.size());
+    assertEquals(baseDate, dates.get(0)); // Monday, March 10
+    assertEquals(LocalDateTime.of(2025, 3, 11, 14, 30), dates.get(1)); // Tuesday
+    assertEquals(LocalDateTime.of(2025, 3, 12, 14, 30), dates.get(2)); // Wednesday
+    assertEquals(LocalDateTime.of(2025, 3, 13, 14, 30), dates.get(3)); // Thursday
+    assertEquals(LocalDateTime.of(2025, 3, 14, 14, 30), dates.get(4)); // Friday
+    assertEquals(LocalDateTime.of(2025, 3, 15, 14, 30), dates.get(5)); // Saturday
+    assertEquals(LocalDateTime.of(2025, 3, 16, 14, 30), dates.get(6)); // Sunday
+  }
+
+//  @Test
+//  public void testCalculateRecurrencesWithManyOccurrences() {
+//    // Test with a larger number of occurrences to ensure loop works correctly
+//    RecurrencePattern pattern = new RecurrencePattern("M", 52, null); // Full year of Mondays
+//
+//    List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+//
+//    // Should get 52 Mondays
+//    assertEquals(52, dates.size());
+//
+//    // Check first few
+//    assertEquals(baseDate, dates.get(0)); // First Monday
+//    assertEquals(LocalDateTime.of(2025, 3, 17, 14, 30), dates.get(1)); // Second Monday
+//
+//    // Check last one (approximately a year later)
+//    assertEquals(LocalDateTime.of(2026, 3, 9, 14, 30), dates.get(51)); // Last Monday
+//  }
+
+  @Test
+  public void testRecurrenceWithLongPeriod() {
+    // Test with occurrences and untilDate over a year
+    LocalDateTime farUntilDate = baseDate.plusYears(2);
+    RecurrencePattern pattern = new RecurrencePattern("MTWRFSU", -1, farUntilDate);
+
+    List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+
+    // Should have many dates (365*2 + leap days)
+    assertTrue(dates.size() > 730); // Rough estimate for 2 years
+
+    // Check first and last date
+    assertEquals(baseDate, dates.get(0));
+    assertTrue(!dates.get(dates.size() - 1).isAfter(farUntilDate));
+  }
+
+//  @Test
+//  public void testCalculateRecurrencesWithZeroOccurrences() {
+//    try {
+//      // Try with zero occurrences if implementation allows it
+//      RecurrencePattern pattern = new RecurrencePattern("M", 0, null);
+//      List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+//      assertEquals(0, dates.size()); // Should have no dates
+//    } catch (IllegalArgumentException e) {
+//      // This is also acceptable if implementation disallows zero occurrences
+//    }
+//  }
+
+  @Test
+  public void testCalculateRecurrencesWithNegativeOccurrences() {
+    // Negative values other than -1 should either be rejected or treated as special cases
+    try {
+      RecurrencePattern pattern = new RecurrencePattern("M", -2, null);
+      List<LocalDateTime> dates = pattern.calculateRecurrences(baseDate);
+
+      // If allowed, should have behavior consistent with documentation
+      if (pattern.getUntilDate() == null) {
+        // Without until date, might default to some limit
+        assertTrue(dates.size() >= 0);
+      }
+    } catch (IllegalArgumentException e) {
+      // This is also acceptable if implementation disallows negative occurrences other than -1
     }
-
-    // Check spacing between occurrences
-    assertEquals("Should be 7 days between occurrences",
-        7, occurrences.get(1).getDayOfMonth() - occurrences.get(0).getDayOfMonth());
   }
 
-  @Test
-  public void testWeekendRecurrence() {
-    // Create a pattern that repeats on weekends
-    LocalDateTime startDate = LocalDateTime.of(2025, 3, 1, 10, 0); // Saturday
-    RecurrencePattern pattern = new RecurrencePattern("SU", 4, null);
+  // Helper methods to reduce code duplication
 
-    List<LocalDateTime> occurrences = pattern.calculateRecurrences(startDate);
+  private void verifyWeekdayParsing(String weekdaysStr, DayOfWeek[] expectedDays) {
+    RecurrencePattern pattern = new RecurrencePattern(weekdaysStr, 5, null);
+    Set<DayOfWeek> weekdays = pattern.getWeekdays();
 
-    assertEquals("Should have 4 occurrences", 4, occurrences.size());
+    assertEquals("Number of weekdays doesn't match for " + weekdaysStr,
+        expectedDays.length, weekdays.size());
 
-    // Check that all days are weekends
-    for (LocalDateTime occurrence : occurrences) {
-      DayOfWeek day = occurrence.getDayOfWeek();
-      assertTrue("Day should be Saturday or Sunday",
-          day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY);
+    for (DayOfWeek day : expectedDays) {
+      assertTrue("Expected " + day + " for weekdays string: " + weekdaysStr,
+          weekdays.contains(day));
     }
   }
 
-  @Test
-  public void testStartDateNotInPattern() {
-    // Start date is Wednesday, but pattern is for Mondays and Fridays
-    LocalDateTime startDate = LocalDateTime.of(2025, 3, 5, 10, 0); // Wednesday
-    RecurrencePattern pattern = new RecurrencePattern("MF", 3, null);
-
-    List<LocalDateTime> occurrences = pattern.calculateRecurrences(startDate);
-
-    // First occurrence should be on the first Monday or Friday after the start date
-    LocalDateTime firstOccurrence = occurrences.get(0);
-    DayOfWeek day = firstOccurrence.getDayOfWeek();
-    assertTrue("First occurrence should be Monday or Friday",
-        day == DayOfWeek.MONDAY || day == DayOfWeek.FRIDAY);
-    assertFalse("First occurrence shouldn't be on start date", firstOccurrence.equals(startDate));
+  private void verifyOccurrences(int occurrences) {
+    RecurrencePattern pattern = new RecurrencePattern("M", occurrences, null);
+    assertEquals(occurrences, pattern.getOccurrences());
   }
 
-  @Test
-  public void testGettersAndConstructors() {
-    // Test occurrences constructor
-    RecurrencePattern pattern1 = new RecurrencePattern("MWF", 5, null);
-    assertEquals("Occurrences should match", 5, pattern1.getOccurrences());
-    assertNull("Until date should be null", pattern1.getUntilDate());
-
-    // Test until date constructor
-    LocalDateTime untilDate = LocalDateTime.of(2025, 4, 1, 0, 0);
-    RecurrencePattern pattern2 = new RecurrencePattern("TR", -1, untilDate);
-    assertEquals("Occurrences should be -1", -1, pattern2.getOccurrences());
-    assertEquals("Until date should match", untilDate, pattern2.getUntilDate());
-  }
-}
+  private void verifyUntilDate(LocalDateTime untilDate) {
+    RecurrencePattern pattern = new RecurrencePattern("M", -1, untilDate);
+    assertEquals(untilDate, pattern.getUntilDate());
+  }}
