@@ -259,44 +259,88 @@ public class CommandParser {
    */
   private EditCommand parseEditSingleEventCommand(String property, String rest) {
     try {
-      int fromIdx = rest.indexOf(" from ");
-      if (fromIdx == -1) {
-        return null;
+      // Handle date/time property edits
+      if (property.equalsIgnoreCase("starttime") ||
+          property.equalsIgnoreCase("startdate") ||
+          property.equalsIgnoreCase("endtime") ||
+          property.equalsIgnoreCase("enddate")) {
+
+        int fromIdx = rest.indexOf(" from ");
+        if (fromIdx == -1) {
+          return null;
+        }
+
+        String eventName = rest.substring(0, fromIdx).trim();
+        int toIdx = rest.indexOf(" to ", fromIdx);
+        int withIdx = rest.indexOf(" with ", toIdx);
+
+        if (toIdx == -1 || withIdx == -1) {
+          return null;
+        }
+
+        String startTimeStr = rest.substring(fromIdx + 6, toIdx).trim();
+        String endTimeStr = rest.substring(toIdx + 4, withIdx).trim();
+        String newValue = rest.substring(withIdx + 6).trim();
+
+        // Remove quotes from values if present
+        if (eventName.startsWith("\"") && eventName.endsWith("\"")) {
+          eventName = eventName.substring(1, eventName.length() - 1);
+        }
+        if (newValue.startsWith("\"") && newValue.endsWith("\"")) {
+          newValue = newValue.substring(1, newValue.length() - 1);
+        }
+
+        LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startTimeStr);
+        LocalDateTime endDateTime = DateTimeUtil.parseDateTime(endTimeStr);
+
+        EditCommand editCmd = new EditCommand(EditCommand.EditType.SINGLE);
+        editCmd.setProperty(property);
+        editCmd.setEventName(eventName);
+        editCmd.setStartDateTime(startDateTime);
+        editCmd.setEndDateTime(endDateTime);
+        editCmd.setNewValue(newValue);
+
+        return editCmd;
+      } else {
+        // Existing logic for other properties
+        int fromIdx = rest.indexOf(" from ");
+        if (fromIdx == -1) {
+          return null;
+        }
+
+        String eventName = rest.substring(0, fromIdx).trim();
+        int toIdx = rest.indexOf(" to ", fromIdx);
+        int withIdx = rest.indexOf(" with ", toIdx);
+
+        if (toIdx == -1 || withIdx == -1) {
+          return null;
+        }
+
+        String startTimeStr = rest.substring(fromIdx + 6, toIdx).trim();
+        String endTimeStr = rest.substring(toIdx + 4, withIdx).trim();
+        String newValue = rest.substring(withIdx + 6).trim();
+
+        // Remove quotes from newValue if present
+        if (newValue.startsWith("\"") && newValue.endsWith("\"")) {
+          newValue = newValue.substring(1, newValue.length() - 1);
+        }
+
+        LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startTimeStr);
+        LocalDateTime endDateTime = DateTimeUtil.parseDateTime(endTimeStr);
+
+        EditCommand editCmd = new EditCommand(EditCommand.EditType.SINGLE);
+        editCmd.setProperty(property);
+        editCmd.setEventName(eventName);
+        editCmd.setStartDateTime(startDateTime);
+        editCmd.setEndDateTime(endDateTime);
+        editCmd.setNewValue(newValue);
+
+        return editCmd;
       }
-
-      String eventName = rest.substring(0, fromIdx).trim();
-      int toIdx = rest.indexOf(" to ", fromIdx);
-      int withIdx = rest.indexOf(" with ", toIdx);
-
-      if (toIdx == -1 || withIdx == -1) {
-        return null;
-      }
-
-      String startTimeStr = rest.substring(fromIdx + 6, toIdx).trim();
-      String endTimeStr = rest.substring(toIdx + 4, withIdx).trim();
-      String newValue = rest.substring(withIdx + 6).trim();
-
-      // Remove quotes from newValue if present
-      if (newValue.startsWith("\"") && newValue.endsWith("\"")) {
-        newValue = newValue.substring(1, newValue.length() - 1);
-      }
-
-      LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startTimeStr);
-      LocalDateTime endDateTime = DateTimeUtil.parseDateTime(endTimeStr);
-
-      EditCommand editCmd = new EditCommand(EditCommand.EditType.SINGLE);
-      editCmd.setProperty(property);
-      editCmd.setEventName(eventName);
-      editCmd.setStartDateTime(startDateTime);
-      editCmd.setEndDateTime(endDateTime);
-      editCmd.setNewValue(newValue);
-
-      return editCmd;
     } catch (Exception e) {
       return null;
     }
   }
-
   /**
    * Parse an edit events from command.
    */

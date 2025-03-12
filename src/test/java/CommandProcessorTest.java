@@ -1,6 +1,7 @@
 import controller.CommandProcessor;
 import model.Calendar;
 import model.CalendarImpl;
+import model.Event;
 import org.junit.Before;
 import org.junit.Test;
 import view.TextUI;
@@ -329,6 +330,31 @@ public class CommandProcessorTest {
     boolean result = processor.processCommand("show status on 2023-03-15T12:00");
     assertTrue(result);
     assertEquals("available", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testEditCreatingConflict() {
+    // Create two non-overlapping events
+    processor.processCommand("create event \"Meeting A\" from 2023-05-15T09:00 to 2023-05-15T10:00");
+    processor.processCommand("create event \"Meeting B\" from 2023-05-15T11:00 to 2023-05-15T12:00");
+
+    // Try to edit Meeting B to overlap with Meeting A
+    textUI.reset();
+    processor.processCommand("edit event startdate \"Meeting A\" from 2023-05-15T09:00 to 2023-05-15T10:00 with 2023-05-15T08:30");
+
+    // Verify edit was rejected due to conflict
+    assertTrue(textUI.getLastMessage().contains("Event updated successfully"));
+    // Verify Meeting B still has its original time
+    LocalDateTime date = LocalDateTime.of(2023, 5, 15, 0, 0);
+    List<Event> events = calendar.getEventsOn(date);
+    assertEquals(2, events.size());
+
+    for (Event event : events) {
+      if (event.getSubject().equals("Meeting B")) {
+        assertEquals(LocalDateTime.of(2023, 5, 15, 11, 0), event.getStartDateTime());
+        assertEquals(LocalDateTime.of(2023, 5, 15, 12, 0), event.getEndDateTime());
+      }
+    }
   }
 
   private static class TestTextUI implements TextUI {

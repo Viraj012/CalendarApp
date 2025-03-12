@@ -1,5 +1,6 @@
 package model;
 
+import controller.DateTimeUtil;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -681,6 +682,43 @@ public class CalendarImpl implements Calendar {
       case "public":
         eventImpl.setPublic(Boolean.parseBoolean(newValue));
         return true;
+      case "starttime":
+      case "startdate":
+        try {
+          LocalDateTime newStart = DateTimeUtil.parseDateTime(newValue);
+
+          // For non-all-day events, verify end time is after new start time
+          if (!eventImpl.isAllDay() && eventImpl.getEndDateTime() != null &&
+              newStart.isAfter(eventImpl.getEndDateTime())) {
+            return false; // Invalid time range
+          }
+
+          // No conflict check, just update the time
+          eventImpl.setStartDateTime(newStart);
+          return true;
+        } catch (Exception e) {
+          return false;
+        }
+      case "endtime":
+      case "enddate":
+        if (eventImpl.isAllDay()) {
+          return false; // Cannot set end time for all-day events
+        }
+
+        try {
+          LocalDateTime newEnd = DateTimeUtil.parseDateTime(newValue);
+          // Validate that end time is after start time
+          if (newEnd.isBefore(eventImpl.getStartDateTime()) ||
+              newEnd.equals(eventImpl.getStartDateTime())) {
+            return false; // End time must be after start time
+          }
+
+          // No conflict check, just update the time
+          eventImpl.setEndDateTime(newEnd);
+          return true;
+        } catch (Exception e) {
+          return false;
+        }
       default:
         return false;
     }
@@ -694,11 +732,16 @@ public class CalendarImpl implements Calendar {
 
     String storedSubject = event.getSubject();
     boolean nameMatches =
-        storedSubject.equals(eventName) || storedSubject.equals(unquotedEventName);
+        storedSubject.equals(eventName) ||
+            storedSubject.equals(unquotedEventName) ||
+            storedSubject.equals("\"" + eventName + "\"") ||
+            storedSubject.equals("\"" + unquotedEventName + "\"") ||
+            storedSubject.substring(1, storedSubject.length()-1).equals(eventName) ||
+            storedSubject.substring(1, storedSubject.length()-1).equals(unquotedEventName);
 
-    boolean timeMatches = event.getStartDateTime().equals(startDateTime) &&
-        ((event.getEndDateTime() == null && endDateTime == null) ||
-            (event.getEndDateTime() != null && event.getEndDateTime().equals(endDateTime)));
+    boolean timeMatches = event.getStartDateTime().toLocalDate().equals(startDateTime.toLocalDate()) &&
+        event.getStartDateTime().getHour() == startDateTime.getHour() &&
+        event.getStartDateTime().getMinute() == startDateTime.getMinute();
 
     return nameMatches && timeMatches;
   }

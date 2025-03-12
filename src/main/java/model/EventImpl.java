@@ -10,8 +10,8 @@ import java.util.Objects;
  */
 public class EventImpl implements Event {
   private String subject;
-  private final LocalDateTime startDateTime;
-  private final LocalDateTime endDateTime;
+  private LocalDateTime startDateTime;
+  private LocalDateTime endDateTime;
   private String description;
   private String location;
   private boolean isPublic;
@@ -277,5 +277,23 @@ public class EventImpl implements Event {
     }
 
     return sb.toString();
+  }
+
+  /**
+   * Sets the start date and time of the event.
+   *
+   * @param startDateTime the new start date and time
+   */
+  public void setStartDateTime(LocalDateTime startDateTime) {
+    this.startDateTime = startDateTime;
+  }
+
+  /**
+   * Sets the end date and time of the event.
+   *
+   * @param endDateTime the new end date and time
+   */
+  public void setEndDateTime(LocalDateTime endDateTime) {
+    this.endDateTime = endDateTime;
   }
 }
