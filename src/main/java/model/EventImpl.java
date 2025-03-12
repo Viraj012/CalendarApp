@@ -189,8 +189,8 @@ public class EventImpl implements Event {
     }
 
     // Check if time intervals overlap
-    return !(this.endDateTime.isBefore(other.getStartDateTime()) ||
-        this.startDateTime.isAfter(other.getEndDateTime()));
+    return !(this.endDateTime.compareTo(other.getStartDateTime()) <= 0 ||
+        this.startDateTime.compareTo(other.getEndDateTime()) >= 0);
   }
 
   @Override

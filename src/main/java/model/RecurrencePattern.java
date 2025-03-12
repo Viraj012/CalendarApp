@@ -104,23 +104,48 @@ public class RecurrencePattern {
     List<LocalDateTime> dates = new ArrayList<>();
     LocalDateTime currentDate = baseDate;
 
-    int count = 0;
+    // Ensure the base date is included if it falls on a valid weekday
+    if (weekdays.contains(baseDate.getDayOfWeek())) {
+      dates.add(baseDate);
+    }
+
+    // Avoid infinite loops - set a maximum number of days to check
+    LocalDateTime maxEndDate = baseDate.plusYears(5); // 5 years is a reasonable limit
+    if (untilDate != null && untilDate.isBefore(maxEndDate)) {
+      maxEndDate = untilDate;
+    }
+
+    // Move to the next day after the base date
+    currentDate = baseDate.plusDays(1);
 
     while (true) {
-      if (weekdays.contains(currentDate.getDayOfWeek())) {
-        dates.add(currentDate);
-        count++;
-
-        if (occurrences != -1 && count >= occurrences) {
-          break;
-        }
+      // Check if we've reached the occurrence limit
+      if (occurrences != -1 && dates.size() >= occurrences) {
+        break;
       }
 
-      currentDate = currentDate.plusDays(1);
-
+      // Check if we've reached the until date
       if (untilDate != null && currentDate.isAfter(untilDate)) {
         break;
       }
+
+      // Check if we've gone beyond the reasonable limit
+      if (currentDate.isAfter(maxEndDate)) {
+        break;
+      }
+
+      // Check if the current day is in our weekday set
+      if (weekdays.contains(currentDate.getDayOfWeek())) {
+        // Create a datetime with the same time as the base event but on this date
+        LocalDateTime recurrenceDateTime = LocalDateTime.of(
+            currentDate.toLocalDate(),
+            baseDate.toLocalTime()
+        );
+        dates.add(recurrenceDateTime);
+      }
+
+      // Move to the next day
+      currentDate = currentDate.plusDays(1);
     }
 
     return dates;

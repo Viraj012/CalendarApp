@@ -35,14 +35,13 @@
             <param>view.*</param>
           </targetClasses>
           <targetTests>
-            <param>CalendarImpTest</param>
-            <param>CalendarIntegrationTest</param>
+            <param>CalendarImplTest</param>
+            <param>EventImplTest</param>
+            <param>HeadlessUITest</param>
+            <param>InteractiveUITest</param>
             <param>CommandParserTest</param>
-            <param>DateTimeUtilTest</param>
-            <param>EventTest</param>
-            <param>EventImpTest</param>
-            <param>RecurrencePatternTest</param>
-            <param>MVCTest</param>
+            <param>CommandHandlerTest</param>
+            <param>CommandProcessorTest</param>
           </targetTests>
         </configuration>
       </plugin>
