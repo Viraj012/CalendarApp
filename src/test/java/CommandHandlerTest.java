@@ -1,3 +1,6 @@
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import controller.CommandHandler;
 import controller.CreateCommand;
 import controller.EditCommand;
@@ -344,6 +347,86 @@ public class CommandHandlerTest {
     commandHandler.handleCommand(cmd);
 
     assert (view.getLastMessage().equals("available"));
+  }
+
+  @Test
+  public void testEventNumberingIncrements() {
+    List<Event> events = new ArrayList<>();
+    // Add multiple events to test the numbering increment
+    events.add(new TestEvent("Event 1", startDateTime, endDateTime, false));
+    events.add(new TestEvent("Event 2", startDateTime.plusHours(1), endDateTime.plusHours(1), false));
+    events.add(new TestEvent("Event 3", startDateTime.plusHours(2), endDateTime.plusHours(2), false));
+
+    calendar.setEventsFromResult(events);
+
+    PrintCommand cmd = new PrintCommandStub(startDateTime, endDateTime.plusHours(2), true);
+    commandHandler.handleCommand(cmd);
+
+    List<String> messages = view.getMessageHistory();
+
+    // Check that numbers are in ascending order (1, 2, 3) - would fail if eventNumber--
+    assertTrue(messages.get(1).startsWith("1."));
+    assertTrue(messages.get(2).startsWith("2."));
+    assertTrue(messages.get(3).startsWith("3."));
+  }
+
+  @Test
+  public void testDateComparisonInSorting() {
+    List<Event> events = new ArrayList<>();
+
+    // Create events on different dates, intentionally added in reverse order
+    TestEvent day2Event = new TestEvent("Day 2 Event",
+        LocalDateTime.of(2023, 1, 2, 9, 0),
+        LocalDateTime.of(2023, 1, 2, 10, 0), false);
+
+    TestEvent day1Event = new TestEvent("Day 1 Event",
+        LocalDateTime.of(2023, 1, 1, 9, 0),
+        LocalDateTime.of(2023, 1, 1, 10, 0), false);
+
+    events.add(day2Event); // Add day 2 event first
+    events.add(day1Event); // Add day 1 event second
+
+    // Now sort using the same algorithm as in CommandHandler
+    events.sort((e1, e2) -> {
+      // This is the line where PIT mutates return dateCompare to return 0
+      int dateCompare = e1.getStartDateTime().toLocalDate().compareTo(e2.getStartDateTime().toLocalDate());
+      if (dateCompare != 0) {
+        return dateCompare;
+      }
+
+      boolean e1AllDay = e1.isAllDay();
+      boolean e2AllDay = e2.isAllDay();
+
+      if (e1AllDay != e2AllDay) {
+        return e1AllDay ? -1 : 1;
+      }
+
+      return e1.getStartDateTime().compareTo(e2.getStartDateTime());
+    });
+
+    // If date comparison works, day1Event should be first
+    assertEquals("Day 1 Event", events.get(0).getSubject());
+    assertEquals("Day 2 Event", events.get(1).getSubject());
+
+    // Check with actual CommandHandler functionality
+    calendar.setEventsFromResult(new ArrayList<>()); // Clear first
+    events.clear(); // Reset events list
+    events.add(day2Event);
+    events.add(day1Event);
+    calendar.setEventsFromResult(events);
+
+    PrintCommand cmd = new PrintCommandStub(
+        LocalDateTime.of(2023, 1, 1, 0, 0),
+        LocalDateTime.of(2023, 1, 3, 0, 0),
+        true);
+
+    commandHandler.handleCommand(cmd);
+
+    List<String> messages = view.getMessageHistory();
+    // First event listed should be from day 1
+    assertTrue(messages.get(1).contains("Day 1 Event"));
+    // Second event listed should be from day 2
+    assertTrue(messages.get(2).contains("Day 2 Event"));
   }
 
   private class TestCalendar implements Calendar {

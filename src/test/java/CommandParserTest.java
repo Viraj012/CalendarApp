@@ -347,6 +347,7 @@ public class CommandParserTest {
     assertTrue(cmd instanceof CreateCommand);
     CreateCommand createCmd = (CreateCommand) cmd;
     assertTrue(createCmd.isAutoDecline());
+    assertTrue(createCmd.isPublic());
   }
 
   @Test
@@ -356,6 +357,7 @@ public class CommandParserTest {
     assertTrue(cmd instanceof CreateCommand);
     CreateCommand createCmd = (CreateCommand) cmd;
     assertEquals("Team meeting", createCmd.getDescription());
+    assertTrue(createCmd.isPublic());
   }
 
   @Test
@@ -383,5 +385,324 @@ public class CommandParserTest {
     assertTrue(cmd instanceof CreateCommand);
     CreateCommand createCmd = (CreateCommand) cmd;
     assertTrue(createCmd.isRecurring());
+  }
+
+  @Test
+  public void testParseRegularCreateCommandPublicAllDaySettings() {
+    String command = "create event Meeting from 2023-05-01T09:00 to 2023-05-01T10:30";
+    Command result = parser.parseCreateCommand(command);
+
+    assertNotNull(result);
+    CreateCommand createCmd = (CreateCommand) result;
+
+    assertTrue(createCmd.isPublic());
+    assertFalse(createCmd.isAllDay());
+
+    String privateCommand = "create event Private Meeting --private from 2023-05-01T09:00 to 2023-05-01T10:30";
+    Command privateResult = parser.parseCreateCommand(privateCommand);
+    CreateCommand privateCmd = (CreateCommand) privateResult;
+
+    assertFalse(privateCmd.isPublic());
+    assertFalse(privateCmd.isAllDay());
+  }
+
+  @Test
+  public void testParsePrintCommandDateRangeSetting() {
+    String command = "print events on 2023-05-01";
+    Command result = parser.parsePrintCommand(command);
+
+    assertNotNull(result);
+    PrintCommand printCmd = (PrintCommand) result;
+
+    assertFalse(printCmd.isDateRange());
+
+    String rangeCommand = "print events from 2023-05-01 to 2023-05-07";
+    Command rangeResult = parser.parsePrintCommand(rangeCommand);
+    PrintCommand rangeCmd = (PrintCommand) rangeResult;
+
+    assertTrue(rangeCmd.isDateRange());
+  }
+
+  @Test
+  public void testAllDayEventPublicSetting() {
+    String publicCommand = "create event Meeting on 2023-05-01";
+    Command publicResult = parser.parseCreateCommand(publicCommand);
+    CreateCommand publicCmd = (CreateCommand) publicResult;
+
+    assertTrue(publicCmd.isPublic());
+
+    String privateCommand = "create event Meeting --private on 2023-05-01";
+    Command privateResult = parser.parseCreateCommand(privateCommand);
+    CreateCommand privateCmd = (CreateCommand) privateResult;
+
+    assertFalse(privateCmd.isPublic());
+  }
+
+  @Test
+  public void testAllDayEventStartDateTime() {
+    String command = "create event Meeting on 2023-05-01";
+    Command result = parser.parseCreateCommand(command);
+    CreateCommand createCmd = (CreateCommand) result;
+
+    assertEquals(
+        LocalDateTime.of(LocalDate.of(2023, 5, 1), LocalTime.MIDNIGHT),
+        createCmd.getStartDateTime()
+    );
+
+    String anotherCommand = "create event Meeting on 2023-06-15";
+    Command anotherResult = parser.parseCreateCommand(anotherCommand);
+    CreateCommand anotherCmd = (CreateCommand) anotherResult;
+
+    assertEquals(
+        LocalDateTime.of(LocalDate.of(2023, 6, 15), LocalTime.MIDNIGHT),
+        anotherCmd.getStartDateTime()
+    );
+  }
+
+  @Test
+  public void testRegularEventAllDaySetting() {
+    String command = "create event Meeting from 2023-05-01T09:00 to 2023-05-01T10:30";
+    Command result = parser.parseCreateCommand(command);
+    CreateCommand createCmd = (CreateCommand) result;
+
+    assertFalse(createCmd.isAllDay());
+
+    String allDayCommand = "create event Meeting on 2023-05-01";
+    Command allDayResult = parser.parseCreateCommand(allDayCommand);
+    CreateCommand allDayCmd = (CreateCommand) allDayResult;
+
+    assertTrue(allDayCmd.isAllDay());
+  }
+
+  @Test
+  public void testPrintOnDateRangeSetting() {
+    String command = "print events on 2023-05-01";
+    Command result = parser.parsePrintCommand(command);
+    PrintCommand printCmd = (PrintCommand) result;
+
+    assertFalse(printCmd.isDateRange());
+
+    String rangeCommand = "print events from 2023-05-01 to 2023-05-07";
+    Command rangeResult = parser.parsePrintCommand(rangeCommand);
+    PrintCommand rangeCmd = (PrintCommand) rangeResult;
+
+    assertTrue(rangeCmd.isDateRange());
+  }
+
+  @Test
+  public void testParseEditAllEventsWithQuotesAndWith() {
+    String command = "edit events description \"Team Meeting\" with \"Updated agenda\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    EditCommand editCmd = (EditCommand) result;
+
+    assertEquals("description", editCmd.getProperty());
+
+    assertEquals("Team Meeting", editCmd.getEventName());
+
+    assertEquals("Updated agenda", editCmd.getNewValue());
+
+    assertEquals(EditCommand.EditType.ALL, editCmd.getEditType());
+    assertNull(editCmd.getStartDateTime());
+    assertNull(editCmd.getEndDateTime());
+  }
+
+  @Test
+  public void testParsePrintCommandDateRangeFalseVerification() {
+    String command = "print events on 2023-05-01";
+    Command result = parser.parsePrintCommand(command);
+
+    assertNotNull(result);
+    PrintCommand printCmd = (PrintCommand) result;
+
+    assertFalse("DateRange flag should be false for 'on' command", printCmd.isDateRange());
+
+    try {
+      java.lang.reflect.Field dateRangeField = PrintCommand.class.getDeclaredField("dateRange");
+      dateRangeField.setAccessible(true);
+      boolean actualValue = (boolean) dateRangeField.get(printCmd);
+      assertFalse("DateRange field should be false", actualValue);
+    } catch (Exception e) {
+
+    }
+
+    printCmd.setDateRange(true);
+    assertTrue(printCmd.isDateRange());
+  }
+
+  @Test
+  public void testParsePrintCommandDateRangeFalseExplicitCheck() {
+
+    PrintCommand defaultCmd = new PrintCommand();
+    defaultCmd.setDateRange(true);
+    assertTrue(defaultCmd.isDateRange());
+
+    String command = "print events on 2023-05-01";
+    Command result = parser.parsePrintCommand(command);
+    assertNotNull(result);
+    PrintCommand printCmd = (PrintCommand) result;
+
+    assertFalse(printCmd.isDateRange());
+  }
+
+  @Test
+  public void testParseEditStartTimeProperty() {
+    String command = "edit event STARTTIME Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"14:00\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof EditCommand);
+    EditCommand editCmd = (EditCommand) result;
+    assertEquals("STARTTIME", editCmd.getProperty());
+    assertEquals("14:00", editCmd.getNewValue());
+  }
+
+  @Test
+  public void testParseEditStartDateProperty() {
+    String command = "edit event STARTDATE Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"2023-06-01\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof EditCommand);
+    EditCommand editCmd = (EditCommand) result;
+    assertEquals("STARTDATE", editCmd.getProperty());
+    assertEquals("2023-06-01", editCmd.getNewValue());
+  }
+
+  @Test
+  public void testParseEditEndTimeProperty() {
+    String command = "edit event ENDTIME Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"16:30\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof EditCommand);
+    EditCommand editCmd = (EditCommand) result;
+    assertEquals("ENDTIME", editCmd.getProperty());
+    assertEquals("16:30", editCmd.getNewValue());
+  }
+
+  @Test
+  public void testParseEditEndDateProperty() {
+    String command = "edit event ENDDATE Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"2023-07-15\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof EditCommand);
+    EditCommand editCmd = (EditCommand) result;
+    assertEquals("ENDDATE", editCmd.getProperty());
+    assertEquals("2023-07-15", editCmd.getNewValue());
+  }
+
+
+  @Test
+  public void testParseEditWithUnquotedEventName() {
+    String command = "edit event name Team-Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"Product Discussion\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof EditCommand);
+    EditCommand editCmd = (EditCommand) result;
+    assertEquals("Team-Meeting", editCmd.getEventName());
+  }
+
+  @Test
+  public void testParseEditWithQuotedNewValue() {
+    String command = "edit event name Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"New Name\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof EditCommand);
+    EditCommand editCmd = (EditCommand) result;
+    assertEquals("New Name", editCmd.getNewValue());
+  }
+
+  @Test
+  public void testParseEditWithUnquotedNewValue() {
+    String command = "edit event name Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with NewName";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof EditCommand);
+    EditCommand editCmd = (EditCommand) result;
+    assertEquals("NewName", editCmd.getNewValue());
+  }
+
+  @Test
+  public void testEditCommandEndDateTimeIsSet() {
+    String command = "edit event name Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"New Meeting\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof EditCommand);
+    EditCommand editCmd = (EditCommand) result;
+
+    LocalDateTime expectedEndTime = LocalDateTime.of(2023, 5, 1, 11, 0);
+    assertEquals(expectedEndTime, editCmd.getEndDateTime());
+
+    LocalDateTime wrongEndTime = LocalDateTime.of(2023, 5, 1, 12, 0);
+    assertNotEquals(wrongEndTime, editCmd.getEndDateTime());
+  }
+
+  @Test
+  public void testEditPropertyTimeWithDifferentCasing() {
+
+    String command = "edit event StArTtImE Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"14:00\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof EditCommand);
+    EditCommand editCmd = (EditCommand) result;
+    assertEquals("StArTtImE", editCmd.getProperty());
+  }
+
+  @Test
+  public void testEditWithEventNameWithQuotesInMiddle() {
+
+    String command = "edit event name \"Team \"Special\" Meeting\" from 2023-05-01T10:00 to 2023-05-01T11:00 with \"Product Discussion\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+  }
+
+  @Test
+  public void testEditCombinedProperties() {
+
+    String command = "edit event ENDTIME \"Team Meeting\" from 2023-05-01T10:00 to 2023-05-01T11:00 with \"15:45\"";
+    Command result = parser.parseEditCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof EditCommand);
+    EditCommand editCmd = (EditCommand) result;
+    assertEquals("ENDTIME", editCmd.getProperty());
+    assertEquals("Team Meeting", editCmd.getEventName());
+    assertEquals("15:45", editCmd.getNewValue());
+
+    LocalDateTime expectedStartTime = LocalDateTime.of(2023, 5, 1, 10, 0);
+    LocalDateTime expectedEndTime = LocalDateTime.of(2023, 5, 1, 11, 0);
+    assertEquals(expectedStartTime, editCmd.getStartDateTime());
+    assertEquals(expectedEndTime, editCmd.getEndDateTime());
+  }
+
+
+
+  @Test
+  public void testSetAllDayIsCalledInCreateCommand() {
+
+    String command = "create event Interview from 2023-05-01T09:00 to 2023-05-01T10:30";
+    Command result = parser.parseCreateCommand(command);
+
+    assertNotNull(result);
+    assertTrue(result instanceof CreateCommand);
+    CreateCommand createCmd = (CreateCommand) result;
+
+    assertFalse(createCmd.isAllDay());
+
+    String allDayCommand = "create event Meeting on 2023-05-01";
+    Command allDayResult = parser.parseCreateCommand(allDayCommand);
+
+    assertNotNull(allDayResult);
+    CreateCommand allDayCmd = (CreateCommand) allDayResult;
+    assertTrue(allDayCmd.isAllDay());
   }
 }

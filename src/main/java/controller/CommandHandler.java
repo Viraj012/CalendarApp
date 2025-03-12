@@ -260,7 +260,7 @@ public class CommandHandler {
    * @param events the events to print
    */
   private void printEvents(List<Event> events) {
-    // Sort events by start time for better readability
+// Sort events by start time for better readability
     events.sort((e1, e2) -> {
       // First sort by date
       int dateCompare = e1.getStartDateTime().toLocalDate().compareTo(e2.getStartDateTime().toLocalDate());
@@ -268,11 +268,12 @@ public class CommandHandler {
         return dateCompare;
       }
 
-      // Then sort all-day events before timed events
-      if (e1.isAllDay() && !e2.isAllDay()) {
-        return -1;
-      } else if (!e1.isAllDay() && e2.isAllDay()) {
-        return 1;
+      // Then sort all-day events before timed events (simplified approach)
+      boolean e1AllDay = e1.isAllDay();
+      boolean e2AllDay = e2.isAllDay();
+
+      if (e1AllDay != e2AllDay) {
+        return e1AllDay ? -1 : 1;
       }
 
       // Finally sort by start time for timed events
