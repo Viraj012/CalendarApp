@@ -807,20 +807,42 @@ public class CalendarImpl implements Calendar {
    * @return true if there are conflicts
    */
   private boolean hasConflicts(LocalDateTime start, LocalDateTime end, boolean isAllDay) {
-    for (Event event : events) {
-      if (isAllDay || event.isAllDay()) {
-        // For all-day events, check date equality
-        if (start.toLocalDate().equals(event.getStartDateTime().toLocalDate())) {
-          return true;
-        }
-      } else {
-        // For regular events, check for time overlap
-        if (start.isBefore(event.getEndDateTime()) &&
-            (end == null || end.isAfter(event.getStartDateTime()))) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return events.stream()
+        .anyMatch(event -> {
+          if (!event.isRecurring()) {
+            // For non-recurring events, check direct conflict
+            if (isAllDay || event.isAllDay()) {
+              // All-day events conflict with any event on the same day
+              return start.toLocalDate().equals(event.getStartDateTime().toLocalDate());
+            }
+
+            // Regular events conflict if one starts before the other ends AND ends after the other starts
+            return start.compareTo(event.getEndDateTime()) < 0 &&
+                end.compareTo(event.getStartDateTime()) > 0;
+          } else {
+            // For recurring events, check conflicts on all recurrence dates
+            RecurrencePattern pattern = ((EventImpl)event).getRecurrence();
+            List<LocalDateTime> recurrenceDates = pattern.calculateRecurrences(event.getStartDateTime());
+
+            for (LocalDateTime recurrenceDate : recurrenceDates) {
+              if (isAllDay || event.isAllDay()) {
+                // All-day events conflict with any event on the same day
+                if (start.toLocalDate().equals(recurrenceDate.toLocalDate())) {
+                  return true;
+                }
+              } else {
+                // Calculate the end time for this recurrence
+                LocalDateTime recurrenceEnd = calculateRecurringEndTime(
+                    recurrenceDate, event.getStartDateTime(), event.getEndDateTime());
+
+                // Check for time overlap
+                if (start.compareTo(recurrenceEnd) < 0 && end.compareTo(recurrenceDate) > 0) {
+                  return true;
+                }
+              }
+            }
+            return false;
+          }
+        });
   }
 }

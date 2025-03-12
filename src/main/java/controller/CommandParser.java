@@ -343,10 +343,13 @@ public class CommandParser {
    */
   private EditCommand parseEditAllEventsCommand(String property, String rest) {
     try {
-      Matcher matcher = EDIT_ALL_PATTERN.matcher(rest);
-      if (matcher.find()) {
-        String eventName = matcher.group(1);
-        String newValue = matcher.group(2);
+      // Updated pattern to recognize "with" between quoted strings
+      Pattern withPattern = Pattern.compile("\"([^\"]*)\"\\s+with\\s+\"([^\"]*)\"");
+      Matcher withMatcher = withPattern.matcher(rest);
+
+      if (withMatcher.find()) {
+        String eventName = withMatcher.group(1);
+        String newValue = withMatcher.group(2);
 
         EditCommand editCmd = new EditCommand(EditCommand.EditType.ALL);
         editCmd.setProperty(property);
@@ -354,8 +357,23 @@ public class CommandParser {
         editCmd.setNewValue(newValue);
 
         return editCmd;
+      } else {
+        // Fallback to the original pattern for backward compatibility
+        Matcher matcher = EDIT_ALL_PATTERN.matcher(rest);
+        if (matcher.find()) {
+          String eventName = matcher.group(1);
+          String newValue = matcher.group(2);
+
+          EditCommand editCmd = new EditCommand(EditCommand.EditType.ALL);
+          editCmd.setProperty(property);
+          editCmd.setEventName(eventName);
+          editCmd.setNewValue(newValue);
+
+          return editCmd;
+        }
       }
     } catch (Exception e) {
+      // Handle exceptions
     }
 
     return null;
