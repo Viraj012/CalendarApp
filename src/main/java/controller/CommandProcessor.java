@@ -7,7 +7,6 @@ import view.TextUI;
  * Processes user commands and interacts with the Calendar model.
  */
 public class CommandProcessor {
-  private final Calendar calendar;
   private final TextUI view;
   private final CommandParser parser;
   private final CommandHandler handler;
@@ -16,10 +15,9 @@ public class CommandProcessor {
    * Creates a new command processor.
    *
    * @param calendar the calendar model
-   * @param view the text UI view
+   * @param view     the text UI view
    */
   public CommandProcessor(Calendar calendar, TextUI view) {
-    this.calendar = calendar;
     this.view = view;
     this.parser = new CommandParser();
     this.handler = new CommandHandler(calendar, view);

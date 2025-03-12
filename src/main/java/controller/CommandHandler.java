@@ -17,7 +17,7 @@ public class CommandHandler {
    * Creates a new command handler.
    *
    * @param calendar the calendar model
-   * @param view the text UI view
+   * @param view     the text UI view
    */
   public CommandHandler(Calendar calendar, TextUI view) {
     this.calendar = calendar;
@@ -112,24 +112,24 @@ public class CommandHandler {
   private boolean createAllDayEvent(CreateCommand cmd) {
     if (cmd.isRecurring()) {
       return calendar.createRecurringAllDayEvent(
-          cmd.getEventName(),
-          cmd.getStartDateTime(),
-          cmd.getWeekdays(),
-          cmd.getOccurrences(),
-          cmd.getUntilDate(),
-          cmd.isAutoDecline(),
-          cmd.getDescription(),
-          cmd.getLocation(),
-          cmd.isPublic()
+              cmd.getEventName(),
+              cmd.getStartDateTime(),
+              cmd.getWeekdays(),
+              cmd.getOccurrences(),
+              cmd.getUntilDate(),
+              cmd.isAutoDecline(),
+              cmd.getDescription(),
+              cmd.getLocation(),
+              cmd.isPublic()
       );
     } else {
       return calendar.createAllDayEvent(
-          cmd.getEventName(),
-          cmd.getStartDateTime(),
-          cmd.isAutoDecline(),
-          cmd.getDescription(),
-          cmd.getLocation(),
-          cmd.isPublic()
+              cmd.getEventName(),
+              cmd.getStartDateTime(),
+              cmd.isAutoDecline(),
+              cmd.getDescription(),
+              cmd.getLocation(),
+              cmd.isPublic()
       );
     }
   }
@@ -143,26 +143,26 @@ public class CommandHandler {
   private boolean createRegularEvent(CreateCommand cmd) {
     if (cmd.isRecurring()) {
       return calendar.createRecurringEvent(
-          cmd.getEventName(),
-          cmd.getStartDateTime(),
-          cmd.getEndDateTime(),
-          cmd.getWeekdays(),
-          cmd.getOccurrences(),
-          cmd.getUntilDate(),
-          cmd.isAutoDecline(),
-          cmd.getDescription(),
-          cmd.getLocation(),
-          cmd.isPublic()
+              cmd.getEventName(),
+              cmd.getStartDateTime(),
+              cmd.getEndDateTime(),
+              cmd.getWeekdays(),
+              cmd.getOccurrences(),
+              cmd.getUntilDate(),
+              cmd.isAutoDecline(),
+              cmd.getDescription(),
+              cmd.getLocation(),
+              cmd.isPublic()
       );
     } else {
       return calendar.createEvent(
-          cmd.getEventName(),
-          cmd.getStartDateTime(),
-          cmd.getEndDateTime(),
-          cmd.isAutoDecline(),
-          cmd.getDescription(),
-          cmd.getLocation(),
-          cmd.isPublic()
+              cmd.getEventName(),
+              cmd.getStartDateTime(),
+              cmd.getEndDateTime(),
+              cmd.isAutoDecline(),
+              cmd.getDescription(),
+              cmd.getLocation(),
+              cmd.isPublic()
       );
     }
   }
@@ -178,11 +178,11 @@ public class CommandHandler {
     switch (cmd.getEditType()) {
       case SINGLE:
         success = calendar.editEvent(
-            cmd.getProperty(),
-            cmd.getEventName(),
-            cmd.getStartDateTime(),
-            cmd.getEndDateTime(),
-            cmd.getNewValue()
+                cmd.getProperty(),
+                cmd.getEventName(),
+                cmd.getStartDateTime(),
+                cmd.getEndDateTime(),
+                cmd.getNewValue()
         );
 
         if (success) {
@@ -194,10 +194,10 @@ public class CommandHandler {
 
       case FROM_DATE:
         success = calendar.editEventsFrom(
-            cmd.getProperty(),
-            cmd.getEventName(),
-            cmd.getStartDateTime(),
-            cmd.getNewValue()
+                cmd.getProperty(),
+                cmd.getEventName(),
+                cmd.getStartDateTime(),
+                cmd.getNewValue()
         );
 
         if (success) {
@@ -209,9 +209,9 @@ public class CommandHandler {
 
       case ALL:
         success = calendar.editAllEvents(
-            cmd.getProperty(),
-            cmd.getEventName(),
-            cmd.getNewValue()
+                cmd.getProperty(),
+                cmd.getEventName(),
+                cmd.getNewValue()
         );
 
         if (success) {
@@ -220,6 +220,9 @@ public class CommandHandler {
           view.displayError("Failed to update events (not found or invalid property)");
         }
         break;
+
+      default:
+        // default case
     }
   }
 
@@ -235,11 +238,11 @@ public class CommandHandler {
       events = calendar.getEventsFrom(cmd.getStartDateTime(), cmd.getEndDateTime());
 
       if (events.isEmpty()) {
-        view.displayMessage("No events from " + cmd.getStartDateTime().toLocalDate() +
-            " to " + cmd.getEndDateTime().toLocalDate());
+        view.displayMessage("No events from " + cmd.getStartDateTime().toLocalDate()
+                + " to " + cmd.getEndDateTime().toLocalDate());
       } else {
-        view.displayMessage("Events from " + cmd.getStartDateTime().toLocalDate() +
-            " to " + cmd.getEndDateTime().toLocalDate() + ":");
+        view.displayMessage("Events from " + cmd.getStartDateTime().toLocalDate()
+                + " to " + cmd.getEndDateTime().toLocalDate() + ":");
         printEvents(events);
       }
     } else {
@@ -260,10 +263,11 @@ public class CommandHandler {
    * @param events the events to print
    */
   private void printEvents(List<Event> events) {
-// Sort events by start time for better readability
+    // Sort events by start time for better readability
     events.sort((e1, e2) -> {
       // First sort by date
-      int dateCompare = e1.getStartDateTime().toLocalDate().compareTo(e2.getStartDateTime().toLocalDate());
+      int dateCompare = e1.getStartDateTime().toLocalDate()
+              .compareTo(e2.getStartDateTime().toLocalDate());
       if (dateCompare != 0) {
         return dateCompare;
       }

@@ -1,9 +1,14 @@
 package controller;
 
-import java.time.LocalDateTime; /**
+import java.time.LocalDateTime;
+
+/**
  * Command object for Edit Event commands.
  */
 public class EditCommand extends Command {
+  /**
+   * Represents the type of edit operation for events.
+   */
   public enum EditType {
     SINGLE,     // Edit a single event
     FROM_DATE,  // Edit events from a date

@@ -21,9 +21,9 @@ public class EventImpl implements Event {
   /**
    * Constructor for a single event.
    *
-   * @param subject the event name/subject
+   * @param subject       the event name/subject
    * @param startDateTime the start date and time
-   * @param endDateTime the end date and time
+   * @param endDateTime   the end date and time
    */
   public EventImpl(String subject, LocalDateTime startDateTime, LocalDateTime endDateTime) {
     this.subject = subject;
@@ -39,7 +39,7 @@ public class EventImpl implements Event {
   /**
    * Constructor for an all-day event.
    *
-   * @param subject the event name/subject
+   * @param subject  the event name/subject
    * @param dateTime the date of the all-day event
    */
   public EventImpl(String subject, LocalDateTime dateTime) {
@@ -56,15 +56,15 @@ public class EventImpl implements Event {
   /**
    * Constructor for a recurring event.
    *
-   * @param subject the event name/subject
+   * @param subject       the event name/subject
    * @param startDateTime the start date and time
-   * @param endDateTime the end date and time
-   * @param weekdays the days of week the event repeats on
-   * @param occurrences the number of occurrences (-1 if using untilDate)
-   * @param untilDate the end date for recurrence (null if using occurrences)
+   * @param endDateTime   the end date and time
+   * @param weekdays      the days of week the event repeats on
+   * @param occurrences   the number of occurrences (-1 if using untilDate)
+   * @param untilDate     the end date for recurrence (null if using occurrences)
    */
   public EventImpl(String subject, LocalDateTime startDateTime, LocalDateTime endDateTime,
-      String weekdays, int occurrences, LocalDateTime untilDate) {
+                   String weekdays, int occurrences, LocalDateTime untilDate) {
     this.subject = subject;
     this.startDateTime = startDateTime;
     this.endDateTime = endDateTime;
@@ -78,14 +78,14 @@ public class EventImpl implements Event {
   /**
    * Constructor for a recurring all-day event.
    *
-   * @param subject the event name/subject
-   * @param dateTime the date of the all-day event
-   * @param weekdays the days of week the event repeats on
+   * @param subject     the event name/subject
+   * @param dateTime    the date of the all-day event
+   * @param weekdays    the days of week the event repeats on
    * @param occurrences the number of occurrences (-1 if using untilDate)
-   * @param untilDate the end date for recurrence (null if using occurrences)
+   * @param untilDate   the end date for recurrence (null if using occurrences)
    */
   public EventImpl(String subject, LocalDateTime dateTime, String weekdays,
-      int occurrences, LocalDateTime untilDate) {
+                   int occurrences, LocalDateTime untilDate) {
     this.subject = subject;
     this.startDateTime = dateTime;
     this.endDateTime = null; // For all-day events, end time is null
@@ -189,17 +189,21 @@ public class EventImpl implements Event {
     }
 
     // Check if time intervals overlap
-    return !(this.endDateTime.compareTo(other.getStartDateTime()) <= 0 ||
-        this.startDateTime.compareTo(other.getEndDateTime()) >= 0);
+    return !(this.endDateTime.compareTo(other.getStartDateTime()) <= 0
+            || this.startDateTime.compareTo(other.getEndDateTime()) >= 0);
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     EventImpl event = (EventImpl) o;
-    return Objects.equals(subject, event.subject) &&
-        Objects.equals(startDateTime, event.startDateTime);
+    return Objects.equals(subject, event.subject)
+            && Objects.equals(startDateTime, event.startDateTime);
   }
 
   @Override
@@ -225,19 +229,19 @@ public class EventImpl implements Event {
       if (isMultiDayEvent) {
         // For multi-day events, show both start and end dates with times
         sb.append(startDateTime.format(dateFormatter))
-            .append(" ")
-            .append(startDateTime.format(timeFormatter))
-            .append(" to ")
-            .append(endDateTime.format(dateFormatter))
-            .append(" ")
-            .append(endDateTime.format(timeFormatter));
+                .append(" ")
+                .append(startDateTime.format(timeFormatter))
+                .append(" to ")
+                .append(endDateTime.format(dateFormatter))
+                .append(" ")
+                .append(endDateTime.format(timeFormatter));
       } else {
         // For same-day events, show only one date with start and end times
         sb.append(startDateTime.format(dateFormatter))
-            .append(" ")
-            .append(startDateTime.format(timeFormatter))
-            .append(" to ")
-            .append(endDateTime.format(timeFormatter));
+                .append(" ")
+                .append(startDateTime.format(timeFormatter))
+                .append(" to ")
+                .append(endDateTime.format(timeFormatter));
       }
     } else {
       // Fallback for unexpected cases
@@ -254,14 +258,28 @@ public class EventImpl implements Event {
       sb.append(" (Repeats on: ");
 
       // Convert weekday codes to readable format
-      if (recurrence.getWeekdays().contains(DayOfWeek.MONDAY)) sb.append("Mon,");
-      if (recurrence.getWeekdays().contains(DayOfWeek.TUESDAY)) sb.append("Tue,");
-      if (recurrence.getWeekdays().contains(DayOfWeek.WEDNESDAY)) sb.append("Wed,");
-      if (recurrence.getWeekdays().contains(DayOfWeek.THURSDAY)) sb.append("Thu,");
-      if (recurrence.getWeekdays().contains(DayOfWeek.FRIDAY)) sb.append("Fri,");
-      if (recurrence.getWeekdays().contains(DayOfWeek.SATURDAY)) sb.append("Sat,");
-      if (recurrence.getWeekdays().contains(DayOfWeek.SUNDAY)) sb.append("Sun,");
-
+      if (recurrence.getWeekdays().contains(DayOfWeek.MONDAY)) {
+        sb.append("Mon,");
+      }
+      if (recurrence.getWeekdays().contains(DayOfWeek.TUESDAY)) {
+        sb.append("Tue,");
+      }
+      if (recurrence.getWeekdays().contains(DayOfWeek.WEDNESDAY)) {
+        sb.append("Wed,");
+      }
+      if (recurrence.getWeekdays().contains(DayOfWeek.THURSDAY)) {
+        sb.append("Thu,");
+      }
+      if (recurrence.getWeekdays().contains(DayOfWeek.FRIDAY)) {
+        sb.append("Fri,");
+      }
+      if (recurrence.getWeekdays().contains(DayOfWeek.SATURDAY)) {
+        sb.append("Sat,");
+      }
+      if (recurrence.getWeekdays().contains(DayOfWeek.SUNDAY)) {
+        sb.append("Sun,");
+      }
+      
       // Remove trailing comma
       if (sb.toString().endsWith(",")) {
         sb.deleteCharAt(sb.length() - 1);

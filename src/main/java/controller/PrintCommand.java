@@ -1,6 +1,8 @@
 package controller;
 
-import java.time.LocalDateTime; /**
+import java.time.LocalDateTime;
+
+/**
  * Command object for Print Events commands.
  */
 public class PrintCommand extends Command {

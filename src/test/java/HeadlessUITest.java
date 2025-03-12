@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,10 +16,18 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.security.Permission;
 import java.lang.reflect.Field;
+
 import view.HeadlessUI;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+
+/**
+ * Tests for the HeadlessUI class.
+ */
 public class HeadlessUITest {
 
   private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
@@ -146,8 +155,14 @@ public class HeadlessUITest {
     readerField.setAccessible(true);
     readerField.set(ui, null);
 
-    ui.close();
+    try {
+      ui.close();
+      assertNotNull(ui);
+    } catch (Exception e) {
+      fail("Closing UI should not throw an exception even if reader is null");
+    }
   }
+
 
   @Test
   public void testCloseWithIOException() throws Exception {
@@ -168,7 +183,9 @@ public class HeadlessUITest {
     ui.close();
 
     assertTrue(
-        errContent.toString().contains("Error closing file: Simulated IOException during close"));
+            errContent
+                    .toString()
+                    .contains("Error closing file: Simulated IOException during close"));
   }
 
   @Test
@@ -178,7 +195,12 @@ public class HeadlessUITest {
 
     ui.close();
 
-    ui.close();
+    try {
+      ui.close();
+      assertNotNull(ui); // Ensure the object is still valid
+    } catch (Exception e) {
+      fail("Multiple close() calls should not throw an exception");
+    }
   }
 
   private static class ExitException extends SecurityException {
@@ -199,12 +221,12 @@ public class HeadlessUITest {
 
     @Override
     public void checkPermission(Permission perm) {
-
+      // Grants permission
     }
 
     @Override
     public void checkPermission(Permission perm, Object context) {
-
+      // Grants permission
     }
 
     @Override

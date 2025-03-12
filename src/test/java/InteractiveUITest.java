@@ -11,10 +11,15 @@ import java.lang.reflect.Field;
 import java.util.Scanner;
 import view.InteractiveUI;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+/**
+ * Tests for the InteractiveUI class.
+ */
 public class InteractiveUITest {
-
   private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
   private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
   private final PrintStream originalOut = System.out;
@@ -143,9 +148,17 @@ public class InteractiveUITest {
   }
 
   @Test
-  public void testMultipleClose() {
+  public void testMultipleClose() throws Exception {
     InteractiveUI ui = new InteractiveUI();
+
+    Field scannerField = InteractiveUI.class.getDeclaredField("scanner");
+    scannerField.setAccessible(true);
+
     ui.close();
+    assertNull("Scanner should be null after first close", scannerField.get(ui));
+
     ui.close();
+    assertNull("Scanner should remain null after second close", scannerField.get(ui));
   }
+
 }

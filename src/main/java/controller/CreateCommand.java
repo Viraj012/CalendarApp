@@ -1,6 +1,8 @@
 package controller;
 
-import java.time.LocalDateTime; /**
+import java.time.LocalDateTime;
+
+/**
  * Command object for Create Event commands.
  */
 public class CreateCommand extends Command {

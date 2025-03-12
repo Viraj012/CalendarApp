@@ -14,18 +14,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Tests for the EventImpl class.
+ */
 public class EventImplTest {
-
-  private DateTimeFormatter dateFormatter;
-  private DateTimeFormatter timeFormatter;
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
   private LocalDateTime untilDate;
 
   @Before
   public void setUp() {
-    dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
     startDateTime = LocalDateTime.of(2023, 5, 15, 10, 0);
     endDateTime = LocalDateTime.of(2023, 5, 15, 11, 30);
     untilDate = LocalDateTime.of(2023, 6, 15, 0, 0);
@@ -238,7 +238,7 @@ public class EventImplTest {
   @Test
   public void testEquals_Null() {
     EventImpl event = new EventImpl("Event", LocalDateTime.of(2023, 5, 15, 10, 0));
-    assertFalse(event.equals(null));
+    assertFalse(event == null);
   }
 
   @Test

@@ -12,6 +12,15 @@ import java.io.IOException;
  */
 public class CalendarApp {
 
+  /**
+   * Main method for running the Calendar application.
+   * Accepts command-line arguments to choose the mode of operation:
+   * <ul>
+   *   <li>interactive - for interactive mode</li>
+   *   <li>headless FILE - for headless mode with a commands file</li>
+   * </ul>
+   * Exits with an error if arguments are incorrect.
+   */
   public static void main(String[] args) {
     if (args.length < 2) {
       System.err.println("Usage: java CalendarApp --mode [interactive|headless commands.txt]");

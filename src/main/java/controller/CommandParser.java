@@ -8,9 +8,12 @@ import java.util.regex.Pattern;
  * Parser for calendar commands. Extracts information from user input.
  */
 public class CommandParser {
-  private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("--description\\s+\"([^\"]*)\"");
-  private static final Pattern LOCATION_PATTERN = Pattern.compile("--location\\s+\"([^\"]*)\"");
-  private static final Pattern EDIT_ALL_PATTERN = Pattern.compile("\"([^\"]*)\"\\s+\"([^\"]*)\"");
+  private static final Pattern DESCRIPTION_PATTERN =
+          Pattern.compile("--description\\s+\"([^\"]*)\"");
+  private static final Pattern LOCATION_PATTERN =
+          Pattern.compile("--location\\s+\"([^\"]*)\"");
+  private static final Pattern EDIT_ALL_PATTERN =
+          Pattern.compile("\"([^\"]*)\"\\s+\"([^\"]*)\"");
 
   /**
    * Parse a create event command.
@@ -24,11 +27,11 @@ public class CommandParser {
 
     String description = extractQuotedParameter(cmdWithoutAutoDecline, DESCRIPTION_PATTERN);
     cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace(
-        description.isEmpty() ? "" : "--description \"" + description + "\"", "").trim();
+            description.isEmpty() ? "" : "--description \"" + description + "\"", "").trim();
 
     String location = extractQuotedParameter(cmdWithoutAutoDecline, LOCATION_PATTERN);
     cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace(
-        location.isEmpty() ? "" : "--location \"" + location + "\"", "").trim();
+            location.isEmpty() ? "" : "--location \"" + location + "\"", "").trim();
 
     boolean isPrivate = command.contains("--private");
     cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace("--private", "").trim();
@@ -36,10 +39,10 @@ public class CommandParser {
     try {
       if (cmdWithoutAutoDecline.contains(" on ")) {
         return parseAllDayCreateCommand(cmdWithoutAutoDecline, autoDecline, description,
-            location, !isPrivate);
+                location, !isPrivate);
       } else if (cmdWithoutAutoDecline.contains(" from ")) {
         return parseRegularCreateCommand(cmdWithoutAutoDecline, autoDecline, description,
-            location, !isPrivate);
+                location, !isPrivate);
       }
     } catch (Exception e) {
       // Return null if parsing fails
@@ -63,8 +66,9 @@ public class CommandParser {
   /**
    * Parse a create all-day event command.
    */
-  private CreateCommand parseAllDayCreateCommand(String command, boolean autoDecline,
-      String description, String location, boolean isPublic) {
+  private CreateCommand parseAllDayCreateCommand(String command
+          , boolean autoDecline, String description
+          , String location, boolean isPublic) {
     String[] parts = command.split(" on ");
     if (parts.length != 2) {
       return null;
@@ -101,7 +105,8 @@ public class CommandParser {
   /**
    * Parse a recurring all-day event command.
    */
-  private CreateCommand parseRecurringAllDayCreateCommand(CreateCommand createCmd, String dateTimeStr) {
+  private CreateCommand parseRecurringAllDayCreateCommand(CreateCommand createCmd
+          , String dateTimeStr) {
     String[] parts = dateTimeStr.split(" repeats ");
     if (parts.length != 2) {
       return null;
@@ -142,8 +147,9 @@ public class CommandParser {
   /**
    * Parse a create regular event command.
    */
-  private CreateCommand parseRegularCreateCommand(String command, boolean autoDecline,
-      String description, String location, boolean isPublic) {
+  private CreateCommand parseRegularCreateCommand(String command
+          , boolean autoDecline, String description
+          , String location, boolean isPublic) {
     String[] parts = command.split(" from ");
     if (parts.length != 2) {
       return null;
@@ -197,8 +203,8 @@ public class CommandParser {
   /**
    * Parse a recurring regular event command.
    */
-  private CreateCommand parseRecurringRegularCreateCommand(CreateCommand createCmd,
-      String startTimeStr, String endTimeOrRest) {
+  private CreateCommand parseRecurringRegularCreateCommand(CreateCommand createCmd
+          , String startTimeStr, String endTimeOrRest) {
     String[] endTimeParts = endTimeOrRest.split(" repeats ", 2);
     if (endTimeParts.length != 2) {
       return null;
@@ -260,10 +266,10 @@ public class CommandParser {
   private EditCommand parseEditSingleEventCommand(String property, String rest) {
     try {
       // Handle date/time property edits
-      if (property.equalsIgnoreCase("starttime") ||
-          property.equalsIgnoreCase("startdate") ||
-          property.equalsIgnoreCase("endtime") ||
-          property.equalsIgnoreCase("enddate")) {
+      if (property.equalsIgnoreCase("starttime")
+              || property.equalsIgnoreCase("startdate")
+              || property.equalsIgnoreCase("endtime")
+              || property.equalsIgnoreCase("enddate")) {
 
         int fromIdx = rest.indexOf(" from ");
         if (fromIdx == -1) {
@@ -341,6 +347,7 @@ public class CommandParser {
       return null;
     }
   }
+
   /**
    * Parse an edit events from command.
    */
