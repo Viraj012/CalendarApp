@@ -1,0 +1,14 @@
+create event "Team Meeting" from 2023-05-15T09:00 to 2023-05-15T10:30 --description "Weekly sprint planning" --location "Conference Room A"
+create meeting "Client Call" from 2023-05-16T11:00 to 2023-05-16T12:00
+create event "Project Review" from 2023-05-17 to 2023-05-18
+create event "Lunch Break" on 2023-05-15T12:00 to 2023-05-15T13:00
+create event "Weekly Report" from 2023-05-15T14:00 to 2023-05-15T15:00
+print events on 2023-05-15
+print schedule on 2023-05-15
+edit event dates "Team Meeting" from 2023-05-15T09:00 to 2023-05-15T10:30 with "2023-05-16T09:00"
+edit event location "Project Review" from 2023-05-17 to 2023-05-18 with "Room 201"
+edit events name "Lunch Break" with "Meal Time"
+show status on 2023-05-15T09:30
+show calendar for May
+export cal calendar.csv
+exit

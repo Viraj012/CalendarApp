@@ -926,6 +926,256 @@ public class CalendarImplTest {
     assertTrue(hasEventOn(events, "2025-03-16"));
   }
 
+  @Test
+  public void testUpdateEventPropertySubject() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    List<Event> events = calendar.getEventsOn(date1);
+    assertEquals(1, events.size());
+
+    assertTrue(calendar.editEvent("subject", "Meeting", date1, date2, "Updated Meeting"));
+
+    events = calendar.getEventsOn(date1);
+    assertEquals("Updated Meeting", events.get(0).getSubject());
+  }
+
+  @Test
+  public void testUpdateEventPropertyDescription() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    assertTrue(calendar.editEvent("description", "Meeting", date1, date2, "Updated Description"));
+
+    List<Event> events = calendar.getEventsOn(date1);
+    assertEquals("Updated Description", events.get(0).getDescription());
+  }
+
+  @Test
+  public void testUpdateEventPropertyLocation() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    assertTrue(calendar.editEvent("location", "Meeting", date1, date2, "Updated Location"));
+
+    List<Event> events = calendar.getEventsOn(date1);
+    assertEquals("Updated Location", events.get(0).getLocation());
+  }
+
+  @Test
+  public void testUpdateEventPropertyPublic() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    assertTrue(calendar.editEvent("public", "Meeting", date1, date2, "false"));
+
+    List<Event> events = calendar.getEventsOn(date1);
+    assertFalse(events.get(0).isPublic());
+
+    assertTrue(calendar.editEvent("public", "Meeting", date1, date2, "true"));
+
+    events = calendar.getEventsOn(date1);
+    assertTrue(events.get(0).isPublic());
+  }
+
+  @Test
+  public void testUpdateEventPropertyStartTime() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    LocalDateTime newStart = date1.minusHours(1);
+    assertTrue(calendar.editEvent("starttime", "Meeting", date1, date2, newStart.format(FORMATTER)));
+
+    List<Event> events = calendar.getEventsOn(newStart);
+    assertEquals(1, events.size());
+    assertEquals(newStart, events.get(0).getStartDateTime());
+  }
+
+  @Test
+  public void testUpdateEventPropertyStartTimeInvalidRange() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    LocalDateTime invalidStart = date2.plusMinutes(30);
+    assertFalse(calendar.editEvent("starttime", "Meeting", date1, date2, invalidStart.format(FORMATTER)));
+  }
+
+  @Test
+  public void testUpdateEventPropertyStartTimeParseException() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    assertFalse(calendar.editEvent("starttime", "Meeting", date1, date2, "invalid-date-format"));
+  }
+
+  @Test
+  public void testUpdateEventPropertyEndTimeForAllDayEvent() {
+    LocalDateTime dateTime = LocalDateTime.parse("2025-03-15T00:00", FORMATTER);
+    assertTrue(calendar.createAllDayEvent("Holiday", dateTime, false, "Description", "Location", true));
+
+    assertFalse(calendar.editEvent("endtime", "Holiday", dateTime, null, date2.format(FORMATTER)));
+  }
+
+  @Test
+  public void testUpdateEventPropertyEndTime() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    LocalDateTime newEnd = date2.plusHours(1);
+    assertTrue(calendar.editEvent("endtime", "Meeting", date1, date2, newEnd.format(FORMATTER)));
+
+    List<Event> events = calendar.getEventsOn(date1);
+    assertEquals(1, events.size());
+    assertEquals(newEnd, events.get(0).getEndDateTime());
+  }
+
+  @Test
+  public void testUpdateEventPropertyEndTimeInvalidRange() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    LocalDateTime invalidEnd = date1.minusMinutes(30);
+    assertFalse(calendar.editEvent("endtime", "Meeting", date1, date2, invalidEnd.format(FORMATTER)));
+
+    assertFalse(calendar.editEvent("endtime", "Meeting", date1, date2, date1.format(FORMATTER)));
+  }
+
+  @Test
+  public void testUpdateEventPropertyEndTimeParseException() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    assertFalse(calendar.editEvent("endtime", "Meeting", date1, date2, "invalid-date-format"));
+  }
+
+  @Test
+  public void testUpdateEventPropertyInvalid() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+
+    assertFalse(calendar.editEvent("nonexistent", "Meeting", date1, date2, "New Value"));
+  }
+
+  @Test
+  public void testHasConflictsStreaming() {
+    assertTrue(calendar.createEvent("Meeting", date1, date2, false, "Description", "Location", true));
+    assertFalse(calendar.createEvent("Conflicting Meeting", date1.plusMinutes(30), date2.minusMinutes(30), true, "Description", "Location", true));
+    assertTrue(calendar.createEvent("Non-Conflicting Meeting", date2.plusMinutes(5), date3, false, "Description", "Location", true));
+  }
+
+  @Test
+  public void testHasConflictsNonRecurringEvents() {
+    assertTrue(calendar.createEvent("First Meeting", date1, date2, false, "Description", "Location", true));
+    LocalDateTime startTime = date1.plusMinutes(30);
+    LocalDateTime endTime = date2.minusMinutes(30);
+    assertFalse(calendar.createEvent("Conflicting Meeting", startTime, endTime, true, "Description", "Location", true));
+  }
+
+  @Test
+  public void testHasConflictsAllDayEvents() {
+    assertTrue(calendar.createAllDayEvent("Holiday", date1, false, "Description", "Location", true));
+    assertFalse(calendar.createAllDayEvent("Another Holiday", date1, true, "Description", "Location", true));
+    assertTrue(calendar.createAllDayEvent("Next Day", date1.plusDays(1), true, "Description", "Location", true));
+  }
+
+  @Test
+  public void testHasConflictsNormalEventsTimeComparison() {
+    assertTrue(calendar.createEvent("First Meeting", date1, date2, false, "Description", "Location", true));
+
+    // Event that ends exactly when first starts (should not conflict)
+    assertTrue(calendar.createEvent("Before Meeting", date1.minusHours(2), date1, false, "Description", "Location", true));
+
+    // Event that starts exactly when first ends (should not conflict)
+    assertTrue(calendar.createEvent("After Meeting", date2, date2.plusHours(2), false, "Description", "Location", true));
+
+    // Event that overlaps the beginning (should conflict)
+    assertFalse(calendar.createEvent("Overlap Start", date1.minusHours(1), date1.plusHours(1), true, "Description", "Location", true));
+
+    // Event that overlaps the end (should conflict)
+    assertFalse(calendar.createEvent("Overlap End", date2.minusHours(1), date2.plusHours(1), true, "Description", "Location", true));
+  }
+
+  @Test
+  public void testHasConflictsRecurringEvents() {
+    LocalDateTime recurringStart = LocalDateTime.parse("2025-03-10T10:00", FORMATTER);
+    LocalDateTime recurringEnd = LocalDateTime.parse("2025-03-10T11:00", FORMATTER);
+
+    assertTrue(calendar.createRecurringEvent(
+        "Weekly Meeting",
+        recurringStart,
+        recurringEnd,
+        "M", // Monday
+        3,   // 3 occurrences
+        null,
+        false,
+        "Description",
+        "Location",
+        true));
+
+    // Test conflict with second occurrence (March 17)
+    LocalDateTime conflictStart = LocalDateTime.parse("2025-03-17T10:30", FORMATTER);
+    LocalDateTime conflictEnd = LocalDateTime.parse("2025-03-17T11:30", FORMATTER);
+    assertFalse(calendar.createEvent("Conflicting Meeting", conflictStart, conflictEnd, true, "Description", "Location", true));
+
+    // Test no conflict on a different day
+    LocalDateTime nonConflictStart = LocalDateTime.parse("2025-03-18T10:00", FORMATTER);
+    LocalDateTime nonConflictEnd = LocalDateTime.parse("2025-03-18T11:00", FORMATTER);
+    assertTrue(calendar.createEvent("Non-Conflicting Meeting", nonConflictStart, nonConflictEnd, true, "Description", "Location", true));
+  }
+
+  @Test
+  public void testHasConflictsRecurringAllDayEvents() {
+    LocalDateTime recurringStart = LocalDateTime.parse("2025-03-08T00:00", FORMATTER);
+
+    assertTrue(calendar.createRecurringAllDayEvent(
+        "Weekend Meeting",
+        recurringStart,
+        "SU", // Saturday and Sunday
+        3,    // 3 occurrences
+        null,
+        false,
+        "Description",
+        "Location",
+        true));
+
+    // Test conflict with recurrence (March 15)
+    LocalDateTime conflictDate = LocalDateTime.parse("2025-03-15T12:00", FORMATTER);
+    assertFalse(calendar.createAllDayEvent("Conflicting Holiday", conflictDate, true, "Description", "Location", true));
+
+    // Test no conflict on a different day
+    LocalDateTime nonConflictDate = LocalDateTime.parse("2025-03-14T00:00", FORMATTER);
+    assertTrue(calendar.createAllDayEvent("Non-Conflicting Holiday", nonConflictDate, true, "Description", "Location", true));
+  }
+
+  @Test
+  public void testHasConflictsRecurringWithTimeComparison() {
+    LocalDateTime recurringStart = LocalDateTime.parse("2025-03-10T10:00", FORMATTER);
+    LocalDateTime recurringEnd = LocalDateTime.parse("2025-03-10T12:00", FORMATTER);
+
+    assertTrue(calendar.createRecurringEvent(
+        "Weekly Meeting",
+        recurringStart,
+        recurringEnd,
+        "M", // Monday
+        3,   // 3 occurrences
+        null,
+        false,
+        "Description",
+        "Location",
+        true));
+
+    // Test overlap at second occurrence (March 17)
+    LocalDateTime overlapStart = LocalDateTime.parse("2025-03-17T09:00", FORMATTER);
+    LocalDateTime overlapEnd = LocalDateTime.parse("2025-03-17T11:00", FORMATTER);
+    assertFalse(calendar.createEvent("Overlapping Meeting", overlapStart, overlapEnd, true, "Description", "Location", true));
+
+    // Test exact boundary case (ending when recurring starts) - should not conflict
+    LocalDateTime boundaryStart = LocalDateTime.parse("2025-03-17T08:00", FORMATTER);
+    LocalDateTime boundaryEnd = LocalDateTime.parse("2025-03-17T10:00", FORMATTER);
+    assertTrue(calendar.createEvent("Boundary Meeting", boundaryStart, boundaryEnd, true, "Description", "Location", true));
+  }
+
+  @Test
+  public void testHasConflictsNoConflict() {
+    LocalDateTime event1Start = LocalDateTime.parse("2025-03-10T10:00", FORMATTER);
+    LocalDateTime event1End = LocalDateTime.parse("2025-03-10T12:00", FORMATTER);
+
+    LocalDateTime event2Start = LocalDateTime.parse("2025-03-10T14:00", FORMATTER);
+    LocalDateTime event2End = LocalDateTime.parse("2025-03-10T16:00", FORMATTER);
+
+    assertTrue(calendar.createEvent("First Meeting", event1Start, event1End, false, "Description", "Location", true));
+    assertTrue(calendar.createEvent("Second Meeting", event2Start, event2End, true, "Description", "Location", true));
+  }
+
 
   private boolean hasEventOn(List<Event> events, String dateStr) {
     for (Event event : events) {
