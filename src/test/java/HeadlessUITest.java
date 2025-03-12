@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import org.junit.After;
@@ -22,48 +21,14 @@ import static org.junit.Assert.*;
 
 public class HeadlessUITest {
 
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
-
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
-
   private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
   private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
   private final PrintStream originalOut = System.out;
   private final PrintStream originalErr = System.err;
-
-  private static class ExitException extends SecurityException {
-    private final int status;
-
-    public ExitException(int status) {
-      super("System.exit(" + status + ")");
-      this.status = status;
-    }
-
-    public int getStatus() {
-      return status;
-    }
-  }
-
-  private static class NoExitSecurityManager extends SecurityManager {
-    @Override
-    public void checkPermission(Permission perm) {
-      // Allow everything
-    }
-
-    @Override
-    public void checkPermission(Permission perm, Object context) {
-      // Allow everything
-    }
-
-    @Override
-    public void checkExit(int status) {
-      super.checkExit(status);
-      throw new ExitException(status);
-    }
-  }
-
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @Rule
+  public ExpectedException exception = ExpectedException.none();
   private SecurityManager originalSecurityManager;
 
   @Before
@@ -113,8 +78,8 @@ public class HeadlessUITest {
     File commandFile = tempFolder.newFile("whitespace_commands.txt");
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(commandFile))) {
       writer.write("command1\n");
-      writer.write("  \n");  // Empty line with whitespace
-      writer.write("\n");    // Empty line
+      writer.write("  \n");
+      writer.write("\n");
       writer.write("command2\n");
     }
 
@@ -177,12 +142,10 @@ public class HeadlessUITest {
     File commandFile = tempFolder.newFile("close_exception.txt");
     HeadlessUI ui = new HeadlessUI(commandFile.getAbsolutePath());
 
-    // Access the private reader field and set it to null to simulate closed reader
     Field readerField = HeadlessUI.class.getDeclaredField("reader");
     readerField.setAccessible(true);
     readerField.set(ui, null);
 
-    // This should not throw an exception
     ui.close();
   }
 
@@ -191,7 +154,6 @@ public class HeadlessUITest {
     File commandFile = tempFolder.newFile("close_io_exception.txt");
     HeadlessUI ui = new HeadlessUI(commandFile.getAbsolutePath());
 
-    // Create a mock BufferedReader that throws IOException on close
     BufferedReader mockReader = new BufferedReader(new FileReader(commandFile)) {
       @Override
       public void close() throws IOException {
@@ -199,15 +161,14 @@ public class HeadlessUITest {
       }
     };
 
-    // Replace the reader with our mock
     Field readerField = HeadlessUI.class.getDeclaredField("reader");
     readerField.setAccessible(true);
     readerField.set(ui, mockReader);
 
-    // This should catch the IOException and print an error message
     ui.close();
 
-    assertTrue(errContent.toString().contains("Error closing file: Simulated IOException during close"));
+    assertTrue(
+        errContent.toString().contains("Error closing file: Simulated IOException during close"));
   }
 
   @Test
@@ -215,10 +176,41 @@ public class HeadlessUITest {
     File commandFile = tempFolder.newFile("multiple_close.txt");
     HeadlessUI ui = new HeadlessUI(commandFile.getAbsolutePath());
 
-    // First close should work
     ui.close();
 
-    // Second close should not throw an exception since reader is null
     ui.close();
+  }
+
+  private static class ExitException extends SecurityException {
+
+    private final int status;
+
+    public ExitException(int status) {
+      super("System.exit(" + status + ")");
+      this.status = status;
+    }
+
+    public int getStatus() {
+      return status;
+    }
+  }
+
+  private static class NoExitSecurityManager extends SecurityManager {
+
+    @Override
+    public void checkPermission(Permission perm) {
+
+    }
+
+    @Override
+    public void checkPermission(Permission perm, Object context) {
+
+    }
+
+    @Override
+    public void checkExit(int status) {
+      super.checkExit(status);
+      throw new ExitException(status);
+    }
   }
 }

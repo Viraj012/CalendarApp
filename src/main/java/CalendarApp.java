@@ -1,5 +1,3 @@
-
-
 import controller.CommandProcessor;
 import model.Calendar;
 import model.CalendarImpl;

@@ -33,6 +33,7 @@
             <param>controller.*</param>
             <param>model.*</param>
             <param>view.*</param>
+            <param>CalendarApp</param>
           </targetClasses>
           <targetTests>
             <param>CalendarImplTest</param>
@@ -42,6 +43,7 @@
             <param>CommandParserTest</param>
             <param>CommandHandlerTest</param>
             <param>CommandProcessorTest</param>
+            <param>CalendarAppTest</param>
           </targetTests>
         </configuration>
       </plugin>

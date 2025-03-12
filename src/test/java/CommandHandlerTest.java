@@ -1,4 +1,3 @@
-
 import controller.CommandHandler;
 import controller.CreateCommand;
 import controller.EditCommand;
@@ -43,8 +42,8 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().contains("Event created successfully"));
-    assert(view.getLastMessage().contains("Test Event"));
+    assert (view.getLastMessage().contains("Event created successfully"));
+    assert (view.getLastMessage().contains("Test Event"));
   }
 
   @Test
@@ -57,7 +56,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastError().contains("Failed to create Event"));
+    assert (view.getLastError().contains("Failed to create Event"));
   }
 
   @Test
@@ -70,7 +69,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().contains("All-day event created successfully"));
+    assert (view.getLastMessage().contains("All-day event created successfully"));
   }
 
   @Test
@@ -83,7 +82,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastError().contains("Failed to create All-day event"));
+    assert (view.getLastError().contains("Failed to create All-day event"));
   }
 
   @Test
@@ -96,7 +95,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().contains("Recurring event created successfully"));
+    assert (view.getLastMessage().contains("Recurring event created successfully"));
   }
 
   @Test
@@ -109,8 +108,8 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastError().contains("Failed to create recurring event"));
-    assert(view.getLastError().contains("conflict detected or spans multiple days"));
+    assert (view.getLastError().contains("Failed to create recurring event"));
+    assert (view.getLastError().contains("conflict detected or spans multiple days"));
   }
 
   @Test
@@ -123,7 +122,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().contains("Recurring all-day event created successfully"));
+    assert (view.getLastMessage().contains("Recurring all-day event created successfully"));
   }
 
   @Test
@@ -136,7 +135,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastError().contains("Failed to create recurring all-day event"));
+    assert (view.getLastError().contains("Failed to create recurring all-day event"));
   }
 
   @Test
@@ -150,7 +149,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().equals("Event updated successfully"));
+    assert (view.getLastMessage().equals("Event updated successfully"));
   }
 
   @Test
@@ -164,7 +163,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastError().contains("Failed to update event"));
+    assert (view.getLastError().contains("Failed to update event"));
   }
 
   @Test
@@ -178,7 +177,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().equals("Events updated successfully"));
+    assert (view.getLastMessage().equals("Events updated successfully"));
   }
 
   @Test
@@ -192,7 +191,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastError().contains("Failed to update events"));
+    assert (view.getLastError().contains("Failed to update events"));
   }
 
   @Test
@@ -206,7 +205,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().equals("All events updated successfully"));
+    assert (view.getLastMessage().equals("All events updated successfully"));
   }
 
   @Test
@@ -220,7 +219,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastError().contains("Failed to update events"));
+    assert (view.getLastError().contains("Failed to update events"));
   }
 
   @Test
@@ -234,7 +233,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getMessageHistory().get(0).contains("Events on 2023-01-01"));
+    assert (view.getMessageHistory().get(0).contains("Events on 2023-01-01"));
   }
 
   @Test
@@ -246,7 +245,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().contains("No events on 2023-01-01"));
+    assert (view.getLastMessage().contains("No events on 2023-01-01"));
   }
 
   @Test
@@ -260,7 +259,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getMessageHistory().get(0).contains("Events from 2023-01-01 to 2023-01-01"));
+    assert (view.getMessageHistory().get(0).contains("Events from 2023-01-01 to 2023-01-01"));
   }
 
   @Test
@@ -272,7 +271,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().contains("No events from 2023-01-01 to 2023-01-01"));
+    assert (view.getLastMessage().contains("No events from 2023-01-01 to 2023-01-01"));
   }
 
   @Test
@@ -294,14 +293,13 @@ public class CommandHandlerTest {
     commandHandler.handleCommand(cmd);
 
     List<String> messages = view.getMessageHistory();
-    assert(messages.size() >= 5);
-    assert(messages.get(0).contains("Events from 2023-01-01 to 2023-01-01"));
+    assert (messages.size() >= 5);
+    assert (messages.get(0).contains("Events from 2023-01-01 to 2023-01-01"));
 
-    // Messages should be ordered: All-day Event, Event 2, Event 1, Next Day Event
-    assert(messages.get(1).contains("All-day Event"));
-    assert(messages.get(2).contains("Event 2"));
-    assert(messages.get(3).contains("Event 1"));
-    assert(messages.get(4).contains("Next Day Event"));
+    assert (messages.get(1).contains("All-day Event"));
+    assert (messages.get(2).contains("Event 2"));
+    assert (messages.get(3).contains("Event 1"));
+    assert (messages.get(4).contains("Next Day Event"));
   }
 
   @Test
@@ -312,7 +310,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().contains("Calendar exported to:"));
+    assert (view.getLastMessage().contains("Calendar exported to:"));
   }
 
   @Test
@@ -323,7 +321,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastError().contains("Failed to export calendar"));
+    assert (view.getLastError().contains("Failed to export calendar"));
   }
 
   @Test
@@ -334,7 +332,7 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().equals("busy"));
+    assert (view.getLastMessage().equals("busy"));
   }
 
   @Test
@@ -345,10 +343,11 @@ public class CommandHandlerTest {
 
     commandHandler.handleCommand(cmd);
 
-    assert(view.getLastMessage().equals("available"));
+    assert (view.getLastMessage().equals("available"));
   }
 
   private class TestCalendar implements Calendar {
+
     private boolean createEventResult;
     private boolean createAllDayEventResult;
     private boolean createRecurringEventResult;
@@ -406,7 +405,8 @@ public class CommandHandlerTest {
     }
 
     @Override
-    public boolean createEvent(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime,
+    public boolean createEvent(String eventName, LocalDateTime startDateTime,
+        LocalDateTime endDateTime,
         boolean autoDecline, String description, String location, boolean isPublic) {
       return createEventResult;
     }
@@ -418,15 +418,19 @@ public class CommandHandlerTest {
     }
 
     @Override
-    public boolean createRecurringEvent(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime,
-        String weekdays, int occurrences, LocalDateTime untilDate, boolean autoDecline, String description,
+    public boolean createRecurringEvent(String eventName, LocalDateTime startDateTime,
+        LocalDateTime endDateTime,
+        String weekdays, int occurrences, LocalDateTime untilDate, boolean autoDecline,
+        String description,
         String location, boolean isPublic) {
       return createRecurringEventResult;
     }
 
     @Override
-    public boolean createRecurringAllDayEvent(String eventName, LocalDateTime dateTime, String weekdays,
-        int occurrences, LocalDateTime untilDate, boolean autoDecline, String description, String location,
+    public boolean createRecurringAllDayEvent(String eventName, LocalDateTime dateTime,
+        String weekdays,
+        int occurrences, LocalDateTime untilDate, boolean autoDecline, String description,
+        String location,
         boolean isPublic) {
       return createRecurringAllDayEventResult;
     }
@@ -438,7 +442,8 @@ public class CommandHandlerTest {
     }
 
     @Override
-    public boolean editEventsFrom(String property, String eventName, LocalDateTime startDateTime, String newValue) {
+    public boolean editEventsFrom(String property, String eventName, LocalDateTime startDateTime,
+        String newValue) {
       return editEventsFromResult;
     }
 
@@ -469,6 +474,7 @@ public class CommandHandlerTest {
   }
 
   private class TestTextUI implements TextUI {
+
     private List<String> messageHistory = new ArrayList<>();
     private List<String> errorHistory = new ArrayList<>();
 
@@ -505,17 +511,19 @@ public class CommandHandlerTest {
 
     @Override
     public void close() {
-      // Do nothing
+
     }
   }
 
   private class TestEvent implements Event {
+
     private String subject;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     private boolean isAllDay;
 
-    public TestEvent(String subject, LocalDateTime startDateTime, LocalDateTime endDateTime, boolean isAllDay) {
+    public TestEvent(String subject, LocalDateTime startDateTime, LocalDateTime endDateTime,
+        boolean isAllDay) {
       this.subject = subject;
       this.startDateTime = startDateTime;
       this.endDateTime = endDateTime;
@@ -574,6 +582,7 @@ public class CommandHandlerTest {
   }
 
   private class CreateCommandStub extends CreateCommand {
+
     private String eventName;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
@@ -584,7 +593,8 @@ public class CommandHandlerTest {
     private int occurrences;
     private LocalDateTime untilDate;
 
-    public CreateCommandStub(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime,
+    public CreateCommandStub(String eventName, LocalDateTime startDateTime,
+        LocalDateTime endDateTime,
         boolean autoDecline, boolean isAllDay, boolean isRecurring, String weekdays,
         int occurrences, LocalDateTime untilDate) {
       this.eventName = eventName;
@@ -660,6 +670,7 @@ public class CommandHandlerTest {
   }
 
   private class EditCommandStub extends EditCommand {
+
     private EditType editType;
     private String property;
     private String eventName;
@@ -710,11 +721,13 @@ public class CommandHandlerTest {
   }
 
   private class PrintCommandStub extends PrintCommand {
+
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     private boolean isDateRange;
 
-    public PrintCommandStub(LocalDateTime startDateTime, LocalDateTime endDateTime, boolean isDateRange) {
+    public PrintCommandStub(LocalDateTime startDateTime, LocalDateTime endDateTime,
+        boolean isDateRange) {
       this.startDateTime = startDateTime;
       this.endDateTime = endDateTime;
       this.isDateRange = isDateRange;
@@ -737,6 +750,7 @@ public class CommandHandlerTest {
   }
 
   private class ExportCommandStub extends ExportCommand {
+
     private String fileName;
 
     public ExportCommandStub(String fileName) {
@@ -750,6 +764,7 @@ public class CommandHandlerTest {
   }
 
   private class ShowCommandStub extends ShowCommand {
+
     private LocalDateTime dateTime;
 
     public ShowCommandStub(LocalDateTime dateTime) {

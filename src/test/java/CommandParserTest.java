@@ -1,4 +1,3 @@
-
 import controller.Command;
 import controller.CommandParser;
 import controller.CreateCommand;
@@ -8,6 +7,7 @@ import controller.PrintCommand;
 import controller.ShowCommand;
 import org.junit.Test;
 import org.junit.Before;
+
 import static org.junit.Assert.*;
 
 import java.time.LocalDate;
@@ -23,7 +23,6 @@ public class CommandParserTest {
     parser = new CommandParser();
   }
 
-  // CREATE EVENT TESTS
 
   @Test
   public void testParseCreateAllDayEvent() {
@@ -143,23 +142,20 @@ public class CommandParserTest {
 
   @Test
   public void testParseCreateEventInvalid() {
-    // Invalid date
+
     assertNull(parser.parseCreateCommand("create event Meeting on invalid-date"));
 
-    // Missing event name
     assertNull(parser.parseCreateCommand("create event  on 2023-05-01"));
 
-    // End time before start time
-    assertNull(parser.parseCreateCommand("create event Meeting from 2023-05-01T10:00 to 2023-05-01T09:00"));
+    assertNull(parser.parseCreateCommand(
+        "create event Meeting from 2023-05-01T10:00 to 2023-05-01T09:00"));
 
-    // Invalid command format
     assertNull(parser.parseCreateCommand("create event Meeting at 2023-05-01"));
 
-    // Invalid recurring format
-    assertNull(parser.parseCreateCommand("create event Meeting on 2023-05-01 repeats MTW without 5 times"));
+    assertNull(parser.parseCreateCommand(
+        "create event Meeting on 2023-05-01 repeats MTW without 5 times"));
   }
 
-  // EDIT EVENT TESTS
 
   @Test
   public void testParseEditSingleEvent() {
@@ -218,23 +214,19 @@ public class CommandParserTest {
 
   @Test
   public void testParseEditInvalid() {
-    // Invalid edit type
+
     assertNull(parser.parseEditCommand("edit something name Meeting with \"New Name\""));
 
-    // Missing parts
     assertNull(parser.parseEditCommand("edit event name"));
 
-    // Invalid format for single event edit
     assertNull(parser.parseEditCommand("edit event name Meeting from 2023-05-01T10:00 new value"));
 
-    // Invalid format for events from edit
-    assertNull(parser.parseEditCommand("edit events location Meeting on 2023-05-01T10:00 with \"New Location\""));
+    assertNull(parser.parseEditCommand(
+        "edit events location Meeting on 2023-05-01T10:00 with \"New Location\""));
 
-    // Invalid format for all events edit
     assertNull(parser.parseEditCommand("edit events description Meeting Updated"));
   }
 
-  // PRINT EVENTS TESTS
 
   @Test
   public void testParsePrintEventsOnDate() {
@@ -273,17 +265,14 @@ public class CommandParserTest {
 
   @Test
   public void testParsePrintInvalid() {
-    // Invalid date
+
     assertNull(parser.parsePrintCommand("print events on invalid-date"));
 
-    // Invalid format
     assertNull(parser.parsePrintCommand("print events between 2023-05-01 and 2023-05-07"));
 
-    // Missing end date
     assertNull(parser.parsePrintCommand("print events from 2023-05-01"));
   }
 
-  // EXPORT TESTS
 
   @Test
   public void testParseExportCommand() {
@@ -299,14 +288,12 @@ public class CommandParserTest {
 
   @Test
   public void testParseExportInvalid() {
-    // Missing filename
+
     assertNull(parser.parseExportCommand("export cal"));
 
-    // Too many arguments
     assertNull(parser.parseExportCommand("export cal events.csv extra"));
   }
 
-  // SHOW STATUS TESTS
 
   @Test
   public void testParseShowStatusCommand() {
@@ -325,25 +312,23 @@ public class CommandParserTest {
 
   @Test
   public void testParseShowStatusInvalid() {
-    // Invalid date
+
     assertNull(parser.parseShowCommand("show status on invalid-date"));
 
-    // Missing date
     assertNull(parser.parseShowCommand("show status"));
 
-    // Invalid format
     assertNull(parser.parseShowCommand("show status at 2023-05-01T10:00"));
   }
 
-  // EXTRACTION TESTS
 
   @Test
   public void testExtractQuotedParameter() {
     String command = "command --description \"This is a description\" other";
-    Command createCmd = parser.parseCreateCommand("create event Test on 2023-05-01 --description \"This is a description\"");
+    Command createCmd = parser.parseCreateCommand(
+        "create event Test on 2023-05-01 --description \"This is a description\"");
 
     assertNotNull(createCmd);
-    assertEquals("This is a description", ((CreateCommand)createCmd).getDescription());
+    assertEquals("This is a description", ((CreateCommand) createCmd).getDescription());
   }
 
   @Test
@@ -351,13 +336,14 @@ public class CommandParserTest {
     Command createCmd = parser.parseCreateCommand("create event Test on 2023-05-01");
 
     assertNotNull(createCmd);
-    assertEquals("", ((CreateCommand)createCmd).getDescription());
-    assertEquals("", ((CreateCommand)createCmd).getLocation());
+    assertEquals("", ((CreateCommand) createCmd).getDescription());
+    assertEquals("", ((CreateCommand) createCmd).getLocation());
   }
 
   @Test
   public void testParseCreateCommandWithAutoDecline() {
-    Command cmd = parser.parseCreateCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --autoDecline");
+    Command cmd = parser.parseCreateCommand(
+        "create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --autoDecline");
     assertTrue(cmd instanceof CreateCommand);
     CreateCommand createCmd = (CreateCommand) cmd;
     assertTrue(createCmd.isAutoDecline());
@@ -365,7 +351,8 @@ public class CommandParserTest {
 
   @Test
   public void testParseCreateCommandWithDescription() {
-    Command cmd = parser.parseCreateCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --description \"Team meeting\"");
+    Command cmd = parser.parseCreateCommand(
+        "create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --description \"Team meeting\"");
     assertTrue(cmd instanceof CreateCommand);
     CreateCommand createCmd = (CreateCommand) cmd;
     assertEquals("Team meeting", createCmd.getDescription());
@@ -373,7 +360,8 @@ public class CommandParserTest {
 
   @Test
   public void testParseCreateCommandWithLocation() {
-    Command cmd = parser.parseCreateCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --location \"Conference Room\"");
+    Command cmd = parser.parseCreateCommand(
+        "create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --location \"Conference Room\"");
     assertTrue(cmd instanceof CreateCommand);
     CreateCommand createCmd = (CreateCommand) cmd;
     assertEquals("Conference Room", createCmd.getLocation());
@@ -381,7 +369,8 @@ public class CommandParserTest {
 
   @Test
   public void testParseCreateCommandWithPrivate() {
-    Command cmd = parser.parseCreateCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --private");
+    Command cmd = parser.parseCreateCommand(
+        "create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --private");
     assertTrue(cmd instanceof CreateCommand);
     CreateCommand createCmd = (CreateCommand) cmd;
     assertFalse(createCmd.isPublic());
@@ -389,7 +378,8 @@ public class CommandParserTest {
 
   @Test
   public void testParseCreateRecurringEvent2() {
-    Command cmd = parser.parseCreateCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 repeats MWF for 5 times");
+    Command cmd = parser.parseCreateCommand(
+        "create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 repeats MWF for 5 times");
     assertTrue(cmd instanceof CreateCommand);
     CreateCommand createCmd = (CreateCommand) cmd;
     assertTrue(createCmd.isRecurring());

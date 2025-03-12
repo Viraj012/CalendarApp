@@ -1,4 +1,3 @@
-
 import java.util.List;
 import java.util.Objects;
 import model.EventImpl;
@@ -34,7 +33,7 @@ public class EventImplTest {
 
   @Test
   public void testToString_RegularEvent() {
-    // Regular event with start and end time on the same day
+
     EventImpl event = new EventImpl("Team Meeting", startDateTime, endDateTime);
     event.setLocation("Conference Room A");
 
@@ -44,7 +43,7 @@ public class EventImplTest {
 
   @Test
   public void testToString_RegularEventNoLocation() {
-    // Regular event with no location
+
     EventImpl event = new EventImpl("Team Meeting", startDateTime, endDateTime);
 
     String expected = "Team Meeting - 2023-05-15 10:00 to 11:30";
@@ -53,7 +52,7 @@ public class EventImplTest {
 
   @Test
   public void testToString_AllDayEvent() {
-    // All-day event
+
     EventImpl event = new EventImpl("Company Holiday", startDateTime);
 
     String expected = "Company Holiday - 2023-05-15 All Day";
@@ -62,7 +61,7 @@ public class EventImplTest {
 
   @Test
   public void testToString_AllDayEventWithLocation() {
-    // All-day event with location
+
     EventImpl event = new EventImpl("Company Holiday", startDateTime);
     event.setLocation("Main Office");
 
@@ -72,7 +71,7 @@ public class EventImplTest {
 
   @Test
   public void testToString_MultiDayEvent() {
-    // Multi-day event
+
     LocalDateTime multiDayEnd = LocalDateTime.of(2023, 5, 16, 16, 0);
     EventImpl event = new EventImpl("Conference", startDateTime, multiDayEnd);
 
@@ -82,7 +81,7 @@ public class EventImplTest {
 
   @Test
   public void testToString_RecurringEvent() {
-    // Recurring event with occurrences
+
     EventImpl event = new EventImpl("Weekly Standup", startDateTime, endDateTime, "MWF", 10, null);
 
     String result = event.toString();
@@ -91,8 +90,9 @@ public class EventImplTest {
 
   @Test
   public void testToString_RecurringEventWithUntilDate() {
-    // Recurring event with until date
-    EventImpl event = new EventImpl("Weekly Standup", startDateTime, endDateTime, "MWF", -1, untilDate);
+
+    EventImpl event = new EventImpl("Weekly Standup", startDateTime, endDateTime, "MWF", -1,
+        untilDate);
 
     String result = event.toString();
     assertTrue(result.contains("Repeats on: Mon,Wed,Fri until 2023-06-15"));
@@ -100,7 +100,7 @@ public class EventImplTest {
 
   @Test
   public void testToString_RecurringAllDayEvent() {
-    // Recurring all-day event
+
     EventImpl event = new EventImpl("Team Offsite", startDateTime, "MWF", 5, null);
 
     String result = event.toString();
@@ -110,11 +110,12 @@ public class EventImplTest {
 
   @Test
   public void testToString_AllWeekdaysRecurringEvent() {
-    // Event that repeats on all weekdays
-    EventImpl event = new EventImpl("Daily Check-in", startDateTime, endDateTime, "MTWRFSU", -1, untilDate);
+
+    EventImpl event = new EventImpl("Daily Check-in", startDateTime, endDateTime, "MTWRFSU", -1,
+        untilDate);
 
     String result = event.toString();
-    // Verify all weekdays are included
+
     assertTrue(result.contains("Mon"));
     assertTrue(result.contains("Tue"));
     assertTrue(result.contains("Wed"));
@@ -126,22 +127,22 @@ public class EventImplTest {
 
   @Test
   public void testToString_EdgeCaseNullEndDateTime() {
-    // Regular non-all-day event with null endDateTime (unusual case)
+
     EventImpl event = new EventImpl("Strange Event", startDateTime, null);
 
     String result = event.toString();
-    // Should fall back to just showing the date
+
     assertEquals("Strange Event - 2023-05-15", result);
   }
 
-  // Helper method to directly test RecurrencePattern
+
   @Test
   public void testRecurrencePatternWeekdays() {
-    EventImpl event = new EventImpl("Test Event", startDateTime, endDateTime, "MTWRFSU", -1, untilDate);
+    EventImpl event = new EventImpl("Test Event", startDateTime, endDateTime, "MTWRFSU", -1,
+        untilDate);
     RecurrencePattern pattern = event.getRecurrence();
     Set<DayOfWeek> weekdays = pattern.getWeekdays();
 
-    // Verify all days of week are included
     assertEquals(7, weekdays.size());
     assertTrue(weekdays.contains(DayOfWeek.MONDAY));
     assertTrue(weekdays.contains(DayOfWeek.TUESDAY));
@@ -281,54 +282,49 @@ public class EventImplTest {
 
   @Test
   public void testCalculateRecurrences_UntilDateBeforeMaxEndDate() {
-    // This test covers when untilDate != null && untilDate.isBefore(maxEndDate) is true
+
     LocalDateTime baseDate = LocalDateTime.of(2023, 5, 15, 10, 0);
-    LocalDateTime untilDate = baseDate.plusMonths(6); // 6 months, definitely before the 5-year limit
+    LocalDateTime untilDate = baseDate.plusMonths(6);
 
     RecurrencePattern pattern = new RecurrencePattern("MWF", -1, untilDate);
     List<LocalDateTime> recurrences = pattern.calculateRecurrences(baseDate);
 
-    // Verify all recurrences are before or equal to untilDate
     for (LocalDateTime date : recurrences) {
       assertTrue(date.isEqual(untilDate) || date.isBefore(untilDate));
     }
 
-    // Make sure we have recurrences all the way up close to the until date
     if (!recurrences.isEmpty()) {
       LocalDateTime lastDate = recurrences.get(recurrences.size() - 1);
-      // The last recurrence should be close to the until date (within a week)
+
       assertTrue(untilDate.minusWeeks(1).isBefore(lastDate));
     }
   }
 
   @Test
   public void testCalculateRecurrences_UntilDateAfterMaxEndDate() {
-    // This test covers when untilDate != null && untilDate.isBefore(maxEndDate) is false
+
     LocalDateTime baseDate = LocalDateTime.of(2023, 5, 15, 10, 0);
-    // UntilDate is way in the future, after the 5-year limit
+
     LocalDateTime untilDate = baseDate.plusYears(10);
 
     RecurrencePattern pattern = new RecurrencePattern("MWF", -1, untilDate);
     List<LocalDateTime> recurrences = pattern.calculateRecurrences(baseDate);
 
-    // All recurrences should be before 5 years + ~1 week from base date
-    // (Allow a small buffer for the last recurrence that falls on the right weekday)
     LocalDateTime fiveYearLimit = baseDate.plusYears(5).plusWeeks(1);
     for (LocalDateTime date : recurrences) {
       assertTrue(date.isBefore(fiveYearLimit));
     }
 
-    // There should be recurrences near the 5-year mark
     if (!recurrences.isEmpty()) {
       LocalDateTime lastDate = recurrences.get(recurrences.size() - 1);
-      // The last recurrence should be close to the 5-year mark
+
       assertTrue(baseDate.plusYears(4).plusMonths(11).isBefore(lastDate));
     }
   }
+
   @Test(expected = IllegalArgumentException.class)
   public void testParseWeekdays_InvalidCharacter() {
-    // Create a RecurrencePattern with an invalid weekday character 'X'
-    // This should trigger the default case in the switch statement
+
     new RecurrencePattern("MX", 5, null);
   }
 }

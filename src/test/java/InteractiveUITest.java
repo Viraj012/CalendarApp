@@ -1,4 +1,3 @@
-
 import java.io.IOException;
 import org.junit.After;
 import org.junit.Before;
@@ -74,7 +73,8 @@ public class InteractiveUITest {
 
   @Test
   public void testMultipleCommands() {
-    String input = "first command" + System.lineSeparator() + "second command" + System.lineSeparator();
+    String input =
+        "first command" + System.lineSeparator() + "second command" + System.lineSeparator();
     ByteArrayInputStream inputStream = new ByteArrayInputStream(input.getBytes());
     System.setIn(inputStream);
 
@@ -103,7 +103,7 @@ public class InteractiveUITest {
 
   @Test
   public void testClose() throws Exception {
-    // Create a custom InputStream we can monitor
+
     final boolean[] inputStreamClosed = {false};
     InputStream monitoredInputStream = new ByteArrayInputStream("test".getBytes()) {
       @Override
@@ -115,21 +115,16 @@ public class InteractiveUITest {
 
     System.setIn(monitoredInputStream);
 
-    // Create a new UI with the custom input stream
     InteractiveUI ui = new InteractiveUI();
 
-    // Get access to the scanner field to verify it's set to null
     Field scannerField = InteractiveUI.class.getDeclaredField("scanner");
     scannerField.setAccessible(true);
 
-    // Call the close method
     ui.close();
 
-    // The scanner should close the underlying stream when it's closed
     assertTrue("Input stream was not closed - Scanner.close() was likely not called",
         inputStreamClosed[0]);
 
-    // Also verify the scanner field was set to null
     assertNull("Scanner was not set to null", scannerField.get(ui));
   }
 
