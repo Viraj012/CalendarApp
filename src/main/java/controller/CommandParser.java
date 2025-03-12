@@ -181,7 +181,7 @@ public class CommandParser {
         LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startTimeStr);
         LocalDateTime endDateTime = DateTimeUtil.parseDateTime(endTimeOrRest);
 
-        if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
+        if (endDateTime.isBefore(startDateTime)) {
           return null;
         }
 
@@ -211,7 +211,7 @@ public class CommandParser {
       LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startTimeStr);
       LocalDateTime endDateTime = DateTimeUtil.parseDateTime(endTimeStr);
 
-      if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
+      if (endDateTime.isBefore(startDateTime)) {
         return null;
       }
 

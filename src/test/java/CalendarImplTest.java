@@ -90,7 +90,7 @@ public class CalendarImplTest {
     assertFalse(
         calendar.createEvent("Meeting", date2, date1, false, "Description", "Location", true));
 
-    assertFalse(
+    assertTrue(
         calendar.createEvent("Meeting", date1, date1, false, "Description", "Location", true));
   }
 

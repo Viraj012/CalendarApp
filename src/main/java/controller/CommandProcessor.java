@@ -13,7 +13,7 @@ public class CommandProcessor {
   private final CommandHandler handler;
 
   /**
-   * Creates a new command processor.
+   * Creates a new command processor.parseRegularCreateCommand
    *
    * @param calendar the calendar model
    * @param view the text UI view
