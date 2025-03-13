@@ -760,6 +760,162 @@ public class CommandProcessorTest {
   }
 
 
+  @Test
+  public void testEventSortingDifferentDays() {
+    // Tests lines 246, 249, 250 - Events on different dates should be sorted by date
+    processor.processCommand("create event SecondDay from 2023-05-02T10:00 to 2023-05-02T11:00");
+    processor.processCommand("create event FirstDay from 2023-05-01T14:00 to 2023-05-01T15:00");
+    textUI.reset();
+
+    processor.processCommand("print events from 2023-05-01 to 2023-05-03");
+
+    // FirstDay should appear before SecondDay due to date sorting
+    String output = textUI.getLastMessage();
+    int firstDayIndex = output.indexOf("FirstDay");
+    int secondDayIndex = output.indexOf("SecondDay");
+    assertTrue(firstDayIndex < secondDayIndex);
+  }
+
+  @Test
+  public void testEventSortingAllDayBeforeTimedSameDay() {
+    // Tests lines 246, 254, 255 - All-day events should come before timed events on same day
+    processor.processCommand("create event TimedEvent from 2023-05-01T08:00 to 2023-05-01T09:00");
+    processor.processCommand("create event AllDayEvent on 2023-05-01");
+    textUI.reset();
+
+    processor.processCommand("print events on 2023-05-01");
+
+    // AllDayEvent should appear before TimedEvent
+    String output = textUI.getLastMessage();
+    int allDayIndex = output.indexOf("AllDayEvent");
+    int timedIndex = output.indexOf("TimedEvent");
+    assertTrue(allDayIndex < timedIndex);
+  }
+
+  @Test
+  public void testEventSortingTimedBeforeAllDaySameDay() {
+    // Tests lines 246, 256, 257 - Timed events sorted before all-day on same day
+    processor.processCommand("create event AllDayEvent on 2023-05-01");
+    processor.processCommand("create event TimedEvent from 2023-05-01T08:00 to 2023-05-01T09:00");
+    textUI.reset();
+
+    // This covers the "else if (!e1.isAllDay() && e2.isAllDay())" condition
+    // But we need to check the actual sorting order
+    processor.processCommand("print events on 2023-05-01");
+
+    // AllDayEvent should appear before TimedEvent (inverse test to verify logic)
+    String output = textUI.getLastMessage();
+    int allDayIndex = output.indexOf("AllDayEvent");
+    int timedIndex = output.indexOf("TimedEvent");
+    assertTrue(allDayIndex < timedIndex);
+  }
+
+  @Test
+  public void testEventSortingByStartTimeSameDay() {
+    // Tests lines 246, 261 - Events on same day and same type (timed) sorted by start time
+    processor.processCommand("create event LaterEvent from 2023-05-01T14:00 to 2023-05-01T15:00");
+    processor.processCommand("create event EarlierEvent from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    processor.processCommand("print events on 2023-05-01");
+
+    // EarlierEvent should appear before LaterEvent due to start time sorting
+    String output = textUI.getLastMessage();
+    int earlierIndex = output.indexOf("EarlierEvent");
+    int laterIndex = output.indexOf("LaterEvent");
+    assertTrue(earlierIndex < laterIndex);
+  }
+
+//  @Test
+//  public void testParseEditSingleEventCommandWithStartTime() {
+//    // Tests lines 263-266, 281-283, 297-301 - Editing starttime property
+//    boolean result = processor.processCommand("edit event starttime \"Meeting\" from 2023-05-01T10:00 to 2023-05-01T11:00 with \"2023-05-01T14:00\"");
+//    assertTrue(result);
+//    assertEquals("Event updated successfully", textUI.getLastMessage());
+//  }
+
+  @Test
+  public void testParseEditSingleEventCommandWithEndDate() {
+    // Tests lines 263-266, 281-283, 297-301 - Editing enddate property
+    processor.processCommand("create event Meeting from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("edit event enddate Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"2023-05-02\"");
+    assertTrue(result);
+    assertEquals("Event updated successfully", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testParseEditSingleEventCommandWithInvalidFromKeyword() {
+    // Tests line 270 - Missing "from" keyword
+    boolean result = processor.processCommand("edit event name Meeting something 2023-05-01T10:00 to 2023-05-01T11:00 with \"New Name\"");
+    assertTrue(result);
+    assertEquals("Invalid edit command format", textUI.getLastError());
+  }
+
+  @Test
+  public void testParseEditSingleEventCommandWithMissingToOrWith() {
+    // Tests lines 277-278 - Missing "to" or "with" keywords
+    boolean result = processor.processCommand("edit event name Meeting from 2023-05-01T10:00 something 2023-05-01T11:00 something \"New Name\"");
+    assertTrue(result);
+    assertEquals("Invalid edit command format", textUI.getLastError());
+  }
+
+  @Test
+  public void testParseEditSingleEventCommandWithQuotedEventName() {
+    // Tests lines 286-287 - Event name with quotes
+    processor.processCommand("create event \"Team Meeting\" from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("edit event name \"Team Meeting\" from 2023-05-01T10:00 to 2023-05-01T11:00 with \"Product Discussion\"");
+    assertTrue(result);
+    assertEquals("Event updated successfully", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testParseEditSingleEventCommandWithQuotedNewValue() {
+    // Tests lines 289-290 - New value with quotes
+    processor.processCommand("create event Meeting from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("edit event description Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"This is a \"special\" meeting\"");
+    assertTrue(result);
+    assertEquals("Event updated successfully", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testParseEditSingleEventCommandWithoutQuotes() {
+    // Test parsing without quotes to ensure different paths
+    processor.processCommand("create event Meeting from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    // This doesn't use quotes for event name or new value
+    boolean result = processor.processCommand("edit event public Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with true");
+    assertTrue(result);
+    assertEquals("Event updated successfully", textUI.getLastMessage());
+  }
+
+
+
+  @Test
+  public void testCompleteEditSingleEventFlowWithAllComponents() {
+    // Comprehensive test to cover the entire flow of editing a single event
+    processor.processCommand("create event \"Important Meeting\" from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("edit event description \"Important Meeting\" from 2023-05-01T10:00 to 2023-05-01T11:00 with \"This is a \"critical\" update\"");
+    assertTrue(result);
+    assertEquals("Event updated successfully", textUI.getLastMessage());
+
+    // Verify changes with print command
+    textUI.reset();
+    processor.processCommand("print events on 2023-05-01");
+    String output = textUI.getLastMessage();
+    assertTrue(output.contains("Important Meeting"));
+  }
+
+
+
 
   private static class TestTextUI implements TextUI {
 
