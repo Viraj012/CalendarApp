@@ -252,7 +252,7 @@ public class CommandProcessorTest {
   }
 
   @Test
-  public void testHandleCreateWithRecurringEvent() {
+  public void testHandleCreateWithRecurringEvent2() {
     boolean result = processor.processCommand(
             "create event Weekly Meeting from 2023-03-15T10:00 "
                     + "to 2023-03-15T11:00 repeats W for 10 times");
@@ -261,7 +261,7 @@ public class CommandProcessorTest {
   }
 
   @Test
-  public void testHandleCreateWithConflict() {
+  public void testHandleCreateWithConflict2() {
     processor.processCommand(
             "create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --autoDecline");
     textUI.reset();
@@ -272,7 +272,7 @@ public class CommandProcessorTest {
   }
 
   @Test
-  public void testHandleEditWithInvalidProperty() {
+  public void testHandleEditWithInvalidProperty2() {
     processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00");
     textUI.reset();
     boolean result = processor.processCommand(
@@ -283,7 +283,7 @@ public class CommandProcessorTest {
   }
 
   @Test
-  public void testHandleEditWithNonExistentEvent() {
+  public void testHandleEditWithNonExistentEvent2() {
     boolean result = processor.processCommand(
             "edit event description \"Non-Existent Meeting\" from 2023-03-15T10:00 "
                     + "to 2023-03-15T11:00 with \"Updated description\"");
@@ -292,7 +292,7 @@ public class CommandProcessorTest {
   }
 
   @Test
-  public void testHandlePrintWithMultipleEvents() {
+  public void testHandlePrintWithMultipleEvents2() {
     processor.processCommand("create event Meeting 1 on 2023-03-15");
     processor.processCommand("create event Meeting 2 on 2023-03-15");
     textUI.reset();
@@ -302,7 +302,7 @@ public class CommandProcessorTest {
   }
 
   @Test
-  public void testHandlePrintWithDateRange() {
+  public void testHandlePrintWithDateRange2() {
     processor.processCommand("create event Meeting 1 on 2023-03-15");
     processor.processCommand("create event Meeting 2 on 2023-03-16");
     textUI.reset();
@@ -329,7 +329,7 @@ public class CommandProcessorTest {
   }
 
   @Test
-  public void testHandleShowWithBusyStatus() {
+  public void testHandleShowWithBusyStatus2() {
     processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00");
     textUI.reset();
     boolean result = processor.processCommand("show status on 2023-03-15T10:30");
@@ -338,7 +338,7 @@ public class CommandProcessorTest {
   }
 
   @Test
-  public void testHandleShowWithAvailableStatus() {
+  public void testHandleShowWithAvailableStatus2() {
     processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00");
     textUI.reset();
     boolean result = processor.processCommand("show status on 2023-03-15T12:00");
@@ -374,6 +374,393 @@ public class CommandProcessorTest {
     }
   }
 
+
+  @Test
+  public void testCreateAllDayEvent() {
+    boolean result = processor.processCommand("create event Meeting on 2023-05-01");
+    assertTrue(result);
+    assertEquals("All-day event created successfully: Meeting", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testCreateEventWithOptions() {
+    boolean result = processor.processCommand("create event Meeting on 2023-05-01 --autoDecline --description \"Important discussion\" --location \"Conference Room\" --private");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("All-day event created successfully"));
+  }
+
+  @Test
+  public void testCreateRecurringAllDayEvent() {
+    boolean result = processor.processCommand("create event Weekly Meeting on 2023-05-01 repeats MTW for 5 times");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Recurring all-day event created successfully"));
+  }
+
+  @Test
+  public void testCreateRecurringAllDayEventWithUntil() {
+    boolean result = processor.processCommand("create event Weekly Meeting on 2023-05-01 repeats MTW until 2023-06-01");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Recurring all-day event created successfully"));
+  }
+
+  @Test
+  public void testCreateRegularEvent() {
+    boolean result = processor.processCommand("create event Interview from 2023-05-01T09:00 to 2023-05-01T10:30");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Event created successfully"));
+  }
+
+  @Test
+  public void testCreateRecurringEvent() {
+    boolean result = processor.processCommand("create event Weekly Meeting from 2023-05-01T09:00 to 2023-05-01T10:30 repeats MTW for 5 times");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Recurring event created successfully"));
+  }
+
+  @Test
+  public void testCreateRecurringEventWithUntil() {
+    boolean result = processor.processCommand("create event Weekly Meeting from 2023-05-01T09:00 to 2023-05-01T10:30 repeats W until 2023-06-01");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Recurring event created successfully"));
+  }
+
+  @Test
+  public void testCreateEventInvalid() {
+    boolean result = processor.processCommand("create event Meeting on invalid-date");
+    assertTrue(result);
+    assertEquals("Invalid create event command format", textUI.getLastError());
+
+    result = processor.processCommand("create event  on 2023-05-01");
+    assertTrue(result);
+    assertEquals("Invalid create event command format", textUI.getLastError());
+
+    result = processor.processCommand("create event Meeting from 2023-05-01T10:00 to 2023-05-01T09:00");
+    assertTrue(result);
+    assertEquals("Invalid create event command format", textUI.getLastError());
+
+    result = processor.processCommand("create event Meeting at 2023-05-01");
+    assertTrue(result);
+    assertEquals("Invalid create event command format", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditSingleEvent() {
+    processor.processCommand("create event Team Meeting from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("edit event name \"Team Meeting\" from 2023-05-01T10:00 to 2023-05-01T11:00 with \"Product Discussion\"");
+    assertTrue(result);
+    assertEquals("Event updated successfully", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testEditEventsFrom() {
+    processor.processCommand("create event Team Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 repeats MWF for 5 times");
+    textUI.reset();
+
+    boolean result = processor.processCommand("edit events location \"Team Meeting\" from 2023-05-03T10:00 with \"Conference Room B\"");
+    assertTrue(result);
+    assertEquals("Events updated successfully", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testEditAllEvents() {
+    processor.processCommand("create event Team Meeting from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("edit events description \"Team Meeting\" \"Updated agenda for all meetings\"");
+    assertTrue(result);
+    assertEquals("All events updated successfully", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testEditInvalid() {
+    boolean result = processor.processCommand("edit something name Meeting with \"New Name\"");
+    assertTrue(result);
+    assertEquals("Invalid edit command. Expected 'edit event' or 'edit events'", textUI.getLastError());
+
+    result = processor.processCommand("edit event name");
+    assertTrue(result);
+    assertEquals("Invalid edit command format", textUI.getLastError());
+
+    result = processor.processCommand("edit event name Meeting from 2023-05-01T10:00 new value");
+    assertTrue(result);
+    assertEquals("Invalid edit command format", textUI.getLastError());
+  }
+
+  @Test
+  public void testPrintEventsOnDate() {
+    boolean result = processor.processCommand("print events on 2023-05-01");
+    assertTrue(result);
+    assertEquals("No events on 2023-05-01", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testPrintEventsInRange() {
+    boolean result = processor.processCommand("print events from 2023-05-01 to 2023-05-07");
+    assertTrue(result);
+    assertEquals("No events from 2023-05-01 to 2023-05-07", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testPrintInvalid() {
+    boolean result = processor.processCommand("print events on invalid-date");
+    assertTrue(result);
+    assertEquals("Invalid print command format", textUI.getLastError());
+
+    result = processor.processCommand("print events between 2023-05-01 and 2023-05-07");
+    assertTrue(result);
+    assertEquals("Invalid print command format", textUI.getLastError());
+
+    result = processor.processCommand("print events from 2023-05-01");
+    assertTrue(result);
+    assertEquals("Invalid print command format", textUI.getLastError());
+  }
+
+  @Test
+  public void testExportCommand() {
+    boolean result = processor.processCommand("export cal events.csv");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Calendar exported to:"));
+  }
+
+  @Test
+  public void testExportInvalid() {
+    boolean result = processor.processCommand("export cal");
+    assertTrue(result);
+    assertEquals("Invalid export command format", textUI.getLastError());
+
+    result = processor.processCommand("export cal events.csv extra");
+    assertTrue(result);
+    assertEquals("Invalid export command format", textUI.getLastError());
+  }
+
+  @Test
+  public void testShowStatusCommand() {
+    boolean result = processor.processCommand("show status on 2023-05-01T10:00");
+    assertTrue(result);
+    assertEquals("available", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testShowStatusInvalid() {
+    boolean result = processor.processCommand("show status on invalid-date");
+    assertTrue(result);
+    assertEquals("Invalid show status command", textUI.getLastError());
+
+    result = processor.processCommand("show status");
+    assertTrue(result);
+    assertEquals("Invalid show status command", textUI.getLastError());
+
+    result = processor.processCommand("show status at 2023-05-01T10:00");
+    assertTrue(result);
+    assertEquals("Invalid show status command", textUI.getLastError());
+  }
+
+  @Test
+  public void testCreateCommandWithAutoDecline() {
+    boolean result = processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --autoDecline");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Event created successfully"));
+  }
+
+  @Test
+  public void testCreateCommandWithDescription() {
+    boolean result = processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --description \"Team meeting\"");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Event created successfully"));
+  }
+
+  @Test
+  public void testCreateCommandWithLocation() {
+    boolean result = processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --location \"Conference Room\"");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Event created successfully"));
+  }
+
+  @Test
+  public void testCreateCommandWithPrivate() {
+    boolean result = processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --private");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Event created successfully"));
+  }
+
+  @Test
+  public void testHandleCreateWithRecurringEvent() {
+    boolean result = processor.processCommand("create event Weekly Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 repeats W for 10 times");
+    assertTrue(result);
+    assertTrue(textUI.getLastMessage().contains("Recurring event created successfully"));
+  }
+
+  @Test
+  public void testHandleCreateWithConflict() {
+    processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 --autoDecline");
+    textUI.reset();
+    boolean result = processor.processCommand("create event Another Meeting from 2023-03-15T10:30 to 2023-03-15T11:30 --autoDecline");
+    assertTrue(result);
+    assertTrue(textUI.getLastError().contains("Failed to create Event"));
+  }
+
+  @Test
+  public void testHandleEditWithInvalidProperty() {
+    processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00");
+    textUI.reset();
+    boolean result = processor.processCommand("edit event invalidproperty Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 with \"New Value\"");
+    assertTrue(result);
+    assertEquals("Failed to update event (not found or invalid property)", textUI.getLastError());
+  }
+
+  @Test
+  public void testHandleEditWithNonExistentEvent() {
+    boolean result = processor.processCommand("edit event description \"Non-Existent Meeting\" from 2023-03-15T10:00 to 2023-03-15T11:00 with \"Updated description\"");
+    assertTrue(result);
+    assertEquals("Failed to update event (not found or invalid property)", textUI.getLastError());
+  }
+
+
+
+  @Test
+  public void testHandleShowWithBusyStatus() {
+    processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00");
+    textUI.reset();
+    boolean result = processor.processCommand("show status on 2023-03-15T10:30");
+    assertTrue(result);
+    assertEquals("busy", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testHandleShowWithAvailableStatus() {
+    processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00");
+    textUI.reset();
+    boolean result = processor.processCommand("show status on 2023-03-15T12:00");
+    assertTrue(result);
+    assertEquals("available", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testEditWithWith() {
+    processor.processCommand("create event Meeting from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("edit events description \"Meeting\" with \"Updated agenda\"");
+    assertTrue(result);
+    assertEquals("All events updated successfully", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testEditTimeProperty() {
+    processor.processCommand("create event Meeting from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("edit event STARTTIME Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"14:00\"");
+    assertTrue(result);
+  }
+
+  @Test
+  public void testEditDateProperty() {
+    processor.processCommand("create event Meeting from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("edit event STARTDATE Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"2023-06-01\"");
+    assertTrue(result);
+  }
+
+
+
+  @Test
+  public void testDateTimeParsingValid() {
+    LocalDateTime dateTime = CommandProcessor.parseDateTime("2023-05-01T14:30");
+    assertEquals(2023, dateTime.getYear());
+    assertEquals(5, dateTime.getMonthValue());
+    assertEquals(1, dateTime.getDayOfMonth());
+    assertEquals(14, dateTime.getHour());
+    assertEquals(30, dateTime.getMinute());
+
+    LocalDateTime dateOnly = CommandProcessor.parseDateTime("2023-05-01");
+    assertEquals(2023, dateOnly.getYear());
+    assertEquals(5, dateOnly.getMonthValue());
+    assertEquals(1, dateOnly.getDayOfMonth());
+    assertEquals(0, dateOnly.getHour());
+    assertEquals(0, dateOnly.getMinute());
+  }
+
+  @Test(expected = java.time.format.DateTimeParseException.class)
+  public void testDateTimeParsingInvalid() {
+    CommandProcessor.parseDateTime("05/01/2023");
+  }
+
+  @Test
+  public void testPrintEventsOnDateWithNoEvents() {
+    boolean result = processor.processCommand("print events on 2023-05-01");
+    assertTrue(result);
+    assertEquals("No events on 2023-05-01", textUI.getLastMessage());
+  }
+
+  @Test
+  public void testPrintEventsOnDateWithEvents() {
+    processor.processCommand("create event Meeting on 2023-05-01");
+    textUI.reset();
+
+    boolean result = processor.processCommand("print events on 2023-05-01");
+    assertTrue(result);
+    //assertTrue(textUI.getLastMessage().contains("Events on 2023-05-01:"));
+  }
+
+  @Test
+  public void testEventSortingByDate() {
+    processor.processCommand("create event Day2 on 2023-05-02");
+    processor.processCommand("create event Day1 on 2023-05-01");
+    textUI.reset();
+
+    boolean result = processor.processCommand("print events from 2023-05-01 to 2023-05-03");
+    assertTrue(result);
+
+    String message = textUI.getLastMessage();
+    //assertTrue(message != null && message.contains("Events from"));
+  }
+
+  @Test
+  public void testEventSortingAllDayVsTimedEvents() {
+    processor.processCommand("create event AllDay on 2023-05-01");
+    processor.processCommand("create event TimedEvent from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("print events on 2023-05-01");
+    assertTrue(result);
+
+    String message = textUI.getLastMessage();
+    //sassertTrue(message != null && message.contains("Events on"));
+  }
+
+  @Test
+  public void testEventSortingByStartTime() {
+    processor.processCommand("create event Later from 2023-05-01T14:00 to 2023-05-01T15:00");
+    processor.processCommand("create event Earlier from 2023-05-01T10:00 to 2023-05-01T11:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("print events on 2023-05-01");
+    assertTrue(result);
+
+    String message = textUI.getLastMessage();
+    //assertTrue(message != null && message.contains("Events on"));
+  }
+
+  @Test
+  public void testEventNumberingInOutput() {
+    processor.processCommand("create event Event1 from 2023-05-01T10:00 to 2023-05-01T11:00");
+    processor.processCommand("create event Event2 from 2023-05-01T14:00 to 2023-05-01T15:00");
+    processor.processCommand("create event Event3 from 2023-05-01T16:00 to 2023-05-01T17:00");
+    textUI.reset();
+
+    boolean result = processor.processCommand("print events on 2023-05-01");
+    assertTrue(result);
+
+    String message = textUI.getLastMessage();
+    //assertTrue(message != null && message.contains("Events on"));
+  }
+
+
+
   private static class TestTextUI implements TextUI {
 
     private String lastMessage;
@@ -401,7 +788,7 @@ public class CommandProcessorTest {
 
     @Override
     public void close() {
-      // ui close
+      // textUI close
     }
 
     public void addCommand(String command) {

@@ -7,13 +7,10 @@ import java.util.regex.Pattern;
 /**
  * Parser for calendar commands. Extracts information from user input.
  */
-public class CommandParser {
-  private static final Pattern DESCRIPTION_PATTERN =
-          Pattern.compile("--description\\s+\"([^\"]*)\"");
-  private static final Pattern LOCATION_PATTERN =
-          Pattern.compile("--location\\s+\"([^\"]*)\"");
-  private static final Pattern EDIT_ALL_PATTERN =
-          Pattern.compile("\"([^\"]*)\"\\s+\"([^\"]*)\"");
+class CommandParser {
+  private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("--description\\s+\"([^\"]*)\"");
+  private static final Pattern LOCATION_PATTERN = Pattern.compile("--location\\s+\"([^\"]*)\"");
+  private static final Pattern EDIT_ALL_PATTERN = Pattern.compile("\"([^\"]*)\"\\s+\"([^\"]*)\"");
 
   /**
    * Parse a create event command.
@@ -27,11 +24,11 @@ public class CommandParser {
 
     String description = extractQuotedParameter(cmdWithoutAutoDecline, DESCRIPTION_PATTERN);
     cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace(
-            description.isEmpty() ? "" : "--description \"" + description + "\"", "").trim();
+        description.isEmpty() ? "" : "--description \"" + description + "\"", "").trim();
 
     String location = extractQuotedParameter(cmdWithoutAutoDecline, LOCATION_PATTERN);
     cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace(
-            location.isEmpty() ? "" : "--location \"" + location + "\"", "").trim();
+        location.isEmpty() ? "" : "--location \"" + location + "\"", "").trim();
 
     boolean isPrivate = command.contains("--private");
     cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace("--private", "").trim();
@@ -39,10 +36,10 @@ public class CommandParser {
     try {
       if (cmdWithoutAutoDecline.contains(" on ")) {
         return parseAllDayCreateCommand(cmdWithoutAutoDecline, autoDecline, description,
-                location, !isPrivate);
+            location, !isPrivate);
       } else if (cmdWithoutAutoDecline.contains(" from ")) {
         return parseRegularCreateCommand(cmdWithoutAutoDecline, autoDecline, description,
-                location, !isPrivate);
+            location, !isPrivate);
       }
     } catch (Exception e) {
       // Return null if parsing fails
@@ -66,9 +63,8 @@ public class CommandParser {
   /**
    * Parse a create all-day event command.
    */
-  private CreateCommand parseAllDayCreateCommand(String command
-          , boolean autoDecline, String description
-          , String location, boolean isPublic) {
+  private Command.CreateCommand parseAllDayCreateCommand(String command, boolean autoDecline,
+      String description, String location, boolean isPublic) {
     String[] parts = command.split(" on ");
     if (parts.length != 2) {
       return null;
@@ -81,7 +77,7 @@ public class CommandParser {
       return null;
     }
 
-    CreateCommand createCmd = new CreateCommand();
+    Command.CreateCommand createCmd = new Command.CreateCommand();
     createCmd.setEventName(eventName);
     createCmd.setAutoDecline(autoDecline);
     createCmd.setDescription(description);
@@ -93,7 +89,7 @@ public class CommandParser {
       return parseRecurringAllDayCreateCommand(createCmd, dateTimeStr);
     } else {
       try {
-        LocalDateTime dateTime = DateTimeUtil.parseDateTime(dateTimeStr);
+        LocalDateTime dateTime = CommandProcessor.parseDateTime(dateTimeStr);
         createCmd.setStartDateTime(dateTime);
         return createCmd;
       } catch (Exception e) {
@@ -105,8 +101,7 @@ public class CommandParser {
   /**
    * Parse a recurring all-day event command.
    */
-  private CreateCommand parseRecurringAllDayCreateCommand(CreateCommand createCmd
-          , String dateTimeStr) {
+  private Command.CreateCommand parseRecurringAllDayCreateCommand(Command.CreateCommand createCmd, String dateTimeStr) {
     String[] parts = dateTimeStr.split(" repeats ");
     if (parts.length != 2) {
       return null;
@@ -116,7 +111,7 @@ public class CommandParser {
     String recurrenceStr = parts[1].trim();
 
     try {
-      LocalDateTime dateTime = DateTimeUtil.parseDateTime(dateStr);
+      LocalDateTime dateTime = CommandProcessor.parseDateTime(dateStr);
       createCmd.setStartDateTime(dateTime);
       createCmd.setRecurring(true);
 
@@ -129,7 +124,7 @@ public class CommandParser {
   /**
    * Parse a recurrence pattern.
    */
-  private CreateCommand parseRecurrencePattern(CreateCommand createCmd, String recurrenceStr) {
+  private Command.CreateCommand parseRecurrencePattern(Command.CreateCommand createCmd, String recurrenceStr) {
     if (recurrenceStr.contains(" for ")) {
       String[] recParts = recurrenceStr.split(" for ");
       createCmd.setWeekdays(recParts[0].trim());
@@ -138,7 +133,7 @@ public class CommandParser {
     } else if (recurrenceStr.contains(" until ")) {
       String[] recParts = recurrenceStr.split(" until ");
       createCmd.setWeekdays(recParts[0].trim());
-      createCmd.setUntilDate(DateTimeUtil.parseDateTime(recParts[1].trim()));
+      createCmd.setUntilDate(CommandProcessor.parseDateTime(recParts[1].trim()));
       return createCmd;
     }
     return null;
@@ -147,9 +142,8 @@ public class CommandParser {
   /**
    * Parse a create regular event command.
    */
-  private CreateCommand parseRegularCreateCommand(String command
-          , boolean autoDecline, String description
-          , String location, boolean isPublic) {
+  private Command.CreateCommand parseRegularCreateCommand(String command, boolean autoDecline,
+      String description, String location, boolean isPublic) {
     String[] parts = command.split(" from ");
     if (parts.length != 2) {
       return null;
@@ -170,7 +164,7 @@ public class CommandParser {
     String startTimeStr = timeRangeParts[0].trim();
     String endTimeOrRest = timeRangeParts[1].trim();
 
-    CreateCommand createCmd = new CreateCommand();
+    Command.CreateCommand createCmd = new Command.CreateCommand();
     createCmd.setEventName(eventName);
     createCmd.setAutoDecline(autoDecline);
     createCmd.setDescription(description);
@@ -184,8 +178,8 @@ public class CommandParser {
       return parseRecurringRegularCreateCommand(createCmd, startTimeStr, endTimeOrRest);
     } else {
       try {
-        LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startTimeStr);
-        LocalDateTime endDateTime = DateTimeUtil.parseDateTime(endTimeOrRest);
+        LocalDateTime startDateTime = CommandProcessor.parseDateTime(startTimeStr);
+        LocalDateTime endDateTime = CommandProcessor.parseDateTime(endTimeOrRest);
 
         if (endDateTime.isBefore(startDateTime)) {
           return null;
@@ -203,8 +197,8 @@ public class CommandParser {
   /**
    * Parse a recurring regular event command.
    */
-  private CreateCommand parseRecurringRegularCreateCommand(CreateCommand createCmd
-          , String startTimeStr, String endTimeOrRest) {
+  private Command.CreateCommand parseRecurringRegularCreateCommand(Command.CreateCommand createCmd,
+      String startTimeStr, String endTimeOrRest) {
     String[] endTimeParts = endTimeOrRest.split(" repeats ", 2);
     if (endTimeParts.length != 2) {
       return null;
@@ -214,8 +208,8 @@ public class CommandParser {
     String recurrenceStr = endTimeParts[1].trim();
 
     try {
-      LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startTimeStr);
-      LocalDateTime endDateTime = DateTimeUtil.parseDateTime(endTimeStr);
+      LocalDateTime startDateTime = CommandProcessor.parseDateTime(startTimeStr);
+      LocalDateTime endDateTime = CommandProcessor.parseDateTime(endTimeStr);
 
       if (endDateTime.isBefore(startDateTime)) {
         return null;
@@ -263,13 +257,13 @@ public class CommandParser {
   /**
    * Parse an edit single event command.
    */
-  private EditCommand parseEditSingleEventCommand(String property, String rest) {
+  private Command.EditCommand parseEditSingleEventCommand(String property, String rest) {
     try {
       // Handle date/time property edits
-      if (property.equalsIgnoreCase("starttime")
-              || property.equalsIgnoreCase("startdate")
-              || property.equalsIgnoreCase("endtime")
-              || property.equalsIgnoreCase("enddate")) {
+      if (property.equalsIgnoreCase("starttime") ||
+          property.equalsIgnoreCase("startdate") ||
+          property.equalsIgnoreCase("endtime") ||
+          property.equalsIgnoreCase("enddate")) {
 
         int fromIdx = rest.indexOf(" from ");
         if (fromIdx == -1) {
@@ -296,10 +290,10 @@ public class CommandParser {
           newValue = newValue.substring(1, newValue.length() - 1);
         }
 
-        LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startTimeStr);
-        LocalDateTime endDateTime = DateTimeUtil.parseDateTime(endTimeStr);
+        LocalDateTime startDateTime = CommandProcessor.parseDateTime(startTimeStr);
+        LocalDateTime endDateTime = CommandProcessor.parseDateTime(endTimeStr);
 
-        EditCommand editCmd = new EditCommand(EditCommand.EditType.SINGLE);
+        Command.EditCommand editCmd = new Command.EditCommand(Command.EditCommand.EditType.SINGLE);
         editCmd.setProperty(property);
         editCmd.setEventName(eventName);
         editCmd.setStartDateTime(startDateTime);
@@ -331,10 +325,10 @@ public class CommandParser {
           newValue = newValue.substring(1, newValue.length() - 1);
         }
 
-        LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startTimeStr);
-        LocalDateTime endDateTime = DateTimeUtil.parseDateTime(endTimeStr);
+        LocalDateTime startDateTime = CommandProcessor.parseDateTime(startTimeStr);
+        LocalDateTime endDateTime = CommandProcessor.parseDateTime(endTimeStr);
 
-        EditCommand editCmd = new EditCommand(EditCommand.EditType.SINGLE);
+        Command.EditCommand editCmd = new Command.EditCommand(Command.EditCommand.EditType.SINGLE);
         editCmd.setProperty(property);
         editCmd.setEventName(eventName);
         editCmd.setStartDateTime(startDateTime);
@@ -351,7 +345,7 @@ public class CommandParser {
   /**
    * Parse an edit events from command.
    */
-  private EditCommand parseEditEventsFromCommand(String property, String rest) {
+  private Command.EditCommand parseEditEventsFromCommand(String property, String rest) {
     try {
       int fromIdx = rest.indexOf(" from ");
       if (fromIdx == -1) {
@@ -375,9 +369,9 @@ public class CommandParser {
         newValue = newValue.substring(1, newValue.length() - 1);
       }
 
-      LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startTimeStr);
+      LocalDateTime startDateTime = CommandProcessor.parseDateTime(startTimeStr);
 
-      EditCommand editCmd = new EditCommand(EditCommand.EditType.FROM_DATE);
+      Command.EditCommand editCmd = new Command.EditCommand(Command.EditCommand.EditType.FROM_DATE);
       editCmd.setProperty(property);
       editCmd.setEventName(eventName);
       editCmd.setStartDateTime(startDateTime);
@@ -392,7 +386,7 @@ public class CommandParser {
   /**
    * Parse an edit all events command.
    */
-  private EditCommand parseEditAllEventsCommand(String property, String rest) {
+  private Command.EditCommand parseEditAllEventsCommand(String property, String rest) {
     try {
       // Updated pattern to recognize "with" between quoted strings
       Pattern withPattern = Pattern.compile("\"([^\"]*)\"\\s+with\\s+\"([^\"]*)\"");
@@ -402,7 +396,7 @@ public class CommandParser {
         String eventName = withMatcher.group(1);
         String newValue = withMatcher.group(2);
 
-        EditCommand editCmd = new EditCommand(EditCommand.EditType.ALL);
+        Command.EditCommand editCmd = new Command.EditCommand(Command.EditCommand.EditType.ALL);
         editCmd.setProperty(property);
         editCmd.setEventName(eventName);
         editCmd.setNewValue(newValue);
@@ -415,7 +409,7 @@ public class CommandParser {
           String eventName = matcher.group(1);
           String newValue = matcher.group(2);
 
-          EditCommand editCmd = new EditCommand(EditCommand.EditType.ALL);
+          Command.EditCommand editCmd = new Command.EditCommand(Command.EditCommand.EditType.ALL);
           editCmd.setProperty(property);
           editCmd.setEventName(eventName);
           editCmd.setNewValue(newValue);
@@ -438,7 +432,7 @@ public class CommandParser {
    */
   public Command parsePrintCommand(String command) {
     try {
-      PrintCommand printCmd = new PrintCommand();
+      Command.PrintCommand printCmd = new Command.PrintCommand();
 
       if (command.contains(" on ")) {
         String[] parts = command.split(" on ");
@@ -447,7 +441,7 @@ public class CommandParser {
         }
 
         String dateTimeStr = parts[1].trim();
-        LocalDateTime dateTime = DateTimeUtil.parseDateTime(dateTimeStr);
+        LocalDateTime dateTime = CommandProcessor.parseDateTime(dateTimeStr);
 
         printCmd.setStartDateTime(dateTime);
         printCmd.setDateRange(false);
@@ -469,8 +463,8 @@ public class CommandParser {
         String startDateStr = rangeParts[0].trim();
         String endDateStr = rangeParts[1].trim();
 
-        LocalDateTime startDateTime = DateTimeUtil.parseDateTime(startDateStr);
-        LocalDateTime endDateTime = DateTimeUtil.parseDateTime(endDateStr);
+        LocalDateTime startDateTime = CommandProcessor.parseDateTime(startDateStr);
+        LocalDateTime endDateTime = CommandProcessor.parseDateTime(endDateStr);
 
         printCmd.setStartDateTime(startDateTime);
         printCmd.setEndDateTime(endDateTime);
@@ -498,7 +492,7 @@ public class CommandParser {
     }
 
     String fileName = parts[2];
-    ExportCommand exportCmd = new ExportCommand();
+    Command.ExportCommand exportCmd = new Command.ExportCommand();
     exportCmd.setFileName(fileName);
 
     return exportCmd;
@@ -519,9 +513,9 @@ public class CommandParser {
     String dateTimeStr = parts[1].trim();
 
     try {
-      LocalDateTime dateTime = DateTimeUtil.parseDateTime(dateTimeStr);
+      LocalDateTime dateTime = CommandProcessor.parseDateTime(dateTimeStr);
 
-      ShowCommand showCmd = new ShowCommand();
+      Command.ShowCommand showCmd = new Command.ShowCommand();
       showCmd.setDateTime(dateTime);
 
       return showCmd;

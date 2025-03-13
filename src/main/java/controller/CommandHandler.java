@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Handles the execution of commands on the calendar model.
  */
-public class CommandHandler {
+class CommandHandler {
   private final Calendar calendar;
   private final TextUI view;
 
@@ -17,9 +17,9 @@ public class CommandHandler {
    * Creates a new command handler.
    *
    * @param calendar the calendar model
-   * @param view     the text UI view
+   * @param view the text UI view
    */
-  public CommandHandler(Calendar calendar, TextUI view) {
+  CommandHandler(Calendar calendar, TextUI view) {
     this.calendar = calendar;
     this.view = view;
   }
@@ -29,17 +29,17 @@ public class CommandHandler {
    *
    * @param command the command to handle
    */
-  public void handleCommand(Command command) {
-    if (command instanceof CreateCommand) {
-      handleCreateCommand((CreateCommand) command);
-    } else if (command instanceof EditCommand) {
-      handleEditCommand((EditCommand) command);
-    } else if (command instanceof PrintCommand) {
-      handlePrintCommand((PrintCommand) command);
-    } else if (command instanceof ExportCommand) {
-      handleExportCommand((ExportCommand) command);
-    } else if (command instanceof ShowCommand) {
-      handleShowCommand((ShowCommand) command);
+  void handleCommand(Command command) {
+    if (command instanceof Command.CreateCommand) {
+      handleCreateCommand((Command.CreateCommand) command);
+    } else if (command instanceof Command.EditCommand) {
+      handleEditCommand((Command.EditCommand) command);
+    } else if (command instanceof Command.PrintCommand) {
+      handlePrintCommand((Command.PrintCommand) command);
+    } else if (command instanceof Command.ExportCommand) {
+      handleExportCommand((Command.ExportCommand) command);
+    } else if (command instanceof Command.ShowCommand) {
+      handleShowCommand((Command.ShowCommand) command);
     }
   }
 
@@ -48,19 +48,12 @@ public class CommandHandler {
    *
    * @param cmd the create command
    */
-  private void handleCreateCommand(CreateCommand cmd) {
-    boolean success;
-
-    if (cmd.isAllDay()) {
-      success = createAllDayEvent(cmd);
-    } else {
-      success = createRegularEvent(cmd);
-    }
+  private void handleCreateCommand(Command.CreateCommand cmd) {
+    boolean success = createEvent(cmd);
     boolean isSingleEvent = !cmd.isRecurring() && !cmd.isAllDay();
     boolean isFirstItem = true;
 
     if (success) {
-
       StringBuilder message = new StringBuilder();
 
       if (cmd.isRecurring()) {
@@ -78,8 +71,8 @@ public class CommandHandler {
 
       view.displayMessage(message.toString());
     } else {
-
       StringBuilder message = new StringBuilder("Failed to create ");
+      isFirstItem = true;
 
       if (cmd.isRecurring()) {
         message.append("recurring ");
@@ -104,66 +97,60 @@ public class CommandHandler {
   }
 
   /**
-   * Create an all-day event.
+   * Create an event based on command parameters.
    *
    * @param cmd the create command
    * @return true if successful
    */
-  private boolean createAllDayEvent(CreateCommand cmd) {
-    if (cmd.isRecurring()) {
-      return calendar.createRecurringAllDayEvent(
-              cmd.getEventName(),
-              cmd.getStartDateTime(),
-              cmd.getWeekdays(),
-              cmd.getOccurrences(),
-              cmd.getUntilDate(),
-              cmd.isAutoDecline(),
-              cmd.getDescription(),
-              cmd.getLocation(),
-              cmd.isPublic()
-      );
+  private boolean createEvent(Command.CreateCommand cmd) {
+    if (cmd.isAllDay()) {
+      if (cmd.isRecurring()) {
+        return calendar.createRecurringAllDayEvent(
+            cmd.getEventName(),
+            cmd.getStartDateTime(),
+            cmd.getWeekdays(),
+            cmd.getOccurrences(),
+            cmd.getUntilDate(),
+            cmd.isAutoDecline(),
+            cmd.getDescription(),
+            cmd.getLocation(),
+            cmd.isPublic()
+        );
+      } else {
+        return calendar.createAllDayEvent(
+            cmd.getEventName(),
+            cmd.getStartDateTime(),
+            cmd.isAutoDecline(),
+            cmd.getDescription(),
+            cmd.getLocation(),
+            cmd.isPublic()
+        );
+      }
     } else {
-      return calendar.createAllDayEvent(
-              cmd.getEventName(),
-              cmd.getStartDateTime(),
-              cmd.isAutoDecline(),
-              cmd.getDescription(),
-              cmd.getLocation(),
-              cmd.isPublic()
-      );
-    }
-  }
-
-  /**
-   * Create a regular event.
-   *
-   * @param cmd the create command
-   * @return true if successful
-   */
-  private boolean createRegularEvent(CreateCommand cmd) {
-    if (cmd.isRecurring()) {
-      return calendar.createRecurringEvent(
-              cmd.getEventName(),
-              cmd.getStartDateTime(),
-              cmd.getEndDateTime(),
-              cmd.getWeekdays(),
-              cmd.getOccurrences(),
-              cmd.getUntilDate(),
-              cmd.isAutoDecline(),
-              cmd.getDescription(),
-              cmd.getLocation(),
-              cmd.isPublic()
-      );
-    } else {
-      return calendar.createEvent(
-              cmd.getEventName(),
-              cmd.getStartDateTime(),
-              cmd.getEndDateTime(),
-              cmd.isAutoDecline(),
-              cmd.getDescription(),
-              cmd.getLocation(),
-              cmd.isPublic()
-      );
+      if (cmd.isRecurring()) {
+        return calendar.createRecurringEvent(
+            cmd.getEventName(),
+            cmd.getStartDateTime(),
+            cmd.getEndDateTime(),
+            cmd.getWeekdays(),
+            cmd.getOccurrences(),
+            cmd.getUntilDate(),
+            cmd.isAutoDecline(),
+            cmd.getDescription(),
+            cmd.getLocation(),
+            cmd.isPublic()
+        );
+      } else {
+        return calendar.createEvent(
+            cmd.getEventName(),
+            cmd.getStartDateTime(),
+            cmd.getEndDateTime(),
+            cmd.isAutoDecline(),
+            cmd.getDescription(),
+            cmd.getLocation(),
+            cmd.isPublic()
+        );
+      }
     }
   }
 
@@ -172,17 +159,17 @@ public class CommandHandler {
    *
    * @param cmd the edit command
    */
-  private void handleEditCommand(EditCommand cmd) {
+  private void handleEditCommand(Command.EditCommand cmd) {
     boolean success = false;
 
     switch (cmd.getEditType()) {
       case SINGLE:
         success = calendar.editEvent(
-                cmd.getProperty(),
-                cmd.getEventName(),
-                cmd.getStartDateTime(),
-                cmd.getEndDateTime(),
-                cmd.getNewValue()
+            cmd.getProperty(),
+            cmd.getEventName(),
+            cmd.getStartDateTime(),
+            cmd.getEndDateTime(),
+            cmd.getNewValue()
         );
 
         if (success) {
@@ -194,10 +181,10 @@ public class CommandHandler {
 
       case FROM_DATE:
         success = calendar.editEventsFrom(
-                cmd.getProperty(),
-                cmd.getEventName(),
-                cmd.getStartDateTime(),
-                cmd.getNewValue()
+            cmd.getProperty(),
+            cmd.getEventName(),
+            cmd.getStartDateTime(),
+            cmd.getNewValue()
         );
 
         if (success) {
@@ -209,9 +196,9 @@ public class CommandHandler {
 
       case ALL:
         success = calendar.editAllEvents(
-                cmd.getProperty(),
-                cmd.getEventName(),
-                cmd.getNewValue()
+            cmd.getProperty(),
+            cmd.getEventName(),
+            cmd.getNewValue()
         );
 
         if (success) {
@@ -220,9 +207,6 @@ public class CommandHandler {
           view.displayError("Failed to update events (not found or invalid property)");
         }
         break;
-
-      default:
-        // default case
     }
   }
 
@@ -231,29 +215,24 @@ public class CommandHandler {
    *
    * @param cmd the print command
    */
-  private void handlePrintCommand(PrintCommand cmd) {
+  private void handlePrintCommand(Command.PrintCommand cmd) {
     List<Event> events;
+    String dateDescription;
 
     if (cmd.isDateRange()) {
       events = calendar.getEventsFrom(cmd.getStartDateTime(), cmd.getEndDateTime());
-
-      if (events.isEmpty()) {
-        view.displayMessage("No events from " + cmd.getStartDateTime().toLocalDate()
-                + " to " + cmd.getEndDateTime().toLocalDate());
-      } else {
-        view.displayMessage("Events from " + cmd.getStartDateTime().toLocalDate()
-                + " to " + cmd.getEndDateTime().toLocalDate() + ":");
-        printEvents(events);
-      }
+      dateDescription = "from " + cmd.getStartDateTime().toLocalDate() +
+          " to " + cmd.getEndDateTime().toLocalDate();
     } else {
       events = calendar.getEventsOn(cmd.getStartDateTime());
+      dateDescription = "on " + cmd.getStartDateTime().toLocalDate();
+    }
 
-      if (events.isEmpty()) {
-        view.displayMessage("No events on " + cmd.getStartDateTime().toLocalDate());
-      } else {
-        view.displayMessage("Events on " + cmd.getStartDateTime().toLocalDate() + ":");
-        printEvents(events);
-      }
+    if (events.isEmpty()) {
+      view.displayMessage("No events " + dateDescription);
+    } else {
+      view.displayMessage("Events " + dateDescription + ":");
+      printEvents(events);
     }
   }
 
@@ -266,18 +245,16 @@ public class CommandHandler {
     // Sort events by start time for better readability
     events.sort((e1, e2) -> {
       // First sort by date
-      int dateCompare = e1.getStartDateTime().toLocalDate()
-              .compareTo(e2.getStartDateTime().toLocalDate());
+      int dateCompare = e1.getStartDateTime().toLocalDate().compareTo(e2.getStartDateTime().toLocalDate());
       if (dateCompare != 0) {
         return dateCompare;
       }
 
-      // Then sort all-day events before timed events (simplified approach)
-      boolean e1AllDay = e1.isAllDay();
-      boolean e2AllDay = e2.isAllDay();
-
-      if (e1AllDay != e2AllDay) {
-        return e1AllDay ? -1 : 1;
+      // Then sort all-day events before timed events
+      if (e1.isAllDay() && !e2.isAllDay()) {
+        return -1;
+      } else if (!e1.isAllDay() && e2.isAllDay()) {
+        return 1;
       }
 
       // Finally sort by start time for timed events
@@ -296,7 +273,7 @@ public class CommandHandler {
    *
    * @param cmd the export command
    */
-  private void handleExportCommand(ExportCommand cmd) {
+  private void handleExportCommand(Command.ExportCommand cmd) {
     String path = calendar.exportToCSV(cmd.getFileName());
 
     if (path != null) {
@@ -311,7 +288,7 @@ public class CommandHandler {
    *
    * @param cmd the show command
    */
-  private void handleShowCommand(ShowCommand cmd) {
+  private void handleShowCommand(Command.ShowCommand cmd) {
     boolean isBusy = calendar.isBusy(cmd.getDateTime());
 
     if (isBusy) {

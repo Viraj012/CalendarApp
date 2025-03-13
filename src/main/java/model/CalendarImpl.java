@@ -1,6 +1,6 @@
 package model;
 
-import controller.DateTimeUtil;
+import controller.CommandProcessor;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -687,7 +687,7 @@ public class CalendarImpl implements Calendar {
       case "starttime":
       case "startdate":
         try {
-          LocalDateTime newStart = DateTimeUtil.parseDateTime(newValue);
+          LocalDateTime newStart = CommandProcessor.parseDateTime(newValue);
 
           // For non-all-day events, verify end time is after new start time
           if (!eventImpl.isAllDay() && eventImpl.getEndDateTime() != null
@@ -708,7 +708,7 @@ public class CalendarImpl implements Calendar {
         }
 
         try {
-          LocalDateTime newEnd = DateTimeUtil.parseDateTime(newValue);
+          LocalDateTime newEnd = CommandProcessor.parseDateTime(newValue);
           // Validate that end time is after start time
           if (newEnd.isBefore(eventImpl.getStartDateTime())
                   || newEnd.equals(eventImpl.getStartDateTime())) {
