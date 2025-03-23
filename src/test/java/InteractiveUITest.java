@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
  * Tests for the InteractiveUI class.
  */
 public class InteractiveUITest {
+
   private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
   private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
   private final PrintStream originalOut = System.out;

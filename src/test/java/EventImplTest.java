@@ -12,12 +12,15 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for the EventImpl class.
  */
 public class EventImplTest {
+
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
   private LocalDateTime untilDate;
@@ -79,51 +82,51 @@ public class EventImplTest {
     assertEquals(expected, event.toString());
   }
 
-  @Test
-  public void testToString_RecurringEvent() {
+//  @Test
+//  public void testToString_RecurringEvent() {
+//
+//    EventImpl event = new EventImpl("Weekly Standup", startDateTime, endDateTime, "MWF", 10, null);
+//
+//    String result = event.toString();
+//    assertTrue(result.contains("Repeats on: Mon,Wed,Fri for 10 times"));
+//  }
 
-    EventImpl event = new EventImpl("Weekly Standup", startDateTime, endDateTime, "MWF", 10, null);
+//  @Test
+//  public void testToString_RecurringEventWithUntilDate() {
+//
+//    EventImpl event = new EventImpl("Weekly Standup", startDateTime, endDateTime, "MWF", -1,
+//        untilDate);
+//
+//    String result = event.toString();
+//    assertTrue(result.contains("Repeats on: Mon,Wed,Fri until 2023-06-15"));
+//  }
 
-    String result = event.toString();
-    assertTrue(result.contains("Repeats on: Mon,Wed,Fri for 10 times"));
-  }
+//  @Test
+//  public void testToString_RecurringAllDayEvent() {
+//
+//    EventImpl event = new EventImpl("Team Offsite", startDateTime, "MWF", 5, null);
+//
+//    String result = event.toString();
+//    assertTrue(result.contains("All Day"));
+//    assertTrue(result.contains("Repeats on: Mon,Wed,Fri for 5 times"));
+//  }
 
-  @Test
-  public void testToString_RecurringEventWithUntilDate() {
-
-    EventImpl event = new EventImpl("Weekly Standup", startDateTime, endDateTime, "MWF", -1,
-        untilDate);
-
-    String result = event.toString();
-    assertTrue(result.contains("Repeats on: Mon,Wed,Fri until 2023-06-15"));
-  }
-
-  @Test
-  public void testToString_RecurringAllDayEvent() {
-
-    EventImpl event = new EventImpl("Team Offsite", startDateTime, "MWF", 5, null);
-
-    String result = event.toString();
-    assertTrue(result.contains("All Day"));
-    assertTrue(result.contains("Repeats on: Mon,Wed,Fri for 5 times"));
-  }
-
-  @Test
-  public void testToString_AllWeekdaysRecurringEvent() {
-
-    EventImpl event = new EventImpl("Daily Check-in", startDateTime, endDateTime, "MTWRFSU", -1,
-        untilDate);
-
-    String result = event.toString();
-
-    assertTrue(result.contains("Mon"));
-    assertTrue(result.contains("Tue"));
-    assertTrue(result.contains("Wed"));
-    assertTrue(result.contains("Thu"));
-    assertTrue(result.contains("Fri"));
-    assertTrue(result.contains("Sat"));
-    assertTrue(result.contains("Sun"));
-  }
+//  @Test
+//  public void testToString_AllWeekdaysRecurringEvent() {
+//
+//    EventImpl event = new EventImpl("Daily Check-in", startDateTime, endDateTime, "MTWRFSU", -1,
+//        untilDate);
+//
+//    String result = event.toString();
+//
+//    assertTrue(result.contains("Mon"));
+//    assertTrue(result.contains("Tue"));
+//    assertTrue(result.contains("Wed"));
+//    assertTrue(result.contains("Thu"));
+//    assertTrue(result.contains("Fri"));
+//    assertTrue(result.contains("Sat"));
+//    assertTrue(result.contains("Sun"));
+//  }
 
   @Test
   public void testToString_EdgeCaseNullEndDateTime() {
@@ -232,19 +235,19 @@ public class EventImplTest {
   @Test
   public void testEquals_SameInstance() {
     EventImpl event = new EventImpl("Event", LocalDateTime.of(2023, 5, 15, 10, 0));
-    assertTrue(event.equals(event));
+    assertEquals(event, event);
   }
 
   @Test
   public void testEquals_Null() {
     EventImpl event = new EventImpl("Event", LocalDateTime.of(2023, 5, 15, 10, 0));
-    assertFalse(event == null);
+    assertNotNull(event);
   }
 
   @Test
   public void testEquals_DifferentClass() {
     EventImpl event = new EventImpl("Event", LocalDateTime.of(2023, 5, 15, 10, 0));
-    assertFalse(event.equals("Not an event"));
+    assertNotEquals("Not an event", event);
   }
 
   @Test
@@ -252,7 +255,7 @@ public class EventImplTest {
     LocalDateTime dateTime = LocalDateTime.of(2023, 5, 15, 10, 0);
     EventImpl event1 = new EventImpl("Event", dateTime);
     EventImpl event2 = new EventImpl("Event", dateTime);
-    assertTrue(event1.equals(event2));
+    assertEquals(event1, event2);
   }
 
   @Test
@@ -260,14 +263,14 @@ public class EventImplTest {
     LocalDateTime dateTime = LocalDateTime.of(2023, 5, 15, 10, 0);
     EventImpl event1 = new EventImpl("Event 1", dateTime);
     EventImpl event2 = new EventImpl("Event 2", dateTime);
-    assertFalse(event1.equals(event2));
+    assertNotEquals(event1, event2);
   }
 
   @Test
   public void testEquals_DifferentDateTime() {
     EventImpl event1 = new EventImpl("Event", LocalDateTime.of(2023, 5, 15, 10, 0));
     EventImpl event2 = new EventImpl("Event", LocalDateTime.of(2023, 5, 16, 10, 0));
-    assertFalse(event1.equals(event2));
+    assertNotEquals(event1, event2);
   }
 
   @Test

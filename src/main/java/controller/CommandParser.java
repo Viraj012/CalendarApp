@@ -1,6 +1,7 @@
 package controller;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,7 +20,7 @@ class CommandParser {
    * @return a CreateCommand object or null if parsing fails
    */
   public Command parseCreateCommand(String command) {
-    boolean autoDecline = command.contains("--autoDecline");
+    boolean autoDecline = command.contains("--autoDecline"); // Keep autoDecline flag handling
     String cmdWithoutAutoDecline = command.replace("--autoDecline", "").trim();
 
     String description = extractQuotedParameter(cmdWithoutAutoDecline, DESCRIPTION_PATTERN);
@@ -79,11 +80,11 @@ class CommandParser {
 
     Command.CreateCommand createCmd = new Command.CreateCommand();
     createCmd.setEventName(eventName);
-    createCmd.setAutoDecline(autoDecline);
     createCmd.setDescription(description);
     createCmd.setLocation(location);
     createCmd.setPublic(isPublic);
     createCmd.setAllDay(true);
+    createCmd.setAutoDecline(autoDecline);
 
     if (dateTimeStr.contains(" repeats ")) {
       return parseRecurringAllDayCreateCommand(createCmd, dateTimeStr);
@@ -166,11 +167,11 @@ class CommandParser {
 
     Command.CreateCommand createCmd = new Command.CreateCommand();
     createCmd.setEventName(eventName);
-    createCmd.setAutoDecline(autoDecline);
     createCmd.setDescription(description);
     createCmd.setLocation(location);
     createCmd.setPublic(isPublic);
     createCmd.setAllDay(false);
+    createCmd.setAutoDecline(autoDecline);
 
     boolean isRecurring = endTimeOrRest.contains(" repeats ");
 
@@ -519,6 +520,217 @@ class CommandParser {
       showCmd.setDateTime(dateTime);
 
       return showCmd;
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  /**
+   * Parse a create calendar command.
+   *
+   * @param command the original command string
+   * @return a CreateCalendarCommand object or null if parsing fails
+   */
+  public Command parseCreateCalendarCommand(String command) {
+    try {
+      String[] parts = command.split("\\s+");
+      String name = null;
+      String timezoneStr = null;
+
+      for (int i = 2; i < parts.length; i++) {
+        if (parts[i].equals("--name") && i + 1 < parts.length) {
+          name = parts[i + 1];
+          i++;
+        } else if (parts[i].equals("--timezone") && i + 1 < parts.length) {
+          timezoneStr = parts[i + 1];
+          i++;
+        }
+      }
+
+      if (name == null || timezoneStr == null) {
+        return null;
+      }
+
+      ZoneId timezone;
+      try {
+        timezone = ZoneId.of(timezoneStr);
+      } catch (Exception e) {
+        return null; // Invalid timezone
+      }
+
+      Command.CreateCalendarCommand cmd = new Command.CreateCalendarCommand();
+      cmd.setName(name);
+      cmd.setTimezone(timezone);
+      return cmd;
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  /**
+   * Parse an edit calendar command.
+   *
+   * @param command the original command string
+   * @return an EditCalendarCommand object or null if parsing fails
+   */
+  public Command parseEditCalendarCommand(String command) {
+    try {
+      String[] parts = command.split("\\s+");
+      String name = null;
+      String property = null;
+      String newValue = null;
+
+      for (int i = 2; i < parts.length; i++) {
+        if (parts[i].equals("--name") && i + 1 < parts.length) {
+          name = parts[i + 1];
+          i++;
+        } else if (parts[i].equals("--property") && i + 2 < parts.length) {
+          property = parts[i + 1];
+          newValue = parts[i + 2];
+          i += 2;
+        }
+      }
+
+      if (name == null || property == null || newValue == null) {
+        return null;
+      }
+
+      Command.EditCalendarCommand cmd = new Command.EditCalendarCommand();
+      cmd.setName(name);
+      cmd.setProperty(property);
+      cmd.setNewValue(newValue);
+      return cmd;
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  /**
+   * Parse a use calendar command.
+   *
+   * @param command the original command string
+   * @return a UseCalendarCommand object or null if parsing fails
+   */
+  public Command parseUseCalendarCommand(String command) {
+    try {
+      String[] parts = command.split("\\s+");
+      String name = null;
+
+      for (int i = 2; i < parts.length; i++) {
+        if (parts[i].equals("--name") && i + 1 < parts.length) {
+          name = parts[i + 1];
+          break;
+        }
+      }
+
+      if (name == null) {
+        return null;
+      }
+
+      Command.UseCalendarCommand cmd = new Command.UseCalendarCommand();
+      cmd.setName(name);
+      return cmd;
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  /**
+   * Parse a copy event command.
+   *
+   * @param command the original command string
+   * @return a CopyEventCommand object or null if parsing fails
+   */
+  public Command parseCopyEventCommand(String command) {
+    try {
+      // Example: copy event "Meeting" on 2023-05-15T14:00 --target WorkCal to 2023-06-15T14:00
+      String eventNamePattern = "copy event ([^\\s]+|\"[^\"]+\")";
+      Pattern pattern = Pattern.compile(eventNamePattern + " on ([^\\s]+) --target ([^\\s]+) to ([^\\s]+)");
+      Matcher matcher = pattern.matcher(command);
+
+      if (matcher.find()) {
+        String eventName = matcher.group(1);
+        String startTimeStr = matcher.group(2);
+        String targetCalendar = matcher.group(3);
+        String targetTimeStr = matcher.group(4);
+
+        // Remove quotes if present
+        if (eventName.startsWith("\"") && eventName.endsWith("\"")) {
+          eventName = eventName.substring(1, eventName.length() - 1);
+        }
+
+        LocalDateTime startDateTime = CommandProcessor.parseDateTime(startTimeStr);
+        LocalDateTime targetDateTime = CommandProcessor.parseDateTime(targetTimeStr);
+
+        Command.CopyEventCommand cmd = new Command.CopyEventCommand();
+        cmd.setEventName(eventName);
+        cmd.setStartDateTime(startDateTime);
+        cmd.setTargetCalendar(targetCalendar);
+        cmd.setTargetDateTime(targetDateTime);
+
+        return cmd;
+      }
+
+      return null;
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  /**
+   * Parse a copy events command.
+   *
+   * @param command the original command string
+   * @return a CopyEventsCommand object or null if parsing fails
+   */
+  public Command parseCopyEventsCommand(String command) {
+    try {
+      if (command.contains("copy events on")) {
+        // Example: copy events on 2023-05-15 --target WorkCal to 2023-06-15
+        Pattern pattern = Pattern.compile("copy events on ([^\\s]+) --target ([^\\s]+) to ([^\\s]+)");
+        Matcher matcher = pattern.matcher(command);
+
+        if (matcher.find()) {
+          String dateStr = matcher.group(1);
+          String targetCalendar = matcher.group(2);
+          String targetDateStr = matcher.group(3);
+
+          LocalDateTime date = CommandProcessor.parseDateTime(dateStr);
+          LocalDateTime targetDate = CommandProcessor.parseDateTime(targetDateStr);
+
+          Command.CopyEventsCommand cmd = new Command.CopyEventsCommand(Command.CopyEventsCommand.CopyType.DAY);
+          cmd.setStartDate(date);
+          cmd.setTargetCalendar(targetCalendar);
+          cmd.setTargetDate(targetDate);
+
+          return cmd;
+        }
+      } else if (command.contains("copy events between")) {
+        // Example: copy events between 2023-05-15 and 2023-05-20 --target WorkCal to 2023-06-15
+        Pattern pattern = Pattern.compile("copy events between ([^\\s]+) and ([^\\s]+) --target ([^\\s]+) to ([^\\s]+)");
+        Matcher matcher = pattern.matcher(command);
+
+        if (matcher.find()) {
+          String startDateStr = matcher.group(1);
+          String endDateStr = matcher.group(2);
+          String targetCalendar = matcher.group(3);
+          String targetDateStr = matcher.group(4);
+
+          LocalDateTime startDate = CommandProcessor.parseDateTime(startDateStr);
+          LocalDateTime endDate = CommandProcessor.parseDateTime(endDateStr);
+          LocalDateTime targetDate = CommandProcessor.parseDateTime(targetDateStr);
+
+          Command.CopyEventsCommand cmd = new Command.CopyEventsCommand(Command.CopyEventsCommand.CopyType.DATE_RANGE);
+          cmd.setStartDate(startDate);
+          cmd.setEndDate(endDate);
+          cmd.setTargetCalendar(targetCalendar);
+          cmd.setTargetDate(targetDate);
+
+          return cmd;
+        }
+      }
+
+      return null;
     } catch (Exception e) {
       return null;
     }

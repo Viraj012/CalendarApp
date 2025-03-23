@@ -1,6 +1,8 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
@@ -8,11 +10,37 @@ import java.util.List;
  */
 public interface Calendar {
   /**
+   * Gets the name of the calendar.
+   * @return the calendar name
+   */
+  String getName();
+
+  /**
+   * Gets the timezone of the calendar.
+   * @return the calendar timezone
+   */
+  ZoneId getTimezone();
+
+  /**
+   * Converts a local date-time to a zoned date-time using this calendar's timezone.
+   * @param localDateTime the local date-time
+   * @return the zoned date-time
+   */
+  ZonedDateTime toZonedDateTime(LocalDateTime localDateTime);
+
+  /**
+   * Converts a zoned date-time to a local date-time in this calendar's timezone.
+   * @param zonedDateTime the zoned date-time
+   * @return the local date-time
+   */
+  LocalDateTime toLocalDateTime(ZonedDateTime zonedDateTime);
+
+  /**
    * Creates a single event in the calendar.
    * @param eventName the name of the event
    * @param startDateTime the start date and time
    * @param endDateTime the end date and time
-   * @param autoDecline whether to automatically decline if conflicts exist
+   * @param autoDecline whether to automatically decline if conflicts exist (always treated as true)
    * @param description optional description for the event
    * @param location optional location for the event
    * @param isPublic whether the event is public (true) or private (false)
@@ -26,7 +54,7 @@ public interface Calendar {
    * Creates a single all-day event.
    * @param eventName the name of the event
    * @param dateTime the date of the all-day event
-   * @param autoDecline whether to automatically decline if conflicts exist
+   * @param autoDecline whether to automatically decline if conflicts exist (always treated as true)
    * @param description optional description for the event
    * @param location optional location for the event
    * @param isPublic whether the event is public (true) or private (false)
@@ -43,7 +71,7 @@ public interface Calendar {
    * @param weekdays the days of week the event repeats on (e.g., "MRU")
    * @param occurrences the number of occurrences (used if untilDate is null)
    * @param untilDate the end date for recurrence (used if occurrences is -1)
-   * @param autoDecline whether to automatically decline if conflicts exist
+   * @param autoDecline whether to automatically decline if conflicts exist (always treated as true)
    * @param description optional description for the event
    * @param location optional location for the event
    * @param isPublic whether the event is public (true) or private (false)
@@ -61,7 +89,7 @@ public interface Calendar {
    * @param weekdays the days of week the event repeats on (e.g., "MRU")
    * @param occurrences the number of occurrences (used if untilDate is null)
    * @param untilDate the end date for recurrence (used if occurrences is -1)
-   * @param autoDecline whether to automatically decline if conflicts exist
+   * @param autoDecline whether to automatically decline if conflicts exist (always treated as true)
    * @param description optional description for the event
    * @param location optional location for the event
    * @param isPublic whether the event is public (true) or private (false)
@@ -128,9 +156,8 @@ public interface Calendar {
   boolean isBusy(LocalDateTime dateTime);
 
   /**
-   * Exports the calendar to a CSV file.
-   * @param fileName the name of the file to export to
-   * @return the absolute path of the generated CSV file
+   * Gets all the events from the event List.
+   * @return the list of all the events.
    */
-  String exportToCSV(String fileName);
+  List<Event> getAllEvents();
 }

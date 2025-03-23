@@ -115,7 +115,7 @@ public class CalendarAppTest {
     assertTrue("System.exit should be called", exitCalled);
     assertEquals("Exit code should be 1", 1, exitCode);
     assertTrue("Error message should mention usage",
-            testErr.toString().contains("Usage: java CalendarApp --mode"));
+        testErr.toString().contains("Usage: java CalendarApp --mode"));
   }
 
   @Test
@@ -126,7 +126,7 @@ public class CalendarAppTest {
     assertTrue("System.exit should be called", exitCalled);
     assertEquals("Exit code should be 1", 1, exitCode);
     assertTrue("Error message should mention first argument",
-            testErr.toString().contains("Expected '--mode' as first argument"));
+        testErr.toString().contains("Expected '--mode' as first argument"));
   }
 
   @Test
@@ -137,7 +137,7 @@ public class CalendarAppTest {
     assertTrue("System.exit should be called", exitCalled);
     assertEquals("Exit code should be 1", 1, exitCode);
     assertTrue("Error message should mention invalid mode",
-            testErr.toString().contains("Invalid mode"));
+        testErr.toString().contains("Invalid mode"));
   }
 
   @Test
@@ -148,7 +148,7 @@ public class CalendarAppTest {
     assertTrue("System.exit should be called", exitCalled);
     assertEquals("Exit code should be 1", 1, exitCode);
     assertTrue("Error message should mention invalid mode",
-            testErr.toString().contains("Invalid mode"));
+        testErr.toString().contains("Invalid mode"));
   }
 
   @Test
@@ -159,7 +159,7 @@ public class CalendarAppTest {
     assertTrue("System.exit should be called", exitCalled);
     assertEquals("Exit code should be 1", 1, exitCode);
     assertTrue("Error message should mention file error",
-            testErr.toString().contains("Error opening commands file"));
+        testErr.toString().contains("Error opening commands file"));
   }
 
   @Test
@@ -181,8 +181,8 @@ public class CalendarAppTest {
     String today = now.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
     createCommandFile(
-            "show status on " + today,
-            "exit"
+        "show status on " + today,
+        "exit"
     );
 
     runCalendarApp(new String[]{"--mode", "headless", tempCommandFile.toString()});
@@ -208,7 +208,7 @@ public class CalendarAppTest {
 
     assertTrue("Command should be echoed", output.contains("> invalid command"));
     assertTrue("Error message should mention unknown command",
-            error.contains("Error: Unknown command: invalid"));
+        error.contains("Error: Unknown command: invalid"));
   }
 
   @Test
@@ -229,10 +229,10 @@ public class CalendarAppTest {
     String today = now.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
     createCommandFile(
-            "create event Test Meeting from " + today + "T09:00 to " + today
-                    + "T10:00 --location \"Conference Room\" --description \"Important meeting\"",
-            "print events on " + today,
-            "exit"
+        "create event Test Meeting from " + today + "T09:00 to " + today
+            + "T10:00 --location \"Conference Room\" --description \"Important meeting\"",
+        "print events on " + today,
+        "exit"
     );
 
     runCalendarApp(new String[]{"--mode", "headless", tempCommandFile.toString()});
@@ -251,17 +251,17 @@ public class CalendarAppTest {
     String tomorrow = now.plusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE);
 
     createCommandFile(
-            "create event Daily Standup from " + today + "T09:00 to " + today
-                    + "T09:30 repeats MTWRF for 5 times",
-            "print events from " + today + " to " + tomorrow,
-            "exit"
+        "create event Daily Standup from " + today + "T09:00 to " + today
+            + "T09:30 repeats MTWRF for 5 times",
+        "print events from " + today + " to " + tomorrow,
+        "exit"
     );
 
     runCalendarApp(new String[]{"--mode", "headless", tempCommandFile.toString()});
 
     String output = testOut.toString();
     assertTrue("Recurring event should be created",
-            output.contains("Recurring event created successfully"));
+        output.contains("Recurring event created successfully"));
     assertTrue("Event name should appear", output.contains("Daily Standup"));
   }
 
@@ -272,11 +272,11 @@ public class CalendarAppTest {
     String today = now.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
     createCommandFile(
-            "create event Original Meeting from " + today + "T14:00 to " + today + "T15:00",
-            "edit event name Original Meeting from " + today + "T14:00 to " + today
-                    + "T15:00 with \"Updated Meeting\"",
-            "print events on " + today,
-            "exit"
+        "create event Original Meeting from " + today + "T14:00 to " + today + "T15:00",
+        "edit event name Original Meeting from " + today + "T14:00 to " + today
+            + "T15:00 with \"Updated Meeting\"",
+        "print events on " + today,
+        "exit"
     );
 
     runCalendarApp(new String[]{"--mode", "headless", tempCommandFile.toString()});
@@ -294,10 +294,10 @@ public class CalendarAppTest {
     String today = now.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
     createCommandFile(
-            "create event Meeting 1 from " + today + "T10:00 to " + today + "T11:00",
-            "create event Meeting 2 from " + today + "T13:00 to " + today + "T14:00",
-            "export cal " + tempExportFile.toString(),
-            "exit"
+        "create event Meeting 1 from " + today + "T10:00 to " + today + "T11:00",
+        "create event Meeting 2 from " + today + "T13:00 to " + today + "T14:00",
+        "export cal " + tempExportFile.toString(),
+        "exit"
     );
 
     runCalendarApp(new String[]{"--mode", "headless", tempCommandFile.toString()});
@@ -311,7 +311,7 @@ public class CalendarAppTest {
 
     String csvContent = new String(Files.readAllBytes(tempExportFile));
     assertTrue("CSV should have header",
-            csvContent.contains("Subject,Start Date,Start Time,End Date,End Time"));
+        csvContent.contains("Subject,Start Date,Start Time,End Date,End Time"));
     assertTrue("CSV should include first event", csvContent.contains("Meeting 1"));
     assertTrue("CSV should include second event", csvContent.contains("Meeting 2"));
   }
@@ -323,10 +323,10 @@ public class CalendarAppTest {
     String today = now.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
     createCommandFile(
-            "create event Busy Time from " + today + "T15:00 to " + today + "T16:00",
-            "show status on " + today + "T15:30",
-            "show status on " + today + "T17:00",
-            "exit"
+        "create event Busy Time from " + today + "T15:00 to " + today + "T16:00",
+        "show status on " + today + "T15:30",
+        "show status on " + today + "T17:00",
+        "exit"
     );
 
     runCalendarApp(new String[]{"--mode", "headless", tempCommandFile.toString()});
@@ -343,16 +343,16 @@ public class CalendarAppTest {
     String today = now.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
     createCommandFile(
-            "create event Conference on " + today,
-            "print events on " + today,
-            "exit"
+        "create event Conference on " + today,
+        "print events on " + today,
+        "exit"
     );
 
     runCalendarApp(new String[]{"--mode", "headless", tempCommandFile.toString()});
 
     String output = testOut.toString();
     assertTrue("All-day event should be created",
-            output.contains("All-day event created successfully"));
+        output.contains("All-day event created successfully"));
     assertTrue("Event name should appear", output.contains("Conference"));
     assertTrue("All Day marker should appear", output.contains("All Day"));
   }

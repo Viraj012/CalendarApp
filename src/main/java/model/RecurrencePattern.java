@@ -12,8 +12,8 @@ import java.util.Set;
  */
 public class RecurrencePattern {
   private Set<DayOfWeek> weekdays;
-  private int occurrences; // -1 if using untilDate
-  private LocalDateTime untilDate; // null if using occurrences
+  private int occurrences;
+  private LocalDateTime untilDate;
 
   /**
    * Creates a new recurrence pattern.

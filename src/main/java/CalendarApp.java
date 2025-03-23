@@ -1,11 +1,13 @@
 import controller.CommandProcessor;
 import model.Calendar;
 import model.CalendarImpl;
+import model.CalendarManager;
 import view.InteractiveUI;
 import view.HeadlessUI;
 import view.TextUI;
 
 import java.io.IOException;
+import java.time.ZoneId;
 
 /**
  * Main entry point for the Calendar application.
@@ -32,7 +34,12 @@ public class CalendarApp {
       System.exit(1);
     }
 
-    Calendar calendar = new CalendarImpl();
+    // Create calendar manager
+    CalendarManager calendarManager = new CalendarManager();
+
+    // Create a default calendar
+    calendarManager.createCalendar("Default", ZoneId.systemDefault());
+    calendarManager.useCalendar("Default");
 
     TextUI ui;
     if (args[1].equalsIgnoreCase("interactive")) {
@@ -52,7 +59,7 @@ public class CalendarApp {
       return;
     }
 
-    CommandProcessor processor = new CommandProcessor(calendar, ui);
+    CommandProcessor processor = new CommandProcessor(calendarManager, ui);
 
     try {
       boolean keepRunning = true;

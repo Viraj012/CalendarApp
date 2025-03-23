@@ -1,11 +1,12 @@
 package controller;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * Base class for all commands. Contains inner classes for specific command types.
  */
-public abstract class Command {
+abstract class Command {
 
   /**
    * Command object for Create Event commands.
@@ -247,6 +248,176 @@ public abstract class Command {
 
     protected void setDateTime(LocalDateTime dateTime) {
       this.dateTime = dateTime;
+    }
+  }
+
+  /**
+   * Command object for Create Calendar commands.
+   */
+  static class CreateCalendarCommand extends Command {
+    private String name;
+    private ZoneId timezone;
+
+    protected String getName() {
+      return name;
+    }
+
+    protected void setName(String name) {
+      this.name = name;
+    }
+
+    protected ZoneId getTimezone() {
+      return timezone;
+    }
+
+    protected void setTimezone(ZoneId timezone) {
+      this.timezone = timezone;
+    }
+  }
+
+  /**
+   * Command object for Edit Calendar commands.
+   */
+  static class EditCalendarCommand extends Command {
+    private String name;
+    private String property;
+    private String newValue;
+
+    protected String getName() {
+      return name;
+    }
+
+    protected void setName(String name) {
+      this.name = name;
+    }
+
+    protected String getProperty() {
+      return property;
+    }
+
+    protected void setProperty(String property) {
+      this.property = property;
+    }
+
+    protected String getNewValue() {
+      return newValue;
+    }
+
+    protected void setNewValue(String newValue) {
+      this.newValue = newValue;
+    }
+  }
+
+  /**
+   * Command object for Use Calendar commands.
+   */
+  static class UseCalendarCommand extends Command {
+    private String name;
+
+    protected String getName() {
+      return name;
+    }
+
+    protected void setName(String name) {
+      this.name = name;
+    }
+  }
+
+  /**
+   * Command object for Copy Event commands.
+   */
+  static class CopyEventCommand extends Command {
+    private String eventName;
+    private LocalDateTime startDateTime;
+    private String targetCalendar;
+    private LocalDateTime targetDateTime;
+
+    protected String getEventName() {
+      return eventName;
+    }
+
+    protected void setEventName(String eventName) {
+      this.eventName = eventName;
+    }
+
+    protected LocalDateTime getStartDateTime() {
+      return startDateTime;
+    }
+
+    protected void setStartDateTime(LocalDateTime startDateTime) {
+      this.startDateTime = startDateTime;
+    }
+
+    protected String getTargetCalendar() {
+      return targetCalendar;
+    }
+
+    protected void setTargetCalendar(String targetCalendar) {
+      this.targetCalendar = targetCalendar;
+    }
+
+    protected LocalDateTime getTargetDateTime() {
+      return targetDateTime;
+    }
+
+    protected void setTargetDateTime(LocalDateTime targetDateTime) {
+      this.targetDateTime = targetDateTime;
+    }
+  }
+
+  /**
+   * Command object for Copy Events commands.
+   */
+  static class CopyEventsCommand extends Command {
+    public enum CopyType {
+      DAY,        // Copy events on a specific day
+      DATE_RANGE  // Copy events in a date range
+    }
+
+    private final CopyType copyType;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;  // Only for DATE_RANGE type
+    private String targetCalendar;
+    private LocalDateTime targetDate;
+
+    CopyEventsCommand(CopyType copyType) {
+      this.copyType = copyType;
+    }
+
+    protected CopyType getCopyType() {
+      return copyType;
+    }
+
+    protected LocalDateTime getStartDate() {
+      return startDate;
+    }
+
+    protected void setStartDate(LocalDateTime startDate) {
+      this.startDate = startDate;
+    }
+
+    protected LocalDateTime getEndDate() {
+      return endDate;
+    }
+
+    protected void setEndDate(LocalDateTime endDate) {
+      this.endDate = endDate;
+    }
+
+    protected String getTargetCalendar() {
+      return targetCalendar;
+    }
+
+    protected void setTargetCalendar(String targetCalendar) {
+      this.targetCalendar = targetCalendar;
+    }
+
+    protected LocalDateTime getTargetDate() {
+      return targetDate;
+    }
+
+    protected void setTargetDate(LocalDateTime targetDate) {
+      this.targetDate = targetDate;
     }
   }
 }

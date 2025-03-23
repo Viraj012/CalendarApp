@@ -183,9 +183,9 @@ public class HeadlessUITest {
     ui.close();
 
     assertTrue(
-            errContent
-                    .toString()
-                    .contains("Error closing file: Simulated IOException during close"));
+        errContent
+            .toString()
+            .contains("Error closing file: Simulated IOException during close"));
   }
 
   @Test
