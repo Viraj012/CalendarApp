@@ -1,6 +1,5 @@
 package model;
 
-import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -124,7 +123,6 @@ public class EventImpl implements Event {
   public String getDescription() {
     return description;
   }
-
 
 
   /**
@@ -255,46 +253,46 @@ public class EventImpl implements Event {
       sb.append(" at ").append(location);
     }
 
-//    // Add recurrence information
-//    if (isRecurring()) {
-//      sb.append(" (Repeats on: ");
-//
-//      // Convert weekday codes to readable format
-//      if (recurrence.getWeekdays().contains(DayOfWeek.MONDAY)) {
-//        sb.append("Mon,");
-//      }
-//      if (recurrence.getWeekdays().contains(DayOfWeek.TUESDAY)) {
-//        sb.append("Tue,");
-//      }
-//      if (recurrence.getWeekdays().contains(DayOfWeek.WEDNESDAY)) {
-//        sb.append("Wed,");
-//      }
-//      if (recurrence.getWeekdays().contains(DayOfWeek.THURSDAY)) {
-//        sb.append("Thu,");
-//      }
-//      if (recurrence.getWeekdays().contains(DayOfWeek.FRIDAY)) {
-//        sb.append("Fri,");
-//      }
-//      if (recurrence.getWeekdays().contains(DayOfWeek.SATURDAY)) {
-//        sb.append("Sat,");
-//      }
-//      if (recurrence.getWeekdays().contains(DayOfWeek.SUNDAY)) {
-//        sb.append("Sun,");
-//      }
-//
-//      // Remove trailing comma
-//      if (sb.toString().endsWith(",")) {
-//        sb.deleteCharAt(sb.length() - 1);
-//      }
-//
-//      if (recurrence.getOccurrences() != -1) {
-//        sb.append(" for ").append(recurrence.getOccurrences()).append(" times");
-//      } else if (recurrence.getUntilDate() != null) {
-//        sb.append(" until ").append(recurrence.getUntilDate().format(dateFormatter));
-//      }
-//
-//      sb.append(")");
-//    }
+    //    // Add recurrence information
+    //    if (isRecurring()) {
+    //      sb.append(" (Repeats on: ");
+    //
+    //      // Convert weekday codes to readable format
+    //      if (recurrence.getWeekdays().contains(DayOfWeek.MONDAY)) {
+    //        sb.append("Mon,");
+    //      }
+    //      if (recurrence.getWeekdays().contains(DayOfWeek.TUESDAY)) {
+    //        sb.append("Tue,");
+    //      }
+    //      if (recurrence.getWeekdays().contains(DayOfWeek.WEDNESDAY)) {
+    //        sb.append("Wed,");
+    //      }
+    //      if (recurrence.getWeekdays().contains(DayOfWeek.THURSDAY)) {
+    //        sb.append("Thu,");
+    //      }
+    //      if (recurrence.getWeekdays().contains(DayOfWeek.FRIDAY)) {
+    //        sb.append("Fri,");
+    //      }
+    //      if (recurrence.getWeekdays().contains(DayOfWeek.SATURDAY)) {
+    //        sb.append("Sat,");
+    //      }
+    //      if (recurrence.getWeekdays().contains(DayOfWeek.SUNDAY)) {
+    //        sb.append("Sun,");
+    //      }
+    //
+    //      // Remove trailing comma
+    //      if (sb.toString().endsWith(",")) {
+    //        sb.deleteCharAt(sb.length() - 1);
+    //      }
+    //
+    //      if (recurrence.getOccurrences() != -1) {
+    //        sb.append(" for ").append(recurrence.getOccurrences()).append(" times");
+    //      } else if (recurrence.getUntilDate() != null) {
+    //        sb.append(" until ").append(recurrence.getUntilDate().format(dateFormatter));
+    //      }
+    //
+    //      sb.append(")");
+    //    }
 
     return sb.toString();
   }

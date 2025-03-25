@@ -1,6 +1,4 @@
 import controller.CommandProcessor;
-import model.Calendar;
-import model.CalendarImpl;
 import model.CalendarManager;
 import view.InteractiveUI;
 import view.HeadlessUI;

@@ -9,9 +9,12 @@ import java.util.regex.Pattern;
  * Parser for calendar commands. Extracts information from user input.
  */
 class CommandParser {
-  private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("--description\\s+\"([^\"]*)\"");
-  private static final Pattern LOCATION_PATTERN = Pattern.compile("--location\\s+\"([^\"]*)\"");
-  private static final Pattern EDIT_ALL_PATTERN = Pattern.compile("\"([^\"]*)\"\\s+\"([^\"]*)\"");
+  private static final Pattern DESCRIPTION_PATTERN
+          = Pattern.compile("--description\\s+\"([^\"]*)\"");
+  private static final Pattern LOCATION_PATTERN
+          = Pattern.compile("--location\\s+\"([^\"]*)\"");
+  private static final Pattern EDIT_ALL_PATTERN
+          = Pattern.compile("\"([^\"]*)\"\\s+\"([^\"]*)\"");
 
   /**
    * Parse a create event command.
@@ -25,11 +28,11 @@ class CommandParser {
 
     String description = extractQuotedParameter(cmdWithoutAutoDecline, DESCRIPTION_PATTERN);
     cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace(
-        description.isEmpty() ? "" : "--description \"" + description + "\"", "").trim();
+            description.isEmpty() ? "" : "--description \"" + description + "\"", "").trim();
 
     String location = extractQuotedParameter(cmdWithoutAutoDecline, LOCATION_PATTERN);
     cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace(
-        location.isEmpty() ? "" : "--location \"" + location + "\"", "").trim();
+            location.isEmpty() ? "" : "--location \"" + location + "\"", "").trim();
 
     boolean isPrivate = command.contains("--private");
     cmdWithoutAutoDecline = cmdWithoutAutoDecline.replace("--private", "").trim();
@@ -37,10 +40,10 @@ class CommandParser {
     try {
       if (cmdWithoutAutoDecline.contains(" on ")) {
         return parseAllDayCreateCommand(cmdWithoutAutoDecline, autoDecline, description,
-            location, !isPrivate);
+                location, !isPrivate);
       } else if (cmdWithoutAutoDecline.contains(" from ")) {
         return parseRegularCreateCommand(cmdWithoutAutoDecline, autoDecline, description,
-            location, !isPrivate);
+                location, !isPrivate);
       }
     } catch (Exception e) {
       // Return null if parsing fails
@@ -64,8 +67,10 @@ class CommandParser {
   /**
    * Parse a create all-day event command.
    */
-  private Command.CreateCommand parseAllDayCreateCommand(String command, boolean autoDecline,
-      String description, String location, boolean isPublic) {
+  private Command.CreateCommand parseAllDayCreateCommand(
+          String command, boolean autoDecline, String description
+          , String location, boolean isPublic
+  ) {
     String[] parts = command.split(" on ");
     if (parts.length != 2) {
       return null;
@@ -102,7 +107,9 @@ class CommandParser {
   /**
    * Parse a recurring all-day event command.
    */
-  private Command.CreateCommand parseRecurringAllDayCreateCommand(Command.CreateCommand createCmd, String dateTimeStr) {
+  private Command.CreateCommand parseRecurringAllDayCreateCommand(
+          Command.CreateCommand createCmd, String dateTimeStr
+  ) {
     String[] parts = dateTimeStr.split(" repeats ");
     if (parts.length != 2) {
       return null;
@@ -125,7 +132,9 @@ class CommandParser {
   /**
    * Parse a recurrence pattern.
    */
-  private Command.CreateCommand parseRecurrencePattern(Command.CreateCommand createCmd, String recurrenceStr) {
+  private Command.CreateCommand parseRecurrencePattern(
+          Command.CreateCommand createCmd, String recurrenceStr
+  ) {
     if (recurrenceStr.contains(" for ")) {
       String[] recParts = recurrenceStr.split(" for ");
       createCmd.setWeekdays(recParts[0].trim());
@@ -143,8 +152,10 @@ class CommandParser {
   /**
    * Parse a create regular event command.
    */
-  private Command.CreateCommand parseRegularCreateCommand(String command, boolean autoDecline,
-      String description, String location, boolean isPublic) {
+  private Command.CreateCommand parseRegularCreateCommand(
+          String command, boolean autoDecline,
+          String description, String location, boolean isPublic
+  ) {
     String[] parts = command.split(" from ");
     if (parts.length != 2) {
       return null;
@@ -198,8 +209,9 @@ class CommandParser {
   /**
    * Parse a recurring regular event command.
    */
-  private Command.CreateCommand parseRecurringRegularCreateCommand(Command.CreateCommand createCmd,
-      String startTimeStr, String endTimeOrRest) {
+  private Command.CreateCommand parseRecurringRegularCreateCommand(
+          Command.CreateCommand createCmd,
+          String startTimeStr, String endTimeOrRest) {
     String[] endTimeParts = endTimeOrRest.split(" repeats ", 2);
     if (endTimeParts.length != 2) {
       return null;
@@ -262,9 +274,9 @@ class CommandParser {
     try {
       // Handle date/time property edits
       if (property.equalsIgnoreCase("starttime") ||
-          property.equalsIgnoreCase("startdate") ||
-          property.equalsIgnoreCase("endtime") ||
-          property.equalsIgnoreCase("enddate")) {
+              property.equalsIgnoreCase("startdate") ||
+              property.equalsIgnoreCase("endtime") ||
+              property.equalsIgnoreCase("enddate")) {
 
         int fromIdx = rest.indexOf(" from ");
         if (fromIdx == -1) {
@@ -645,7 +657,9 @@ class CommandParser {
     try {
       // Example: copy event "Meeting" on 2023-05-15T14:00 --target WorkCal to 2023-06-15T14:00
       String eventNamePattern = "copy event ([^\\s]+|\"[^\"]+\")";
-      Pattern pattern = Pattern.compile(eventNamePattern + " on ([^\\s]+) --target ([^\\s]+) to ([^\\s]+)");
+      Pattern pattern
+              = Pattern.compile(eventNamePattern
+              + " on ([^\\s]+) --target ([^\\s]+) to ([^\\s]+)");
       Matcher matcher = pattern.matcher(command);
 
       if (matcher.find()) {
@@ -687,7 +701,9 @@ class CommandParser {
     try {
       if (command.contains("copy events on")) {
         // Example: copy events on 2023-05-15 --target WorkCal to 2023-06-15
-        Pattern pattern = Pattern.compile("copy events on ([^\\s]+) --target ([^\\s]+) to ([^\\s]+)");
+        Pattern pattern
+                = Pattern.compile("copy events on ([^\\s]+) " +
+                "--target ([^\\s]+) to ([^\\s]+)");
         Matcher matcher = pattern.matcher(command);
 
         if (matcher.find()) {
@@ -698,7 +714,8 @@ class CommandParser {
           LocalDateTime date = CommandProcessor.parseDateTime(dateStr);
           LocalDateTime targetDate = CommandProcessor.parseDateTime(targetDateStr);
 
-          Command.CopyEventsCommand cmd = new Command.CopyEventsCommand(Command.CopyEventsCommand.CopyType.DAY);
+          Command.CopyEventsCommand cmd =
+                  new Command.CopyEventsCommand(Command.CopyEventsCommand.CopyType.DAY);
           cmd.setStartDate(date);
           cmd.setTargetCalendar(targetCalendar);
           cmd.setTargetDate(targetDate);
@@ -707,7 +724,9 @@ class CommandParser {
         }
       } else if (command.contains("copy events between")) {
         // Example: copy events between 2023-05-15 and 2023-05-20 --target WorkCal to 2023-06-15
-        Pattern pattern = Pattern.compile("copy events between ([^\\s]+) and ([^\\s]+) --target ([^\\s]+) to ([^\\s]+)");
+        Pattern pattern
+                = Pattern.compile("copy events between ([^\\s]+) and ([^\\s]+) " +
+                "--target ([^\\s]+) to ([^\\s]+)");
         Matcher matcher = pattern.matcher(command);
 
         if (matcher.find()) {
@@ -720,7 +739,8 @@ class CommandParser {
           LocalDateTime endDate = CommandProcessor.parseDateTime(endDateStr);
           LocalDateTime targetDate = CommandProcessor.parseDateTime(targetDateStr);
 
-          Command.CopyEventsCommand cmd = new Command.CopyEventsCommand(Command.CopyEventsCommand.CopyType.DATE_RANGE);
+          Command.CopyEventsCommand cmd
+                  = new Command.CopyEventsCommand(Command.CopyEventsCommand.CopyType.DATE_RANGE);
           cmd.setStartDate(startDate);
           cmd.setEndDate(endDate);
           cmd.setTargetCalendar(targetCalendar);

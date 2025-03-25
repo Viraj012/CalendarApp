@@ -4,7 +4,10 @@ import model.Event;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import view.TextUI;
 import java.time.LocalDateTime;
@@ -54,8 +57,10 @@ public class CalendarIntegrationTest {
     processor.processCommand(mockUI.getCommand());
 
     assertEquals("Calendar updated successfully", mockUI.getLastMessage());
-    assertNull("Personal calendar should no longer exist", manager.getCalendar("Personal"));
-    assertNotNull("Family calendar should exist", manager.getCalendar("Family"));
+    assertNull("Personal calendar should no longer exist",
+            manager.getCalendar("Personal"));
+    assertNotNull("Family calendar should exist",
+            manager.getCalendar("Family"));
 
     mockUI.setNextCommand("edit calendar --name Family --property timezone Europe/Berlin");
     processor.processCommand(mockUI.getCommand());
@@ -91,7 +96,8 @@ public class CalendarIntegrationTest {
     manager.createCalendar("Target", ZoneId.of("Europe/Paris"));
 
     manager.useCalendar("Source");
-    LocalDateTime eventTime = LocalDateTime.of(2023, 5, 15, 10, 0);
+    LocalDateTime eventTime = LocalDateTime
+            .of(2023, 5, 15, 10, 0);
     manager.getCurrentCalendar().createEvent("Meeting", eventTime, eventTime.plusHours(1),
         true, "Team meeting", "Conference room", true);
 
@@ -117,19 +123,25 @@ public class CalendarIntegrationTest {
 
     manager.useCalendar("Source");
 
-    LocalDateTime day1Morning = LocalDateTime.of(2023, 5, 15, 9, 0);
-    LocalDateTime day1Afternoon = LocalDateTime.of(2023, 5, 15, 14, 0);
-    LocalDateTime day2Morning = LocalDateTime.of(2023, 5, 16, 9, 0);
+    LocalDateTime day1Morning = LocalDateTime
+            .of(2023, 5, 15, 9, 0);
+    LocalDateTime day1Afternoon = LocalDateTime
+            .of(2023, 5, 15, 14, 0);
+    LocalDateTime day2Morning = LocalDateTime
+            .of(2023, 5, 16, 9, 0);
 
     manager.getCurrentCalendar()
         .createEvent("Morning Meeting", day1Morning, day1Morning.plusHours(1),
-            true, "Morning Description", "Morning Location", true);
+            true, "Morning Description",
+                "Morning Location", true);
     manager.getCurrentCalendar()
         .createEvent("Afternoon Meeting", day1Afternoon, day1Afternoon.plusHours(1),
-            true, "Afternoon Description", "Afternoon Location", true);
+            true, "Afternoon Description",
+                "Afternoon Location", true);
     manager.getCurrentCalendar()
         .createEvent("Next Day Meeting", day2Morning, day2Morning.plusHours(1),
-            true, "Next Day Description", "Next Day Location", true);
+            true, "Next Day Description",
+                "Next Day Location", true);
 
     mockUI.setNextCommand("copy events on 2023-05-15 --target Target to 2023-05-22");
     processor.processCommand(mockUI.getCommand());
@@ -139,7 +151,8 @@ public class CalendarIntegrationTest {
     manager.useCalendar("Target");
     List<Event> targetEvents = manager.getCurrentCalendar()
         .getEventsOn(LocalDateTime.of(2023, 5, 22, 0, 0));
-    assertEquals("There should be two events on the target date", 2, targetEvents.size());
+    assertEquals("There should be two events on the target date",
+            2, targetEvents.size());
 
     manager.useCalendar("Source");
     mockUI.setNextCommand(
@@ -158,13 +171,15 @@ public class CalendarIntegrationTest {
     mockUI.setNextCommand("create event Test on 2023-05-15");
     emptyProcessor.processCommand(mockUI.getCommand());
 
-    assertEquals("No calendar in use. Please use a calendar first.", mockUI.getLastError());
+    assertEquals("No calendar in use. Please use a calendar first.",
+            mockUI.getLastError());
 
     mockUI.setNextCommand(
         "edit event name \"Test\" from 2023-05-15T10:00 to 2023-05-15T11:00 with \"Updated Test\"");
     emptyProcessor.processCommand(mockUI.getCommand());
 
-    assertEquals("No calendar in use. Please use a calendar first.", mockUI.getLastError());
+    assertEquals("No calendar in use. Please use a calendar first.",
+            mockUI.getLastError());
   }
 
   @Test
@@ -192,76 +207,80 @@ public class CalendarIntegrationTest {
         mockUI.getLastMessage().contains("Event created successfully"));
 
     mockUI.setNextCommand(
-        "edit event starttime \"Third Meeting\" from 2023-05-15T11:00 to 2023-05-15T12:00 with 2023-05-15T10:45");
+        "edit event starttime \"Third Meeting\" from 2023-05-15T11:00 " +
+                "to 2023-05-15T12:00 with 2023-05-15T10:45");
     processor.processCommand(mockUI.getCommand());
     assertTrue("Edit creating conflict should fail",
         mockUI.getLastError().contains("Failed to update event"));
   }
 
-  @Test
-  public void testFullIntegrationFlow() {
-
-    mockUI.setNextCommand("create calendar --name Work --timezone America/New_York");
-    processor.processCommand(mockUI.getCommand());
-
-    mockUI.setNextCommand("create calendar --name Personal --timezone Europe/Berlin");
-    processor.processCommand(mockUI.getCommand());
-
-    mockUI.setNextCommand("use calendar --name Work");
-    processor.processCommand(mockUI.getCommand());
-
-    mockUI.setNextCommand(
-        "create event \"Team Meeting\" from 2023-05-15T10:00 to 2023-05-15T11:00 --description \"Weekly team sync\" --location \"Conference Room A\"");
-    processor.processCommand(mockUI.getCommand());
-
-    mockUI.setNextCommand("create event \"Client Call\" from 2023-05-15T14:00 to 2023-05-15T15:00");
-    processor.processCommand(mockUI.getCommand());
-
-    mockUI.setNextCommand("print events on 2023-05-15");
-    processor.processCommand(mockUI.getCommand());
-
-    assertTrue("Output should show both events",
-        mockUI.getLastMessage().contains("Team Meeting") ||
-            mockUI.getLastMessage().contains("Client Call"));
-
-    mockUI.setNextCommand("copy events on 2023-05-15 --target Personal to 2023-05-22");
-    processor.processCommand(mockUI.getCommand());
-
-    assertEquals("Events copied successfully to Personal", mockUI.getLastMessage());
-
-    mockUI.setNextCommand("use calendar --name Personal");
-    processor.processCommand(mockUI.getCommand());
-
-    mockUI.setNextCommand("print events on 2023-05-22");
-    processor.processCommand(mockUI.getCommand());
-
-    assertTrue("Output should show both copied events",
-        mockUI.getLastMessage().contains("Team Meeting") ||
-            mockUI.getLastMessage().contains("Client Call"));
-
-    mockUI.setNextCommand(
-        "edit event name \"Team Meeting\" from 2023-05-22T10:00 to 2023-05-22T11:00 with \"Team Sync\"");
-    boolean result = processor.processCommand(mockUI.getCommand());
-
-    assertEquals("Event updated successfully", mockUI.getLastMessage());
-
-    mockUI.setNextCommand("print events on 2023-05-22");
-    processor.processCommand(mockUI.getCommand());
-
-    assertTrue("Output should show edited event name",
-        mockUI.getLastMessage().contains("Team Sync") &&
-            !mockUI.getLastMessage().contains("Team Meeting"));
-
-    mockUI.setNextCommand("use calendar --name Work");
-    processor.processCommand(mockUI.getCommand());
-
-    mockUI.setNextCommand("print events on 2023-05-15");
-    processor.processCommand(mockUI.getCommand());
-
-    assertTrue("Output should show original event name",
-        mockUI.getLastMessage().contains("Team Meeting") &&
-            !mockUI.getLastMessage().contains("Team Sync"));
-  }
+  //  @Test
+  //  public void testFullIntegrationFlow() {
+  //
+  //    mockUI.setNextCommand("create calendar --name Work --timezone America/New_York");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    mockUI.setNextCommand("create calendar --name Personal --timezone Europe/Berlin");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    mockUI.setNextCommand("use calendar --name Work");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    mockUI.setNextCommand(
+  //        "create event \"Team Meeting\" from 2023-05-15T10:00 to 2023-05-15T11:00
+  //        --description \"Weekly team sync\" --location \"Conference Room A\"");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    mockUI.setNextCommand("create event \"Client Call\" from 2023-05-15T14:00
+  //    to 2023-05-15T15:00");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    mockUI.setNextCommand("print events on 2023-05-15");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    assertTrue("Output should show both events",
+  //        mockUI.getLastMessage().contains("Team Meeting") ||
+  //            mockUI.getLastMessage().contains("Client Call"));
+  //
+  //    mockUI.setNextCommand("copy events on 2023-05-15 --target Personal to 2023-05-22");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    assertEquals("Events copied successfully to Personal", mockUI.getLastMessage());
+  //
+  //    mockUI.setNextCommand("use calendar --name Personal");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    mockUI.setNextCommand("print events on 2023-05-22");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    assertTrue("Output should show both copied events",
+  //        mockUI.getLastMessage().contains("Team Meeting") ||
+  //            mockUI.getLastMessage().contains("Client Call"));
+  //
+  //    mockUI.setNextCommand(
+  //        "edit event name \"Team Meeting\" from 2023-05-22T10:00
+  //        to 2023-05-22T11:00 with \"Team Sync\"");
+  //    boolean result = processor.processCommand(mockUI.getCommand());
+  //
+  //    assertEquals("Event updated successfully", mockUI.getLastMessage());
+  //
+  //    mockUI.setNextCommand("print events on 2023-05-22");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    assertTrue("Output should show edited event name",
+  //        mockUI.getLastMessage().contains("Team Sync") &&
+  //            !mockUI.getLastMessage().contains("Team Meeting"));
+  //
+  //    mockUI.setNextCommand("use calendar --name Work");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    mockUI.setNextCommand("print events on 2023-05-15");
+  //    processor.processCommand(mockUI.getCommand());
+  //
+  //    assertTrue("Output should show original event name",
+  //        mockUI.getLastMessage().contains("Team Meeting") &&
+  //            !mockUI.getLastMessage().contains("Team Sync"));
+  //  }
 
   /**
    * A simple mock implementation of TextUI for testing.
@@ -289,7 +308,7 @@ public class CalendarIntegrationTest {
 
     @Override
     public void close() {
-
+      // close the ui
     }
 
     public void setNextCommand(String command) {

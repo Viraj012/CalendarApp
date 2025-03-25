@@ -85,6 +85,7 @@ public class CalendarManager {
   public Calendar getCalendar(String calendarName) {
     return calendars.get(calendarName);
   }
+
   /**
    * Edits a calendar property.
    *
@@ -141,10 +142,12 @@ public class CalendarManager {
    * Preserves all event properties including recurrence while adjusting times.
    *
    * @param calendar the calendar being updated
-   * @param oldZone the old timezone
-   * @param newZone the new timezone
+   * @param oldZone  the old timezone
+   * @param newZone  the new timezone
    */
-  private void updateEventsForTimezoneChange(CalendarImpl calendar, ZoneId oldZone, ZoneId newZone) {
+  private void updateEventsForTimezoneChange(
+          CalendarImpl calendar, ZoneId oldZone, ZoneId newZone
+  ) {
     // Get all current events
     List<Event> originalEvents = new ArrayList<>(calendar.getAllEvents());
 
@@ -161,11 +164,11 @@ public class CalendarManager {
 
           // Create new all-day recurring event with same properties
           EventImpl newEvent = new EventImpl(
-              originalImpl.getSubject(),
-              originalImpl.getStartDateTime(),
-              weekdaysToString(pattern.getWeekdays()),
-              pattern.getOccurrences(),
-              pattern.getUntilDate()
+                  originalImpl.getSubject(),
+                  originalImpl.getStartDateTime(),
+                  weekdaysToString(pattern.getWeekdays()),
+                  pattern.getOccurrences(),
+                  pattern.getUntilDate()
           );
 
           // Copy descriptive properties
@@ -208,12 +211,12 @@ public class CalendarManager {
 
           // Create recurring event with adjusted times but same recurrence pattern
           EventImpl newEvent = new EventImpl(
-              originalImpl.getSubject(),
-              newStartDateTime,
-              newEndDateTime,
-              weekdaysToString(pattern.getWeekdays()),
-              pattern.getOccurrences(),
-              newUntilDate
+                  originalImpl.getSubject(),
+                  newStartDateTime,
+                  newEndDateTime,
+                  weekdaysToString(pattern.getWeekdays()),
+                  pattern.getOccurrences(),
+                  newUntilDate
           );
 
           // Copy descriptive properties
@@ -225,9 +228,9 @@ public class CalendarManager {
         } else {
           // Create regular event with adjusted times
           EventImpl newEvent = new EventImpl(
-              originalImpl.getSubject(),
-              newStartDateTime,
-              newEndDateTime
+                  originalImpl.getSubject(),
+                  newStartDateTime,
+                  newEndDateTime
           );
 
           // Copy descriptive properties
@@ -246,8 +249,18 @@ public class CalendarManager {
       calendar.addEvent(convertedEvent);
     }
   }
+
+  /**
+   * Copies an event from the current calendar to a target calendar at a specified time.
+   *
+   * @param eventName          The name of the event to copy.
+   * @param startDateTime      The start date-time of the event in the source calendar.
+   * @param targetCalendarName The name of the target calendar where the event will be copied.
+   * @param targetDateTime     The start date-time for the copied event in the target calendar.
+   * @return {@code true} if the event was successfully copied; {@code false} otherwise.
+   */
   public boolean copyEvent(String eventName, LocalDateTime startDateTime,
-      String targetCalendarName, LocalDateTime targetDateTime) {
+                           String targetCalendarName, LocalDateTime targetDateTime) {
     if (currentCalendar == null || !calendars.containsKey(targetCalendarName)) {
       return false;
     }
@@ -268,8 +281,8 @@ public class CalendarManager {
 
         for (LocalDateTime occurrence : occurrences) {
           if (occurrence.toLocalDate().equals(startDateTime.toLocalDate()) &&
-              occurrence.getHour() == startDateTime.getHour() &&
-              occurrence.getMinute() == startDateTime.getMinute()) {
+                  occurrence.getHour() == startDateTime.getHour() &&
+                  occurrence.getMinute() == startDateTime.getMinute()) {
             eventToCopy = event;
             break;
           }
@@ -286,9 +299,9 @@ public class CalendarManager {
       List<Event> events = sourceCalendar.getEventsOn(startDateTime);
       for (Event event : events) {
         if (isEventNameMatch(event.getSubject(), eventName) &&
-            event.getStartDateTime().toLocalDate().equals(startDateTime.toLocalDate()) &&
-            event.getStartDateTime().getHour() == startDateTime.getHour() &&
-            event.getStartDateTime().getMinute() == startDateTime.getMinute()) {
+                event.getStartDateTime().toLocalDate().equals(startDateTime.toLocalDate()) &&
+                event.getStartDateTime().getHour() == startDateTime.getHour() &&
+                event.getStartDateTime().getMinute() == startDateTime.getMinute()) {
           eventToCopy = event;
           break;
         }
@@ -308,31 +321,31 @@ public class CalendarManager {
         LocalDateTime newUntilDate = null;
         if (pattern.getUntilDate() != null) {
           long daysBetween = ChronoUnit.DAYS.between(
-              eventToCopy.getStartDateTime().toLocalDate(),
-              pattern.getUntilDate().toLocalDate());
+                  eventToCopy.getStartDateTime().toLocalDate(),
+                  pattern.getUntilDate().toLocalDate());
 
           newUntilDate = targetDateTime.toLocalDate().plusDays(daysBetween).atTime(0, 0);
         }
 
         return targetCalendar.createRecurringAllDayEvent(
-            eventToCopy.getSubject().replace(" [Recurring]", ""), // Remove suffix when copying
-            targetDateTime,
-            weekdaysToString(pattern.getWeekdays()),
-            pattern.getOccurrences(),
-            newUntilDate,
-            true,
-            eventToCopy.getDescription(),
-            eventToCopy.getLocation(),
-            eventToCopy.isPublic()
+                eventToCopy.getSubject().replace(" [Recurring]", ""), // Remove suffix when copying
+                targetDateTime,
+                weekdaysToString(pattern.getWeekdays()),
+                pattern.getOccurrences(),
+                newUntilDate,
+                true,
+                eventToCopy.getDescription(),
+                eventToCopy.getLocation(),
+                eventToCopy.isPublic()
         );
       } else {
         return targetCalendar.createAllDayEvent(
-            eventToCopy.getSubject(),
-            targetDateTime,
-            true,
-            eventToCopy.getDescription(),
-            eventToCopy.getLocation(),
-            eventToCopy.isPublic()
+                eventToCopy.getSubject(),
+                targetDateTime,
+                true,
+                eventToCopy.getDescription(),
+                eventToCopy.getLocation(),
+                eventToCopy.isPublic()
         );
       }
     } else {
@@ -340,8 +353,8 @@ public class CalendarManager {
       LocalDateTime newEndTime = null;
       if (eventToCopy.getEndDateTime() != null) {
         long durationMinutes = ChronoUnit.MINUTES.between(
-            eventToCopy.getStartDateTime(),
-            eventToCopy.getEndDateTime());
+                eventToCopy.getStartDateTime(),
+                eventToCopy.getEndDateTime());
 
         newEndTime = targetDateTime.plusMinutes(durationMinutes);
       }
@@ -353,49 +366,50 @@ public class CalendarManager {
         LocalDateTime newUntilDate = null;
         if (pattern.getUntilDate() != null) {
           long daysBetween = ChronoUnit.DAYS.between(
-              eventToCopy.getStartDateTime().toLocalDate(),
-              pattern.getUntilDate().toLocalDate());
+                  eventToCopy.getStartDateTime().toLocalDate(),
+                  pattern.getUntilDate().toLocalDate());
 
           newUntilDate = targetDateTime.toLocalDate().plusDays(daysBetween)
-              .atTime(targetDateTime.toLocalTime());
+                  .atTime(targetDateTime.toLocalTime());
         }
 
         return targetCalendar.createRecurringEvent(
-            eventToCopy.getSubject().replace(" [Recurring]", ""), // Remove suffix when copying
-            targetDateTime,
-            newEndTime,
-            weekdaysToString(pattern.getWeekdays()),
-            pattern.getOccurrences(),
-            newUntilDate,
-            true,
-            eventToCopy.getDescription(),
-            eventToCopy.getLocation(),
-            eventToCopy.isPublic()
+                eventToCopy.getSubject().replace(" [Recurring]", ""), // Remove suffix when copying
+                targetDateTime,
+                newEndTime,
+                weekdaysToString(pattern.getWeekdays()),
+                pattern.getOccurrences(),
+                newUntilDate,
+                true,
+                eventToCopy.getDescription(),
+                eventToCopy.getLocation(),
+                eventToCopy.isPublic()
         );
       } else {
         return targetCalendar.createEvent(
-            eventToCopy.getSubject(),
-            targetDateTime,
-            newEndTime,
-            true,
-            eventToCopy.getDescription(),
-            eventToCopy.getLocation(),
-            eventToCopy.isPublic()
+                eventToCopy.getSubject(),
+                targetDateTime,
+                newEndTime,
+                true,
+                eventToCopy.getDescription(),
+                eventToCopy.getLocation(),
+                eventToCopy.isPublic()
         );
       }
     }
   }
+
   /**
    * Copies all events from the current calendar on a specific date to a target calendar.
    * The times are converted to the timezone of the target calendar, preserving the absolute moment.
    *
-   * @param sourceDate the date of events to copy
+   * @param sourceDate         the date of events to copy
    * @param targetCalendarName the name of the target calendar
-   * @param targetDate the target date in the target calendar's timezone
+   * @param targetDate         the target date in the target calendar's timezone
    * @return true if at least one event was copied successfully
    */
   public boolean copyEventsOnDay(LocalDateTime sourceDate, String targetCalendarName,
-      LocalDateTime targetDate) {
+                                 LocalDateTime targetDate) {
     if (currentCalendar == null || !calendars.containsKey(targetCalendarName)) {
       return false;
     }
@@ -414,8 +428,8 @@ public class CalendarManager {
 
     // The day offset between source date and target date
     long dayOffset = ChronoUnit.DAYS.between(
-        sourceDate.toLocalDate(),
-        targetDate.toLocalDate()
+            sourceDate.toLocalDate(),
+            targetDate.toLocalDate()
     );
 
     for (Event event : events) {
@@ -432,31 +446,31 @@ public class CalendarManager {
           LocalDateTime newUntilDate = null;
           if (pattern.getUntilDate() != null) {
             long daysToUntilDate = ChronoUnit.DAYS.between(
-                event.getStartDateTime().toLocalDate(),
-                pattern.getUntilDate().toLocalDate());
+                    event.getStartDateTime().toLocalDate(),
+                    pattern.getUntilDate().toLocalDate());
 
             newUntilDate = targetDate.toLocalDate().plusDays(daysToUntilDate).atStartOfDay();
           }
 
           success = targetCalendar.createRecurringAllDayEvent(
-              event.getSubject(),
-              newStartDateTime,
-              weekdaysToString(pattern.getWeekdays()),
-              pattern.getOccurrences(),
-              newUntilDate,
-              true,
-              event.getDescription(),
-              event.getLocation(),
-              event.isPublic()
+                  event.getSubject(),
+                  newStartDateTime,
+                  weekdaysToString(pattern.getWeekdays()),
+                  pattern.getOccurrences(),
+                  newUntilDate,
+                  true,
+                  event.getDescription(),
+                  event.getLocation(),
+                  event.isPublic()
           );
         } else {
           success = targetCalendar.createAllDayEvent(
-              event.getSubject(),
-              newStartDateTime,
-              true,
-              event.getDescription(),
-              event.getLocation(),
-              event.isPublic()
+                  event.getSubject(),
+                  newStartDateTime,
+                  true,
+                  event.getDescription(),
+                  event.getLocation(),
+                  event.isPublic()
           );
         }
       } else {
@@ -469,35 +483,37 @@ public class CalendarManager {
 
         // If the hour in the target timezone has rolled to the next day, add a day
         if (targetZDT.getHour() < sourceZDT.getHour() &&
-            targetZDT.toLocalDate().isAfter(sourceZDT.toLocalDate())) {
+                targetZDT.toLocalDate().isAfter(sourceZDT.toLocalDate())) {
           // Time conversion moved us to the next day
           newStartDateTime = targetDate.toLocalDate().plusDays(1)
-              .atTime(targetZDT.getHour(), targetZDT.getMinute());
+                  .atTime(targetZDT.getHour(), targetZDT.getMinute());
         } else if (targetZDT.getHour() > sourceZDT.getHour() &&
-            targetZDT.toLocalDate().isBefore(sourceZDT.toLocalDate())) {
+                targetZDT.toLocalDate().isBefore(sourceZDT.toLocalDate())) {
           // Time conversion moved us to the previous day
           newStartDateTime = targetDate.toLocalDate().minusDays(1)
-              .atTime(targetZDT.getHour(), targetZDT.getMinute());
+                  .atTime(targetZDT.getHour(), targetZDT.getMinute());
         } else {
           // Same day after conversion
           newStartDateTime = targetDate.toLocalDate()
-              .atTime(targetZDT.getHour(), targetZDT.getMinute());
+                  .atTime(targetZDT.getHour(), targetZDT.getMinute());
         }
 
         // Handle end time conversion
         LocalDateTime newEndTime = null;
         if (event.getEndDateTime() != null) {
-          ZonedDateTime sourceEndZDT = event.getEndDateTime().atZone(sourceCalendar.getTimezone());
-          ZonedDateTime targetEndZDT = sourceEndZDT.withZoneSameInstant(targetCalendar.getTimezone());
+          ZonedDateTime sourceEndZDT
+                  = event.getEndDateTime().atZone(sourceCalendar.getTimezone());
+          ZonedDateTime targetEndZDT
+                  = sourceEndZDT.withZoneSameInstant(targetCalendar.getTimezone());
 
           // Calculate how many days difference between start and end in target zone
           long endDaysDiff = ChronoUnit.DAYS.between(
-              targetZDT.toLocalDate(),
-              targetEndZDT.toLocalDate()
+                  targetZDT.toLocalDate(),
+                  targetEndZDT.toLocalDate()
           );
 
           newEndTime = newStartDateTime.toLocalDate().plusDays(endDaysDiff)
-              .atTime(targetEndZDT.getHour(), targetEndZDT.getMinute());
+                  .atTime(targetEndZDT.getHour(), targetEndZDT.getMinute());
         }
 
         if (event.isRecurring()) {
@@ -506,40 +522,42 @@ public class CalendarManager {
           // Adjust the until date if present
           LocalDateTime newUntilDate = null;
           if (pattern.getUntilDate() != null) {
-            ZonedDateTime sourceUntilZDT = pattern.getUntilDate().atZone(sourceCalendar.getTimezone());
-            ZonedDateTime targetUntilZDT = sourceUntilZDT.withZoneSameInstant(targetCalendar.getTimezone());
+            ZonedDateTime sourceUntilZDT
+                    = pattern.getUntilDate().atZone(sourceCalendar.getTimezone());
+            ZonedDateTime targetUntilZDT
+                    = sourceUntilZDT.withZoneSameInstant(targetCalendar.getTimezone());
 
             // Calculate day difference between source until and source start
             long untilDaysDiff = ChronoUnit.DAYS.between(
-                event.getStartDateTime().toLocalDate(),
-                pattern.getUntilDate().toLocalDate()
+                    event.getStartDateTime().toLocalDate(),
+                    pattern.getUntilDate().toLocalDate()
             );
 
             newUntilDate = newStartDateTime.toLocalDate().plusDays(untilDaysDiff)
-                .atTime(targetUntilZDT.getHour(), targetUntilZDT.getMinute());
+                    .atTime(targetUntilZDT.getHour(), targetUntilZDT.getMinute());
           }
 
           success = targetCalendar.createRecurringEvent(
-              event.getSubject(),
-              newStartDateTime,
-              newEndTime,
-              weekdaysToString(pattern.getWeekdays()),
-              pattern.getOccurrences(),
-              newUntilDate,
-              true,
-              event.getDescription(),
-              event.getLocation(),
-              event.isPublic()
+                  event.getSubject(),
+                  newStartDateTime,
+                  newEndTime,
+                  weekdaysToString(pattern.getWeekdays()),
+                  pattern.getOccurrences(),
+                  newUntilDate,
+                  true,
+                  event.getDescription(),
+                  event.getLocation(),
+                  event.isPublic()
           );
         } else {
           success = targetCalendar.createEvent(
-              event.getSubject(),
-              newStartDateTime,
-              newEndTime,
-              true,
-              event.getDescription(),
-              event.getLocation(),
-              event.isPublic()
+                  event.getSubject(),
+                  newStartDateTime,
+                  newEndTime,
+                  true,
+                  event.getDescription(),
+                  event.getLocation(),
+                  event.isPublic()
           );
         }
       }
@@ -556,14 +574,14 @@ public class CalendarManager {
    * Copies all events from the current calendar within a date range to a target calendar.
    * The times are converted to the timezone of the target calendar, preserving the absolute moment.
    *
-   * @param startDate the start date of the range (inclusive)
-   * @param endDate the end date of the range (inclusive)
+   * @param startDate          the start date of the range (inclusive)
+   * @param endDate            the end date of the range (inclusive)
    * @param targetCalendarName the name of the target calendar
-   * @param targetStartDate the target start date in the target calendar's timezone
+   * @param targetStartDate    the target start date in the target calendar's timezone
    * @return true if at least one event was copied successfully
    */
   public boolean copyEventsInRange(LocalDateTime startDate, LocalDateTime endDate,
-      String targetCalendarName, LocalDateTime targetStartDate) {
+                                   String targetCalendarName, LocalDateTime targetStartDate) {
     if (currentCalendar == null || !calendars.containsKey(targetCalendarName)) {
       return false;
     }
@@ -582,15 +600,15 @@ public class CalendarManager {
 
     // Calculate the base day offset between source and target start dates
     long baseDayOffset = ChronoUnit.DAYS.between(
-        startDate.toLocalDate(),
-        targetStartDate.toLocalDate()
+            startDate.toLocalDate(),
+            targetStartDate.toLocalDate()
     );
 
     for (Event event : events) {
       // Calculate event's day offset from the start of the source range
       long eventDayOffset = ChronoUnit.DAYS.between(
-          startDate.toLocalDate(),
-          event.getStartDateTime().toLocalDate()
+              startDate.toLocalDate(),
+              event.getStartDateTime().toLocalDate()
       );
 
       // Calculated target date (before timezone conversion)
@@ -610,32 +628,32 @@ public class CalendarManager {
           if (pattern.getUntilDate() != null) {
             // Calculate relative position of until date from event start
             long daysToUntilDate = ChronoUnit.DAYS.between(
-                event.getStartDateTime().toLocalDate(),
-                pattern.getUntilDate().toLocalDate()
+                    event.getStartDateTime().toLocalDate(),
+                    pattern.getUntilDate().toLocalDate()
             );
 
             newUntilDate = targetEventDate.plusDays(daysToUntilDate).atStartOfDay();
           }
 
           success = targetCalendar.createRecurringAllDayEvent(
-              event.getSubject(),
-              newStartDateTime,
-              weekdaysToString(pattern.getWeekdays()),
-              pattern.getOccurrences(),
-              newUntilDate,
-              true,
-              event.getDescription(),
-              event.getLocation(),
-              event.isPublic()
+                  event.getSubject(),
+                  newStartDateTime,
+                  weekdaysToString(pattern.getWeekdays()),
+                  pattern.getOccurrences(),
+                  newUntilDate,
+                  true,
+                  event.getDescription(),
+                  event.getLocation(),
+                  event.isPublic()
           );
         } else {
           success = targetCalendar.createAllDayEvent(
-              event.getSubject(),
-              newStartDateTime,
-              true,
-              event.getDescription(),
-              event.getLocation(),
-              event.isPublic()
+                  event.getSubject(),
+                  newStartDateTime,
+                  true,
+                  event.getDescription(),
+                  event.getLocation(),
+                  event.isPublic()
           );
         }
       } else {
@@ -643,40 +661,43 @@ public class CalendarManager {
         ZonedDateTime sourceZDT = event.getStartDateTime().atZone(sourceCalendar.getTimezone());
         ZonedDateTime targetZDT = sourceZDT.withZoneSameInstant(targetCalendar.getTimezone());
 
-        // Use the converted time on the calculated target date, adjusting for day shifts due to timezone
+        // Use the converted time on the calculated target date
+        // adjusting for day shifts due to timezone
         LocalDateTime newStartDateTime;
 
         // If the hour in the target timezone has rolled to the next day, add a day
         if (targetZDT.getHour() < sourceZDT.getHour() &&
-            targetZDT.toLocalDate().isAfter(sourceZDT.toLocalDate())) {
+                targetZDT.toLocalDate().isAfter(sourceZDT.toLocalDate())) {
           // Time conversion moved us to the next day
           newStartDateTime = targetEventDate.plusDays(1)
-              .atTime(targetZDT.getHour(), targetZDT.getMinute());
+                  .atTime(targetZDT.getHour(), targetZDT.getMinute());
         } else if (targetZDT.getHour() > sourceZDT.getHour() &&
-            targetZDT.toLocalDate().isBefore(sourceZDT.toLocalDate())) {
+                targetZDT.toLocalDate().isBefore(sourceZDT.toLocalDate())) {
           // Time conversion moved us to the previous day
           newStartDateTime = targetEventDate.minusDays(1)
-              .atTime(targetZDT.getHour(), targetZDT.getMinute());
+                  .atTime(targetZDT.getHour(), targetZDT.getMinute());
         } else {
           // Same day after conversion
           newStartDateTime = targetEventDate
-              .atTime(targetZDT.getHour(), targetZDT.getMinute());
+                  .atTime(targetZDT.getHour(), targetZDT.getMinute());
         }
 
         // Handle end time conversion
         LocalDateTime newEndTime = null;
         if (event.getEndDateTime() != null) {
-          ZonedDateTime sourceEndZDT = event.getEndDateTime().atZone(sourceCalendar.getTimezone());
-          ZonedDateTime targetEndZDT = sourceEndZDT.withZoneSameInstant(targetCalendar.getTimezone());
+          ZonedDateTime sourceEndZDT =
+                  event.getEndDateTime().atZone(sourceCalendar.getTimezone());
+          ZonedDateTime targetEndZDT =
+                  sourceEndZDT.withZoneSameInstant(targetCalendar.getTimezone());
 
           // Calculate how many days difference between start and end in target zone
           long endDaysDiff = ChronoUnit.DAYS.between(
-              targetZDT.toLocalDate(),
-              targetEndZDT.toLocalDate()
+                  targetZDT.toLocalDate(),
+                  targetEndZDT.toLocalDate()
           );
 
           newEndTime = newStartDateTime.toLocalDate().plusDays(endDaysDiff)
-              .atTime(targetEndZDT.getHour(), targetEndZDT.getMinute());
+                  .atTime(targetEndZDT.getHour(), targetEndZDT.getMinute());
         }
 
         if (event.isRecurring()) {
@@ -685,40 +706,42 @@ public class CalendarManager {
           // Adjust the until date if present
           LocalDateTime newUntilDate = null;
           if (pattern.getUntilDate() != null) {
-            ZonedDateTime sourceUntilZDT = pattern.getUntilDate().atZone(sourceCalendar.getTimezone());
-            ZonedDateTime targetUntilZDT = sourceUntilZDT.withZoneSameInstant(targetCalendar.getTimezone());
+            ZonedDateTime sourceUntilZDT =
+                    pattern.getUntilDate().atZone(sourceCalendar.getTimezone());
+            ZonedDateTime targetUntilZDT =
+                    sourceUntilZDT.withZoneSameInstant(targetCalendar.getTimezone());
 
             // Calculate day difference between source until and source start
             long untilDaysDiff = ChronoUnit.DAYS.between(
-                event.getStartDateTime().toLocalDate(),
-                pattern.getUntilDate().toLocalDate()
+                    event.getStartDateTime().toLocalDate(),
+                    pattern.getUntilDate().toLocalDate()
             );
 
             newUntilDate = newStartDateTime.toLocalDate().plusDays(untilDaysDiff)
-                .atTime(targetUntilZDT.getHour(), targetUntilZDT.getMinute());
+                    .atTime(targetUntilZDT.getHour(), targetUntilZDT.getMinute());
           }
 
           success = targetCalendar.createRecurringEvent(
-              event.getSubject(),
-              newStartDateTime,
-              newEndTime,
-              weekdaysToString(pattern.getWeekdays()),
-              pattern.getOccurrences(),
-              newUntilDate,
-              true,
-              event.getDescription(),
-              event.getLocation(),
-              event.isPublic()
+                  event.getSubject(),
+                  newStartDateTime,
+                  newEndTime,
+                  weekdaysToString(pattern.getWeekdays()),
+                  pattern.getOccurrences(),
+                  newUntilDate,
+                  true,
+                  event.getDescription(),
+                  event.getLocation(),
+                  event.isPublic()
           );
         } else {
           success = targetCalendar.createEvent(
-              event.getSubject(),
-              newStartDateTime,
-              newEndTime,
-              true,
-              event.getDescription(),
-              event.getLocation(),
-              event.isPublic()
+                  event.getSubject(),
+                  newStartDateTime,
+                  newEndTime,
+                  true,
+                  event.getDescription(),
+                  event.getLocation(),
+                  event.isPublic()
           );
         }
       }
@@ -730,98 +753,99 @@ public class CalendarManager {
 
     return atLeastOneCopied;
   }
-  /**
-   * Helper method to copy an event preserving its type (all-day vs regular) and properties.
-   * Used for the copy events commands.
-   *
-   * @param event the event to copy
-   * @param sourceCalendar the source calendar
-   * @param targetCalendar the target calendar
-   * @param newStartTime the new start time in the target calendar
-   * @param daysDifference the day difference between source and target dates
-   * @return true if copied successfully
-   */
-//  private boolean copyEventPreservingType(Event event, Calendar sourceCalendar,
-//      Calendar targetCalendar, LocalDateTime newStartTime, long daysDifference) {
-//
-//    if (event.isAllDay()) {
-//      if (event.isRecurring()) {
-//        RecurrencePattern pattern = ((EventImpl) event).getRecurrence();
-//
-//        // Calculate new until date if present
-//        LocalDateTime newUntilDate = null;
-//        if (pattern.getUntilDate() != null) {
-//          newUntilDate = pattern.getUntilDate().plusDays(daysDifference);
-//        }
-//
-//        return targetCalendar.createRecurringAllDayEvent(
-//            event.getSubject(),
-//            newStartTime,
-//            weekdaysToString(pattern.getWeekdays()),
-//            pattern.getOccurrences(),
-//            newUntilDate,
-//            true,
-//            event.getDescription(),
-//            event.getLocation(),
-//            event.isPublic()
-//        );
-//      } else {
-//        return targetCalendar.createAllDayEvent(
-//            event.getSubject(),
-//            newStartTime,
-//            true,
-//            event.getDescription(),
-//            event.getLocation(),
-//            event.isPublic()
-//        );
-//      }
-//    } else {
-//      // For regular events, calculate the new end time preserving duration
-//      LocalDateTime newEndTime = null;
-//      if (event.getEndDateTime() != null) {
-//        // Calculate duration in minutes
-//        long durationMinutes = ChronoUnit.MINUTES.between(
-//            event.getStartDateTime(),
-//            event.getEndDateTime());
-//
-//        // Apply same duration to new start time
-//        newEndTime = newStartTime.plusMinutes(durationMinutes);
-//      }
-//
-//      if (event.isRecurring()) {
-//        RecurrencePattern pattern = ((EventImpl) event).getRecurrence();
-//
-//        // Calculate new until date if present
-//        LocalDateTime newUntilDate = null;
-//        if (pattern.getUntilDate() != null) {
-//          newUntilDate = pattern.getUntilDate().plusDays(daysDifference);
-//        }
-//
-//        return targetCalendar.createRecurringEvent(
-//            event.getSubject(),
-//            newStartTime,
-//            newEndTime,
-//            weekdaysToString(pattern.getWeekdays()),
-//            pattern.getOccurrences(),
-//            newUntilDate,
-//            true,
-//            event.getDescription(),
-//            event.getLocation(),
-//            event.isPublic()
-//        );
-//      } else {
-//        return targetCalendar.createEvent(
-//            event.getSubject(),
-//            newStartTime,
-//            newEndTime,
-//            true,
-//            event.getDescription(),
-//            event.getLocation(),
-//            event.isPublic()
-//        );
-//      }
-//    }
-//  }
+
+  //  /**
+  //   * Helper method to copy an event preserving its type (all-day vs regular) and properties.
+  //   * Used for the copy events commands.
+  //   *
+  //   * @param event the event to copy
+  //   * @param sourceCalendar the source calendar
+  //   * @param targetCalendar the target calendar
+  //   * @param newStartTime the new start time in the target calendar
+  //   * @param daysDifference the day difference between source and target dates
+  //   * @return true if copied successfully
+  //   */
+  //  private boolean copyEventPreservingType(Event event, Calendar sourceCalendar,
+  //      Calendar targetCalendar, LocalDateTime newStartTime, long daysDifference) {
+  //
+  //    if (event.isAllDay()) {
+  //      if (event.isRecurring()) {
+  //        RecurrencePattern pattern = ((EventImpl) event).getRecurrence();
+  //
+  //        // Calculate new until date if present
+  //        LocalDateTime newUntilDate = null;
+  //        if (pattern.getUntilDate() != null) {
+  //          newUntilDate = pattern.getUntilDate().plusDays(daysDifference);
+  //        }
+  //
+  //        return targetCalendar.createRecurringAllDayEvent(
+  //            event.getSubject(),
+  //            newStartTime,
+  //            weekdaysToString(pattern.getWeekdays()),
+  //            pattern.getOccurrences(),
+  //            newUntilDate,
+  //            true,
+  //            event.getDescription(),
+  //            event.getLocation(),
+  //            event.isPublic()
+  //        );
+  //      } else {
+  //        return targetCalendar.createAllDayEvent(
+  //            event.getSubject(),
+  //            newStartTime,
+  //            true,
+  //            event.getDescription(),
+  //            event.getLocation(),
+  //            event.isPublic()
+  //        );
+  //      }
+  //    } else {
+  //      // For regular events, calculate the new end time preserving duration
+  //      LocalDateTime newEndTime = null;
+  //      if (event.getEndDateTime() != null) {
+  //        // Calculate duration in minutes
+  //        long durationMinutes = ChronoUnit.MINUTES.between(
+  //            event.getStartDateTime(),
+  //            event.getEndDateTime());
+  //
+  //        // Apply same duration to new start time
+  //        newEndTime = newStartTime.plusMinutes(durationMinutes);
+  //      }
+  //
+  //      if (event.isRecurring()) {
+  //        RecurrencePattern pattern = ((EventImpl) event).getRecurrence();
+  //
+  //        // Calculate new until date if present
+  //        LocalDateTime newUntilDate = null;
+  //        if (pattern.getUntilDate() != null) {
+  //          newUntilDate = pattern.getUntilDate().plusDays(daysDifference);
+  //        }
+  //
+  //        return targetCalendar.createRecurringEvent(
+  //            event.getSubject(),
+  //            newStartTime,
+  //            newEndTime,
+  //            weekdaysToString(pattern.getWeekdays()),
+  //            pattern.getOccurrences(),
+  //            newUntilDate,
+  //            true,
+  //            event.getDescription(),
+  //            event.getLocation(),
+  //            event.isPublic()
+  //        );
+  //      } else {
+  //        return targetCalendar.createEvent(
+  //            event.getSubject(),
+  //            newStartTime,
+  //            newEndTime,
+  //            true,
+  //            event.getDescription(),
+  //            event.getLocation(),
+  //            event.isPublic()
+  //        );
+  //      }
+  //    }
+  //  }
 
   /**
    * Helper method to check if an event name matches, handling quoted names and [Recurring] suffix.
@@ -874,6 +898,7 @@ public class CalendarManager {
 
     return false;
   }
+
   /**
    * Helper method to convert a set of weekdays to a string representation.
    */

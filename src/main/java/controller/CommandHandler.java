@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
 import model.Calendar;
 import model.CalendarManager;
 import model.Event;
@@ -25,7 +26,7 @@ class CommandHandler {
    * Creates a new command handler.
    *
    * @param calendarManager the calendar manager
-   * @param view the text UI view
+   * @param view            the text UI view
    */
   CommandHandler(CalendarManager calendarManager, TextUI view) {
     this.calendarManager = calendarManager;
@@ -97,7 +98,10 @@ class CommandHandler {
    * @param cmd the edit calendar command
    */
   private void handleEditCalendarCommand(Command.EditCalendarCommand cmd) {
-    boolean success = calendarManager.editCalendar(cmd.getName(), cmd.getProperty(), cmd.getNewValue());
+    boolean success
+            = calendarManager.editCalendar(
+            cmd.getName(), cmd.getProperty(), cmd.getNewValue()
+    );
 
     if (success) {
       view.displayMessage("Calendar updated successfully");
@@ -124,7 +128,7 @@ class CommandHandler {
   /**
    * Handle a create command.
    *
-   * @param cmd the create command
+   * @param cmd      the create command
    * @param calendar the current calendar
    */
   private void handleCreateCommand(Command.CreateCommand cmd, Calendar calendar) {
@@ -178,7 +182,7 @@ class CommandHandler {
   /**
    * Create an event based on command parameters.
    *
-   * @param cmd the create command
+   * @param cmd      the create command
    * @param calendar the calendar to create the event in
    * @return true if successful
    */
@@ -186,49 +190,49 @@ class CommandHandler {
     if (cmd.isAllDay()) {
       if (cmd.isRecurring()) {
         return calendar.createRecurringAllDayEvent(
-            cmd.getEventName(),
-            cmd.getStartDateTime(),
-            cmd.getWeekdays(),
-            cmd.getOccurrences(),
-            cmd.getUntilDate(),
-            cmd.isAutoDecline(), // Keep autoDecline parameter
-            cmd.getDescription(),
-            cmd.getLocation(),
-            cmd.isPublic()
+                cmd.getEventName(),
+                cmd.getStartDateTime(),
+                cmd.getWeekdays(),
+                cmd.getOccurrences(),
+                cmd.getUntilDate(),
+                cmd.isAutoDecline(), // Keep autoDecline parameter
+                cmd.getDescription(),
+                cmd.getLocation(),
+                cmd.isPublic()
         );
       } else {
         return calendar.createAllDayEvent(
-            cmd.getEventName(),
-            cmd.getStartDateTime(),
-            cmd.isAutoDecline(), // Keep autoDecline parameter
-            cmd.getDescription(),
-            cmd.getLocation(),
-            cmd.isPublic()
+                cmd.getEventName(),
+                cmd.getStartDateTime(),
+                cmd.isAutoDecline(), // Keep autoDecline parameter
+                cmd.getDescription(),
+                cmd.getLocation(),
+                cmd.isPublic()
         );
       }
     } else {
       if (cmd.isRecurring()) {
         return calendar.createRecurringEvent(
-            cmd.getEventName(),
-            cmd.getStartDateTime(),
-            cmd.getEndDateTime(),
-            cmd.getWeekdays(),
-            cmd.getOccurrences(),
-            cmd.getUntilDate(),
-            cmd.isAutoDecline(), // Keep autoDecline parameter
-            cmd.getDescription(),
-            cmd.getLocation(),
-            cmd.isPublic()
+                cmd.getEventName(),
+                cmd.getStartDateTime(),
+                cmd.getEndDateTime(),
+                cmd.getWeekdays(),
+                cmd.getOccurrences(),
+                cmd.getUntilDate(),
+                cmd.isAutoDecline(), // Keep autoDecline parameter
+                cmd.getDescription(),
+                cmd.getLocation(),
+                cmd.isPublic()
         );
       } else {
         return calendar.createEvent(
-            cmd.getEventName(),
-            cmd.getStartDateTime(),
-            cmd.getEndDateTime(),
-            cmd.isAutoDecline(), // Keep autoDecline parameter
-            cmd.getDescription(),
-            cmd.getLocation(),
-            cmd.isPublic()
+                cmd.getEventName(),
+                cmd.getStartDateTime(),
+                cmd.getEndDateTime(),
+                cmd.isAutoDecline(), // Keep autoDecline parameter
+                cmd.getDescription(),
+                cmd.getLocation(),
+                cmd.isPublic()
         );
       }
     }
@@ -237,7 +241,7 @@ class CommandHandler {
   /**
    * Handle an edit command.
    *
-   * @param cmd the edit command
+   * @param cmd      the edit command
    * @param calendar the current calendar
    */
   private void handleEditCommand(Command.EditCommand cmd, Calendar calendar) {
@@ -246,47 +250,53 @@ class CommandHandler {
     switch (cmd.getEditType()) {
       case SINGLE:
         success = calendar.editEvent(
-            cmd.getProperty(),
-            cmd.getEventName(),
-            cmd.getStartDateTime(),
-            cmd.getEndDateTime(),
-            cmd.getNewValue()
+                cmd.getProperty(),
+                cmd.getEventName(),
+                cmd.getStartDateTime(),
+                cmd.getEndDateTime(),
+                cmd.getNewValue()
         );
 
         if (success) {
           view.displayMessage("Event updated successfully");
         } else {
-          view.displayError("Failed to update event (not found, invalid property, or would create conflict)");
+          view.displayError("Failed to update event " +
+                  "(not found, invalid property, or would create conflict)");
         }
         break;
 
       case FROM_DATE:
         success = calendar.editEventsFrom(
-            cmd.getProperty(),
-            cmd.getEventName(),
-            cmd.getStartDateTime(),
-            cmd.getNewValue()
+                cmd.getProperty(),
+                cmd.getEventName(),
+                cmd.getStartDateTime(),
+                cmd.getNewValue()
         );
 
         if (success) {
           view.displayMessage("Events updated successfully");
         } else {
-          view.displayError("Failed to update events (not found, invalid property, or would create conflict)");
+          view.displayError("Failed to update events " +
+                  "(not found, invalid property, or would create conflict)");
         }
         break;
 
       case ALL:
         success = calendar.editAllEvents(
-            cmd.getProperty(),
-            cmd.getEventName(),
-            cmd.getNewValue()
+                cmd.getProperty(),
+                cmd.getEventName(),
+                cmd.getNewValue()
         );
 
         if (success) {
           view.displayMessage("All events updated successfully");
         } else {
-          view.displayError("Failed to update events (not found, invalid property, or would create conflict)");
+          view.displayError("Failed to update events " +
+                  "(not found, invalid property, or would create conflict)");
         }
+        break;
+
+      default:
         break;
     }
   }
@@ -294,7 +304,7 @@ class CommandHandler {
   /**
    * Handle a print command.
    *
-   * @param cmd the print command
+   * @param cmd      the print command
    * @param calendar the current calendar
    */
   private void handlePrintCommand(Command.PrintCommand cmd, Calendar calendar) {
@@ -304,7 +314,7 @@ class CommandHandler {
     if (cmd.isDateRange()) {
       events = calendar.getEventsFrom(cmd.getStartDateTime(), cmd.getEndDateTime());
       dateDescription = "from " + cmd.getStartDateTime().toLocalDate() +
-          " to " + cmd.getEndDateTime().toLocalDate();
+              " to " + cmd.getEndDateTime().toLocalDate();
     } else {
       events = calendar.getEventsOn(cmd.getStartDateTime());
       dateDescription = "on " + cmd.getStartDateTime().toLocalDate();
@@ -327,7 +337,10 @@ class CommandHandler {
     // Sort events by start time for better readability
     events.sort((e1, e2) -> {
       // First sort by date
-      int dateCompare = e1.getStartDateTime().toLocalDate().compareTo(e2.getStartDateTime().toLocalDate());
+      int dateCompare
+              = e1.getStartDateTime()
+              .toLocalDate()
+              .compareTo(e2.getStartDateTime().toLocalDate());
       if (dateCompare != 0) {
         return dateCompare;
       }
@@ -353,7 +366,7 @@ class CommandHandler {
   /**
    * Handle an export command.
    *
-   * @param cmd the export command
+   * @param cmd      the export command
    * @param calendar the current calendar
    */
   private void handleExportCommand(Command.ExportCommand cmd, Calendar calendar) {
@@ -371,7 +384,7 @@ class CommandHandler {
    * Exports calendar events to a CSV file.
    *
    * @param fileName the name of the file to export to
-   * @param events the list of events to export
+   * @param events   the list of events to export
    * @param calendar the calendar to export from
    * @return the absolute path of the generated CSV file, or null if export failed
    */
@@ -381,8 +394,8 @@ class CommandHandler {
     try (FileWriter writer = new FileWriter(file)) {
       // Write CSV header
       writer.write(
-          "Subject,Start Date,Start Time,End Date,End Time," +
-              "All Day Event,Description,Location,Private,Calendar,Timezone\n");
+              "Subject,Start Date,Start Time,End Date,End Time," +
+                      "All Day Event,Description,Location,Private,Calendar,Timezone\n");
 
       DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
       DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
@@ -391,24 +404,28 @@ class CommandHandler {
         if (event.isRecurring()) {
           // Handle recurring events
           RecurrencePattern pattern = ((EventImpl) event).getRecurrence();
-          List<LocalDateTime> occurrences = pattern.calculateRecurrences(event.getStartDateTime());
+          List<LocalDateTime> occurrences
+                  = pattern.calculateRecurrences(event.getStartDateTime());
 
           for (LocalDateTime occurrence : occurrences) {
             LocalDateTime occurrenceEndTime = null;
             if (!event.isAllDay() && event.getEndDateTime() != null) {
               // Calculate end time for this occurrence
-              long hoursDifference = event.getEndDateTime().getHour() - event.getStartDateTime().getHour();
-              long minutesDifference = event.getEndDateTime().getMinute() - event.getStartDateTime().getMinute();
-              occurrenceEndTime = occurrence.plusHours(hoursDifference).plusMinutes(minutesDifference);
+              long hoursDifference
+                      = event.getEndDateTime().getHour() - event.getStartDateTime().getHour();
+              long minutesDifference
+                      = event.getEndDateTime().getMinute() - event.getStartDateTime().getMinute();
+              occurrenceEndTime
+                      = occurrence.plusHours(hoursDifference).plusMinutes(minutesDifference);
             }
 
             writeSingleEventToCSV(writer, event, occurrence, occurrenceEndTime,
-                dateFormatter, timeFormatter, calendar);
+                    dateFormatter, timeFormatter, calendar);
           }
         } else {
           // Handle single events
           writeSingleEventToCSV(writer, event, event.getStartDateTime(), event.getEndDateTime(),
-              dateFormatter, timeFormatter, calendar);
+                  dateFormatter, timeFormatter, calendar);
         }
       }
 
@@ -423,9 +440,11 @@ class CommandHandler {
    * Helper method to write a single event entry to the CSV file.
    */
   private void writeSingleEventToCSV(FileWriter writer, Event event,
-      LocalDateTime startDateTime, LocalDateTime endDateTime,
-      DateTimeFormatter dateFormatter, DateTimeFormatter timeFormatter,
-      Calendar calendar) throws IOException {
+                                     LocalDateTime startDateTime,
+                                     LocalDateTime endDateTime,
+                                     DateTimeFormatter dateFormatter,
+                                     DateTimeFormatter timeFormatter,
+                                     Calendar calendar) throws IOException {
 
     StringBuilder line = new StringBuilder();
 
@@ -483,7 +502,7 @@ class CommandHandler {
   /**
    * Handle a show command.
    *
-   * @param cmd the show command
+   * @param cmd      the show command
    * @param calendar the current calendar
    */
   private void handleShowCommand(Command.ShowCommand cmd, Calendar calendar) {
@@ -503,16 +522,17 @@ class CommandHandler {
    */
   private void handleCopyEventCommand(Command.CopyEventCommand cmd) {
     boolean success = calendarManager.copyEvent(
-        cmd.getEventName(),
-        cmd.getStartDateTime(),
-        cmd.getTargetCalendar(),
-        cmd.getTargetDateTime()
+            cmd.getEventName(),
+            cmd.getStartDateTime(),
+            cmd.getTargetCalendar(),
+            cmd.getTargetDateTime()
     );
 
     if (success) {
       view.displayMessage("Event copied successfully to " + cmd.getTargetCalendar());
     } else {
-      view.displayError("Failed to copy event (event not found, target calendar not found, or would create conflict)");
+      view.displayError("Failed to copy event " +
+              "(event not found, target calendar not found, or would create conflict)");
     }
   }
 
@@ -526,28 +546,30 @@ class CommandHandler {
 
     if (cmd.getCopyType() == Command.CopyEventsCommand.CopyType.DAY) {
       success = calendarManager.copyEventsOnDay(
-          cmd.getStartDate(),
-          cmd.getTargetCalendar(),
-          cmd.getTargetDate()
+              cmd.getStartDate(),
+              cmd.getTargetCalendar(),
+              cmd.getTargetDate()
       );
 
       if (success) {
         view.displayMessage("Events copied successfully to " + cmd.getTargetCalendar());
       } else {
-        view.displayError("Failed to copy events (no events found on that day, target calendar not found, or would create conflicts)");
+        view.displayError("Failed to copy events (no events found on that day, " +
+                "target calendar not found, or would create conflicts)");
       }
     } else { // DATE_RANGE
       success = calendarManager.copyEventsInRange(
-          cmd.getStartDate(),
-          cmd.getEndDate(),
-          cmd.getTargetCalendar(),
-          cmd.getTargetDate()
+              cmd.getStartDate(),
+              cmd.getEndDate(),
+              cmd.getTargetCalendar(),
+              cmd.getTargetDate()
       );
 
       if (success) {
         view.displayMessage("Events copied successfully to " + cmd.getTargetCalendar());
       } else {
-        view.displayError("Failed to copy events (no events found in that range, target calendar not found, or would create conflicts)");
+        view.displayError("Failed to copy events (no events found in that range, " +
+                "target calendar not found, or would create conflicts)");
       }
     }
   }

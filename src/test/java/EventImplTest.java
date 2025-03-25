@@ -1,7 +1,9 @@
 import java.util.List;
 import java.util.Objects;
+
 import model.EventImpl;
 import model.RecurrencePattern;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -82,52 +84,6 @@ public class EventImplTest {
     assertEquals(expected, event.toString());
   }
 
-//  @Test
-//  public void testToString_RecurringEvent() {
-//
-//    EventImpl event = new EventImpl("Weekly Standup", startDateTime, endDateTime, "MWF", 10, null);
-//
-//    String result = event.toString();
-//    assertTrue(result.contains("Repeats on: Mon,Wed,Fri for 10 times"));
-//  }
-
-//  @Test
-//  public void testToString_RecurringEventWithUntilDate() {
-//
-//    EventImpl event = new EventImpl("Weekly Standup", startDateTime, endDateTime, "MWF", -1,
-//        untilDate);
-//
-//    String result = event.toString();
-//    assertTrue(result.contains("Repeats on: Mon,Wed,Fri until 2023-06-15"));
-//  }
-
-//  @Test
-//  public void testToString_RecurringAllDayEvent() {
-//
-//    EventImpl event = new EventImpl("Team Offsite", startDateTime, "MWF", 5, null);
-//
-//    String result = event.toString();
-//    assertTrue(result.contains("All Day"));
-//    assertTrue(result.contains("Repeats on: Mon,Wed,Fri for 5 times"));
-//  }
-
-//  @Test
-//  public void testToString_AllWeekdaysRecurringEvent() {
-//
-//    EventImpl event = new EventImpl("Daily Check-in", startDateTime, endDateTime, "MTWRFSU", -1,
-//        untilDate);
-//
-//    String result = event.toString();
-//
-//    assertTrue(result.contains("Mon"));
-//    assertTrue(result.contains("Tue"));
-//    assertTrue(result.contains("Wed"));
-//    assertTrue(result.contains("Thu"));
-//    assertTrue(result.contains("Fri"));
-//    assertTrue(result.contains("Sat"));
-//    assertTrue(result.contains("Sun"));
-//  }
-
   @Test
   public void testToString_EdgeCaseNullEndDateTime() {
 
@@ -142,7 +98,7 @@ public class EventImplTest {
   @Test
   public void testRecurrencePatternWeekdays() {
     EventImpl event = new EventImpl("Test Event", startDateTime, endDateTime, "MTWRFSU", -1,
-        untilDate);
+            untilDate);
     RecurrencePattern pattern = event.getRecurrence();
     Set<DayOfWeek> weekdays = pattern.getWeekdays();
 
@@ -167,16 +123,16 @@ public class EventImplTest {
   public void testConflictsWith_ThisAllDayOtherRegular_SameDay() {
     EventImpl allDayEvent = new EventImpl("All Day", LocalDateTime.of(2023, 5, 15, 0, 0));
     EventImpl regularEvent = new EventImpl("Regular",
-        LocalDateTime.of(2023, 5, 15, 10, 0),
-        LocalDateTime.of(2023, 5, 15, 11, 0));
+            LocalDateTime.of(2023, 5, 15, 10, 0),
+            LocalDateTime.of(2023, 5, 15, 11, 0));
     assertTrue(allDayEvent.conflictsWith(regularEvent));
   }
 
   @Test
   public void testConflictsWith_ThisRegularOtherAllDay_SameDay() {
     EventImpl regularEvent = new EventImpl("Regular",
-        LocalDateTime.of(2023, 5, 15, 10, 0),
-        LocalDateTime.of(2023, 5, 15, 11, 0));
+            LocalDateTime.of(2023, 5, 15, 10, 0),
+            LocalDateTime.of(2023, 5, 15, 11, 0));
     EventImpl allDayEvent = new EventImpl("All Day", LocalDateTime.of(2023, 5, 15, 0, 0));
     assertTrue(regularEvent.conflictsWith(allDayEvent));
   }
@@ -191,44 +147,44 @@ public class EventImplTest {
   @Test
   public void testConflictsWith_RegularEvents_Overlapping() {
     EventImpl event1 = new EventImpl("Event 1",
-        LocalDateTime.of(2023, 5, 15, 10, 0),
-        LocalDateTime.of(2023, 5, 15, 12, 0));
+            LocalDateTime.of(2023, 5, 15, 10, 0),
+            LocalDateTime.of(2023, 5, 15, 12, 0));
     EventImpl event2 = new EventImpl("Event 2",
-        LocalDateTime.of(2023, 5, 15, 11, 0),
-        LocalDateTime.of(2023, 5, 15, 13, 0));
+            LocalDateTime.of(2023, 5, 15, 11, 0),
+            LocalDateTime.of(2023, 5, 15, 13, 0));
     assertTrue(event1.conflictsWith(event2));
   }
 
   @Test
   public void testConflictsWith_RegularEvents_NonOverlapping() {
     EventImpl event1 = new EventImpl("Event 1",
-        LocalDateTime.of(2023, 5, 15, 10, 0),
-        LocalDateTime.of(2023, 5, 15, 11, 0));
+            LocalDateTime.of(2023, 5, 15, 10, 0),
+            LocalDateTime.of(2023, 5, 15, 11, 0));
     EventImpl event2 = new EventImpl("Event 2",
-        LocalDateTime.of(2023, 5, 15, 12, 0),
-        LocalDateTime.of(2023, 5, 15, 13, 0));
+            LocalDateTime.of(2023, 5, 15, 12, 0),
+            LocalDateTime.of(2023, 5, 15, 13, 0));
     assertFalse(event1.conflictsWith(event2));
   }
 
   @Test
   public void testConflictsWith_EventEndBeforeOtherStarts() {
     EventImpl event1 = new EventImpl("Event 1",
-        LocalDateTime.of(2023, 5, 15, 9, 0),
-        LocalDateTime.of(2023, 5, 15, 10, 0));
+            LocalDateTime.of(2023, 5, 15, 9, 0),
+            LocalDateTime.of(2023, 5, 15, 10, 0));
     EventImpl event2 = new EventImpl("Event 2",
-        LocalDateTime.of(2023, 5, 15, 10, 0),
-        LocalDateTime.of(2023, 5, 15, 11, 0));
+            LocalDateTime.of(2023, 5, 15, 10, 0),
+            LocalDateTime.of(2023, 5, 15, 11, 0));
     assertFalse(event1.conflictsWith(event2));
   }
 
   @Test
   public void testConflictsWith_EventStartsAfterOtherEnds() {
     EventImpl event1 = new EventImpl("Event 1",
-        LocalDateTime.of(2023, 5, 15, 11, 0),
-        LocalDateTime.of(2023, 5, 15, 12, 0));
+            LocalDateTime.of(2023, 5, 15, 11, 0),
+            LocalDateTime.of(2023, 5, 15, 12, 0));
     EventImpl event2 = new EventImpl("Event 2",
-        LocalDateTime.of(2023, 5, 15, 9, 0),
-        LocalDateTime.of(2023, 5, 15, 11, 0));
+            LocalDateTime.of(2023, 5, 15, 9, 0),
+            LocalDateTime.of(2023, 5, 15, 11, 0));
     assertFalse(event1.conflictsWith(event2));
   }
 

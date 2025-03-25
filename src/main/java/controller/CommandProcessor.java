@@ -24,7 +24,7 @@ public class CommandProcessor {
    * Creates a new command processor with a Calendar model.
    *
    * @param calendar the calendar model
-   * @param view the text UI view
+   * @param view     the text UI view
    */
   public CommandProcessor(Calendar calendar, TextUI view) {
     this(new CalendarManager(), view);
@@ -39,7 +39,7 @@ public class CommandProcessor {
    * Creates a new command processor with a CalendarManager.
    *
    * @param calendarManager the calendar manager
-   * @param view the text UI view
+   * @param view            the text UI view
    */
   public CommandProcessor(CalendarManager calendarManager, TextUI view) {
     this.calendarManager = calendarManager;
@@ -66,41 +66,39 @@ public class CommandProcessor {
       switch (parts[0].toLowerCase()) {
         case "create":
           if (parts.length < 2) {
-            view.displayError("Invalid create command. Expected 'create event' or 'create calendar'");
+            view.displayError("Invalid create command. " +
+                    "Expected 'create event' or 'create calendar'");
             return true;
           }
 
           if (parts[1].equals("calendar")) {
-            return handleCreateCalendar(command);
+            handleCreateCalendar(command);
+            return true;
           } else if (parts[1].equals("event")) {
-            // Check if a calendar is in use
-            if (calendarManager.getCurrentCalendar() == null) {
-              view.displayError("No calendar in use. Please use a calendar first.");
-              return true;
-            }
-            return handleCreate(command);
+            handleCreate(command);
+            return true;
           } else {
-            view.displayError("Invalid create command. Expected 'create event' or 'create calendar'");
+            view.displayError("Invalid create command. " +
+                    "Expected 'create event' or 'create calendar'");
             return true;
           }
 
         case "edit":
           if (parts.length < 2) {
-            view.displayError("Invalid edit command. Expected 'edit event', 'edit events', or 'edit calendar'");
+            view.displayError("Invalid edit command. " +
+                    "Expected 'edit event', 'edit events', or 'edit calendar'");
             return true;
           }
 
           if (parts[1].equals("calendar")) {
-            return handleEditCalendar(command);
+            handleEditCalendar(command);
+            return true;
           } else if (parts[1].equals("event") || parts[1].equals("events")) {
-            // Check if a calendar is in use
-            if (calendarManager.getCurrentCalendar() == null) {
-              view.displayError("No calendar in use. Please use a calendar first.");
-              return true;
-            }
-            return handleEdit(command);
+            handleEdit(command);
+            return true;
           } else {
-            view.displayError("Invalid edit command. Expected 'edit event', 'edit events', or 'edit calendar'");
+            view.displayError("Invalid edit command. Expected 'edit event'" +
+                    ", 'edit events', or 'edit calendar'");
             return true;
           }
 
@@ -109,62 +107,53 @@ public class CommandProcessor {
             view.displayError("Invalid use command. Expected 'use calendar'");
             return true;
           }
-          return handleUseCalendar(command);
+          handleUseCalendar(command);
+          return true;
 
         case "print":
           if (parts.length < 2 || !parts[1].equals("events")) {
             view.displayError("Invalid print command. Expected 'print events'");
             return true;
           }
-          // Check if a calendar is in use
-          if (calendarManager.getCurrentCalendar() == null) {
-            view.displayError("No calendar in use. Please use a calendar first.");
-            return true;
-          }
-          return handlePrint(command);
+
+          handlePrint(command);
+          return true;
 
         case "export":
           if (parts.length < 2 || !parts[1].equals("cal")) {
             view.displayError("Invalid export command. Expected 'export cal'");
             return true;
           }
-          // Check if a calendar is in use
-          if (calendarManager.getCurrentCalendar() == null) {
-            view.displayError("No calendar in use. Please use a calendar first.");
-            return true;
-          }
-          return handleExport(command);
+
+          handleExport(command);
+          return true;
 
         case "show":
           if (parts.length < 2 || !parts[1].equals("status")) {
             view.displayError("Invalid show command. Expected 'show status'");
             return true;
           }
-          // Check if a calendar is in use
-          if (calendarManager.getCurrentCalendar() == null) {
-            view.displayError("No calendar in use. Please use a calendar first.");
-            return true;
-          }
-          return handleShow(command);
+
+          handleShow(command);
+          return true;
 
         case "copy":
           if (parts.length < 2) {
-            view.displayError("Invalid copy command. Expected 'copy event' or 'copy events'");
+            view.displayError("Invalid copy command. " +
+                    "Expected 'copy event' or 'copy events'");
             return true;
           }
 
-          // Check if a calendar is in use
-          if (calendarManager.getCurrentCalendar() == null) {
-            view.displayError("No calendar in use. Please use a calendar first.");
-            return true;
-          }
 
           if (parts[1].equals("event")) {
-            return handleCopyEvent(command);
+            handleCopyEvent(command);
+            return true;
           } else if (parts[1].equals("events")) {
-            return handleCopyEvents(command);
+            handleCopyEvents(command);
+            return true;
           } else {
-            view.displayError("Invalid copy command. Expected 'copy event' or 'copy events'");
+            view.displayError("Invalid copy command. " +
+                    "Expected 'copy event' or 'copy events'");
             return true;
           }
 
@@ -210,159 +199,148 @@ public class CommandProcessor {
    * Handle create event commands.
    *
    * @param command the original command string
-   * @return true to continue processing commands
    */
-  private boolean handleCreate(String command) {
+  private void handleCreate(String command) {
     Command createCommand = parser.parseCreateCommand(command);
     if (createCommand != null) {
       handler.handleCommand(createCommand);
     } else {
       view.displayError("Invalid create event command format");
     }
-    return true;
   }
 
   /**
    * Handle edit commands.
    *
    * @param command the original command string
-   * @return true to continue processing commands
    */
-  private boolean handleEdit(String command) {
+  private void handleEdit(String command) {
     Command editCommand = parser.parseEditCommand(command);
     if (editCommand != null) {
       handler.handleCommand(editCommand);
     } else {
       view.displayError("Invalid edit command format");
     }
-    return true;
   }
 
   /**
    * Handle print commands.
    *
    * @param command the original command string
-   * @return true to continue processing commands
    */
-  private boolean handlePrint(String command) {
+  private void handlePrint(String command) {
     Command printCommand = parser.parsePrintCommand(command);
     if (printCommand != null) {
       handler.handleCommand(printCommand);
     } else {
       view.displayError("Invalid print command format");
     }
-    return true;
   }
 
   /**
    * Handle export commands.
    *
    * @param command the original command string
-   * @return true to continue processing commands
    */
-  private boolean handleExport(String command) {
+  private void handleExport(String command) {
     Command exportCommand = parser.parseExportCommand(command);
     if (exportCommand != null) {
       handler.handleCommand(exportCommand);
     } else {
       view.displayError("Invalid export command format");
     }
-    return true;
   }
 
   /**
    * Handle show status commands.
    *
    * @param command the original command string
-   * @return true to continue processing commands
    */
-  private boolean handleShow(String command) {
+  private void handleShow(String command) {
     Command showCommand = parser.parseShowCommand(command);
     if (showCommand != null) {
       handler.handleCommand(showCommand);
     } else {
       view.displayError("Invalid show status command");
     }
-    return true;
   }
 
   /**
    * Handle create calendar commands.
    *
    * @param command the original command string
-   * @return true to continue processing commands
    */
-  private boolean handleCreateCalendar(String command) {
+  private void handleCreateCalendar(String command) {
     Command createCalendarCommand = parser.parseCreateCalendarCommand(command);
     if (createCalendarCommand != null) {
       handler.handleCommand(createCalendarCommand);
     } else {
-      view.displayError("Invalid create calendar command format. Expected: create calendar --name <calName> --timezone area/location");
+      view.displayError("Invalid create calendar command format. " +
+              "Expected: create calendar --name <calName> --timezone area/location");
     }
-    return true;
   }
 
   /**
    * Handle edit calendar commands.
    *
    * @param command the original command string
-   * @return true to continue processing commands
    */
-  private boolean handleEditCalendar(String command) {
+  private void handleEditCalendar(String command) {
     Command editCalendarCommand = parser.parseEditCalendarCommand(command);
     if (editCalendarCommand != null) {
       handler.handleCommand(editCalendarCommand);
     } else {
-      view.displayError("Invalid edit calendar command format. Expected: edit calendar --name <name-of-calendar> --property <property-name> <new-property-value>");
+      view.displayError("Invalid edit calendar command format. " +
+              "Expected: edit calendar --name <name-of-calendar> " +
+              "--property <property-name> <new-property-value>");
     }
-    return true;
   }
 
   /**
    * Handle use calendar commands.
    *
    * @param command the original command string
-   * @return true to continue processing commands
    */
-  private boolean handleUseCalendar(String command) {
+  private void handleUseCalendar(String command) {
     Command useCalendarCommand = parser.parseUseCalendarCommand(command);
     if (useCalendarCommand != null) {
       handler.handleCommand(useCalendarCommand);
     } else {
-      view.displayError("Invalid use calendar command format. Expected: use calendar --name <name-of-calendar>");
+      view.displayError("Invalid use calendar command format. " +
+              "Expected: use calendar --name <name-of-calendar>");
     }
-    return true;
   }
 
   /**
    * Handle copy event commands.
    *
    * @param command the original command string
-   * @return true to continue processing commands
    */
-  private boolean handleCopyEvent(String command) {
+  private void handleCopyEvent(String command) {
     Command copyEventCommand = parser.parseCopyEventCommand(command);
     if (copyEventCommand != null) {
       handler.handleCommand(copyEventCommand);
     } else {
-      view.displayError("Invalid copy event command format. Expected: copy event <eventName> on <dateStringTtimeString> --target <calendarName> to <dateStringTtimeString>");
+      view.displayError("Invalid copy event command format. " +
+              "Expected: copy event <eventName> on <dateStringTtimeString> " +
+              "--target <calendarName> to <dateStringTtimeString>");
     }
-    return true;
   }
 
   /**
    * Handle copy events commands.
    *
    * @param command the original command string
-   * @return true to continue processing commands
    */
-  private boolean handleCopyEvents(String command) {
+  private void handleCopyEvents(String command) {
     Command copyEventsCommand = parser.parseCopyEventsCommand(command);
     if (copyEventsCommand != null) {
       handler.handleCommand(copyEventsCommand);
     } else {
-      view.displayError("Invalid copy events command format. Expected: copy events on <dateString> --target <calendarName> to <dateString> OR copy events between <dateString> and <dateString> --target <calendarName> to <dateString>");
+      view.displayError("Invalid copy events command format. " +
+              "Expected: copy events on <dateString> --target <calendarName> to <dateString> " +
+              "OR copy events between <dateString> and <dateString> " +
+              "--target <calendarName> to <dateString>");
     }
-    return true;
   }
 }

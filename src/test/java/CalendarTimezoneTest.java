@@ -3,7 +3,10 @@ import model.CalendarManager;
 import model.Event;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -17,12 +20,11 @@ import java.util.List;
 public class CalendarTimezoneTest {
 
   private CalendarManager manager;
-  private DateTimeFormatter formatter;
 
   @Before
   public void setUp() {
     manager = new CalendarManager();
-    formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     // Create calendars in different timezones
     manager.createCalendar("NYC", ZoneId.of("America/New_York"));
@@ -35,24 +37,31 @@ public class CalendarTimezoneTest {
   public void testCopyEventBetweenTimezonesPreservesAbsoluteTime() {
     // Create an event in New York at 1 PM
     manager.useCalendar("NYC");
-    LocalDateTime nycTime = LocalDateTime.of(2023, 5, 15, 13, 0); // 1 PM EST
-    LocalDateTime nycEndTime = LocalDateTime.of(2023, 5, 15, 15, 0); // 3 PM EST
+    LocalDateTime nycTime = LocalDateTime
+            .of(2023, 5, 15, 13, 0); // 1 PM EST
+    LocalDateTime nycEndTime = LocalDateTime
+            .of(2023, 5, 15, 15, 0); // 3 PM EST
 
     manager.getCurrentCalendar().createEvent("Business Meeting", nycTime, nycEndTime,
         true, "Important meeting", "Conference room", true);
 
     // Copy event to LA (3-hour time difference)
-    LocalDateTime laTargetTime = LocalDateTime.of(2023, 5, 15, 13, 0); // 1 PM PST
-    boolean result = manager.copyEvent("Business Meeting", nycTime, "LA", laTargetTime);
+    LocalDateTime laTargetTime = LocalDateTime
+            .of(2023, 5, 15, 13, 0); // 1 PM PST
+    boolean result = manager
+            .copyEvent("Business Meeting", nycTime, "LA", laTargetTime);
     assertTrue("Copying event should succeed", result);
 
     // Verify that the LA event is 3 hours earlier (10 AM PST instead of 1 PM EST)
     manager.useCalendar("LA");
     List<Event> laEvents = manager.getCurrentCalendar().getEventsOn(laTargetTime);
 
-    assertEquals("There should be one event on the target date", 1, laEvents.size());
-    assertEquals("Event should be at 10 AM PST", 13, laEvents.get(0).getStartDateTime().getHour());
-    assertEquals("Event should be at 12 PM PST", 15, laEvents.get(0).getEndDateTime().getHour());
+    assertEquals("There should be one event on the target date",
+            1, laEvents.size());
+    assertEquals("Event should be at 10 AM PST",
+            13, laEvents.get(0).getStartDateTime().getHour());
+    assertEquals("Event should be at 12 PM PST",
+            15, laEvents.get(0).getEndDateTime().getHour());
 
   }
 
@@ -60,22 +69,27 @@ public class CalendarTimezoneTest {
   public void testCopyEventToRequestedTimeWithTimezoneAdjustment() {
     // Create an event in New York at 1 PM
     manager.useCalendar("NYC");
-    LocalDateTime nycTime = LocalDateTime.of(2023, 5, 15, 13, 0); // 1 PM EST
-    LocalDateTime nycEndTime = LocalDateTime.of(2023, 5, 15, 15, 0); // 3 PM EST
+    LocalDateTime nycTime = LocalDateTime
+            .of(2023, 5, 15, 13, 0); // 1 PM EST
+    LocalDateTime nycEndTime = LocalDateTime
+            .of(2023, 5, 15, 15, 0); // 3 PM EST
 
     manager.getCurrentCalendar().createEvent("Business Meeting", nycTime, nycEndTime,
         true, "Important meeting", "Conference room", true);
 
-    // Copy to London requesting a 6PM London time (instead of the "equivalent" 6PM NYC = 11PM London)
-    LocalDateTime londonTargetTime = LocalDateTime.of(2023, 5, 15, 18, 0); // 6 PM London
-    boolean result = manager.copyEvent("Business Meeting", nycTime, "London", londonTargetTime);
+    // Copy to London requesting a 6PM London time (instead of "equivalent" 6PM NYC = 11PM London)
+    LocalDateTime londonTargetTime = LocalDateTime
+            .of(2023, 5, 15, 18, 0); // 6 PM London
+    boolean result = manager.copyEvent("Business Meeting", nycTime,
+            "London", londonTargetTime);
     assertTrue("Copying event should succeed", result);
 
     // Verify that the event is at the requested time, not the timezone-equivalent time
     manager.useCalendar("London");
     List<Event> londonEvents = manager.getCurrentCalendar().getEventsOn(londonTargetTime);
 
-    assertEquals("There should be one event on the target date", 1, londonEvents.size());
+    assertEquals("There should be one event on the target date",
+            1, londonEvents.size());
     assertEquals("Event should be at requested time (6 PM London)",
         18, londonEvents.get(0).getStartDateTime().getHour());
     assertEquals("Event duration should be preserved (2 hours)",
@@ -86,38 +100,49 @@ public class CalendarTimezoneTest {
   public void testCopyAllDayEventBetweenTimezones() {
     // Create an all-day event in Tokyo
     manager.useCalendar("Tokyo");
-    LocalDateTime tokyoDate = LocalDateTime.of(2023, 5, 15, 0, 0);
+    LocalDateTime tokyoDate = LocalDateTime
+            .of(2023, 5, 15, 0, 0);
 
     manager.getCurrentCalendar().createAllDayEvent("Public Holiday", tokyoDate,
         true, "National holiday", "Japan", true);
 
     // Copy to London (9-hour time difference)
-    LocalDateTime londonDate = LocalDateTime.of(2023, 5, 20, 0, 0); // 5 days later
-    boolean result = manager.copyEvent("Public Holiday", tokyoDate, "London", londonDate);
+    LocalDateTime londonDate = LocalDateTime
+            .of(2023, 5, 20, 0, 0); // 5 days later
+    boolean result = manager.copyEvent("Public Holiday", tokyoDate,
+            "London", londonDate);
     assertTrue("Copying all-day event should succeed", result);
 
     // Verify the event is on the correct date in London
     manager.useCalendar("London");
     List<Event> londonEvents = manager.getCurrentCalendar().getEventsOn(londonDate);
 
-    assertEquals("There should be one event on the target date", 1, londonEvents.size());
-    assertEquals("Event should be all-day", true, londonEvents.get(0).isAllDay());
-    assertEquals("Event should be on May 20th", 20, londonEvents.get(0).getStartDateTime().getDayOfMonth());
+    assertEquals("There should be one event on the target date",
+            1, londonEvents.size());
+    assertTrue("Event should be all-day", londonEvents.get(0).isAllDay());
+    assertEquals("Event should be on May 20th", 20,
+            londonEvents.get(0).getStartDateTime().getDayOfMonth());
   }
 
   @Test
   public void testCopyRecurringEventBetweenTimezones() {
     // Create a recurring event in LA (every Monday and Wednesday for 3 times)
     manager.useCalendar("LA");
-    LocalDateTime laStart = LocalDateTime.of(2023, 6, 5, 10, 0); // Monday 10 AM PST
-    LocalDateTime laEnd = LocalDateTime.of(2023, 6, 5, 11, 0);   // Monday 11 AM PST
+    LocalDateTime laStart = LocalDateTime
+            .of(2023, 6, 5, 10, 0); // Monday 10 AM PST
+    LocalDateTime laEnd = LocalDateTime
+            .of(2023, 6, 5, 11, 0);   // Monday 11 AM PST
 
-    manager.getCurrentCalendar().createRecurringEvent("Weekly Standup", laStart, laEnd,
-        "MW", 3, null, true, "Team sync", "Conference room", true);
+    manager.getCurrentCalendar().createRecurringEvent("Weekly Standup",
+            laStart, laEnd,
+        "MW", 3, null, true, "Team sync",
+            "Conference room", true);
 
     // Copy to Tokyo (17-hour time difference)
-    LocalDateTime tokyoTarget = LocalDateTime.of(2023, 6, 12, 10, 0); // 1 week later, same wall clock time
-    boolean result = manager.copyEvent("Weekly Standup", laStart, "Tokyo", tokyoTarget);
+    LocalDateTime tokyoTarget = LocalDateTime
+            .of(2023, 6, 12, 10, 0);
+    boolean result = manager.copyEvent("Weekly Standup",
+            laStart, "Tokyo", tokyoTarget);
     assertTrue("Copying recurring event should succeed", result);
 
     // Verify the events in Tokyo are at 2 AM (Tokyo time) when LA is at 10 AM
@@ -126,17 +151,20 @@ public class CalendarTimezoneTest {
     // For a recurring event, our implementation still creates it as a recurring event
     // Check that all instances exist
     List<Event> allEvents = manager.getCurrentCalendar().getAllEvents();
-    assertEquals("There should be one recurring event series", 1, allEvents.size());
+    assertEquals("There should be one recurring event series",
+            1, allEvents.size());
     assertTrue("Event should be recurring", allEvents.get(0).isRecurring());
 
     // Check first occurrence time - should be at 10 AM Tokyo time as requested,
     // not at 2 AM (which would be the actual timezone-adjusted time)
-    LocalDateTime firstOccurrence = LocalDateTime.of(2023, 6, 12, 0, 0); // Check June 12
+    LocalDateTime firstOccurrence = LocalDateTime.of(2023, 6,
+            12, 0, 0); // Check June 12
     List<Event> occurrences = manager.getCurrentCalendar().getEventsOn(firstOccurrence);
 
     // Note: The recurrence calculation might vary due to the timezone change,
     // but we should have at least one occurrence on that day
-    assertEquals("There should be one occurrence on the target date", 1, occurrences.size());
+    assertEquals("There should be one occurrence on the target date",
+            1, occurrences.size());
     assertEquals("Event occurrence should be at the requested time",
         10, occurrences.get(0).getStartDateTime().getHour());
   }
@@ -146,19 +174,25 @@ public class CalendarTimezoneTest {
     // Create multiple events in NYC
     manager.useCalendar("NYC");
 
-    LocalDateTime morning = LocalDateTime.of(2023, 5, 15, 9, 0);  // 9 AM EST
-    LocalDateTime noon = LocalDateTime.of(2023, 5, 15, 12, 0);    // 12 PM EST
-    LocalDateTime afternoon = LocalDateTime.of(2023, 5, 15, 15, 0); // 3 PM EST
+    LocalDateTime morning = LocalDateTime
+            .of(2023, 5, 15, 9, 0);  // 9 AM EST
+    LocalDateTime noon = LocalDateTime
+            .of(2023, 5, 15, 12, 0);    // 12 PM EST
+    LocalDateTime afternoon = LocalDateTime
+            .of(2023, 5, 15, 15, 0); // 3 PM EST
 
-    manager.getCurrentCalendar().createEvent("Morning Meeting", morning, morning.plusHours(1),
+    manager.getCurrentCalendar().createEvent("Morning Meeting",
+            morning, morning.plusHours(1),
         true, "Morning brief", "Room 1", true);
     manager.getCurrentCalendar().createEvent("Lunch", noon, noon.plusHours(1),
         true, "Team lunch", "Cafeteria", true);
-    manager.getCurrentCalendar().createEvent("Afternoon Review", afternoon, afternoon.plusHours(1),
+    manager.getCurrentCalendar().createEvent("Afternoon Review",
+            afternoon, afternoon.plusHours(1),
         true, "Daily review", "Room 2", true);
 
     // Copy all events for that day to Tokyo
-    LocalDateTime tokyoDate = LocalDateTime.of(2023, 5, 16, 0, 0); // Next day
+    LocalDateTime tokyoDate = LocalDateTime
+            .of(2023, 5, 16, 0, 0); // Next day
     boolean result = manager.copyEventsOnDay(morning, "Tokyo", tokyoDate);
     assertTrue("Copying all events should succeed", result);
 
@@ -190,9 +224,12 @@ public class CalendarTimezoneTest {
     // Create events on different days in NYC
     manager.useCalendar("NYC");
 
-    LocalDateTime day1 = LocalDateTime.of(2023, 5, 15, 13, 0); // Mon 1 PM EST
-    LocalDateTime day2 = LocalDateTime.of(2023, 5, 16, 10, 0); // Tue 10 AM EST
-    LocalDateTime day3 = LocalDateTime.of(2023, 5, 17, 15, 0); // Wed 3 PM EST
+    LocalDateTime day1 = LocalDateTime
+            .of(2023, 5, 15, 13, 0); // Mon 1 PM EST
+    LocalDateTime day2 = LocalDateTime
+            .of(2023, 5, 16, 10, 0); // Tue 10 AM EST
+    LocalDateTime day3 = LocalDateTime
+            .of(2023, 5, 17, 15, 0); // Wed 3 PM EST
 
     manager.getCurrentCalendar().createEvent("Monday Meeting", day1, day1.plusHours(1),
         true, "Monday brief", "Room 1", true);
@@ -206,8 +243,10 @@ public class CalendarTimezoneTest {
     LocalDateTime rangeEnd = LocalDateTime.of(2023, 5, 17, 23, 59);
 
     // Copy to LA one week later
-    LocalDateTime laTarget = LocalDateTime.of(2023, 5, 22, 0, 0); // Mon May 22
-    boolean result = manager.copyEventsInRange(rangeStart, rangeEnd, "LA", laTarget);
+    LocalDateTime laTarget = LocalDateTime
+            .of(2023, 5, 22, 0, 0); // Mon May 22
+    boolean result = manager.copyEventsInRange(rangeStart, rangeEnd,
+            "LA", laTarget);
     assertTrue("Copying events in range should succeed", result);
 
     // Verify events in LA have appropriate times (convert from EST to PST, -3 hours)
@@ -246,13 +285,17 @@ public class CalendarTimezoneTest {
 
     // Create event in Berlin during DST
     manager.useCalendar("Berlin");
-    LocalDateTime berlinTime = LocalDateTime.of(2023, 7, 15, 14, 0); // 2 PM during DST
-    manager.getCurrentCalendar().createEvent("Summer Event", berlinTime, berlinTime.plusHours(1),
+    LocalDateTime berlinTime = LocalDateTime
+            .of(2023, 7, 15, 14, 0); // 2 PM during DST
+    manager.getCurrentCalendar().createEvent("Summer Event",
+            berlinTime, berlinTime.plusHours(1),
         true, "Summer meeting", "Berlin Office", true);
 
     // Copy to Arizona
-    LocalDateTime arizonaTarget = LocalDateTime.of(2023, 7, 15, 14, 0); // Same wall clock time
-    boolean result = manager.copyEvent("Summer Event", berlinTime, "Arizona", arizonaTarget);
+    LocalDateTime arizonaTarget = LocalDateTime
+            .of(2023, 7, 15, 14, 0); // Same wall clock time
+    boolean result = manager.copyEvent("Summer Event", berlinTime,
+            "Arizona", arizonaTarget);
     assertTrue("Copying event across DST boundaries should succeed", result);
 
     // Verify time adjustment includes DST offset
@@ -280,16 +323,20 @@ public class CalendarTimezoneTest {
   public void testEditCalendarTimezoneAffectsConversion() {
     // Create an event in NYC
     manager.useCalendar("NYC");
-    LocalDateTime nycTime = LocalDateTime.of(2023, 5, 15, 13, 0); // 1 PM EST
+    LocalDateTime nycTime = LocalDateTime.of(2023, 5,
+            15, 13, 0); // 1 PM EST
     manager.getCurrentCalendar().createEvent("Meeting", nycTime, nycTime.plusHours(1),
         true, "Important meeting", "Office", true);
 
     // Create a new calendar for this test
-    manager.createCalendar("Test", ZoneId.of("America/Chicago")); // Central Time
+    manager.createCalendar("Test",
+            ZoneId.of("America/Chicago")); // Central Time
 
     // Copy event to Test calendar
-    LocalDateTime testTarget = LocalDateTime.of(2023, 5, 15, 13, 0); // 1 PM Central
-    boolean result = manager.copyEvent("Meeting", nycTime, "Test", testTarget);
+    LocalDateTime testTarget = LocalDateTime
+            .of(2023, 5, 15, 13, 0); // 1 PM Central
+    boolean result = manager.copyEvent("Meeting",
+            nycTime, "Test", testTarget);
     assertTrue("Copying to Test calendar should succeed", result);
 
     // Verify initial copying
@@ -298,17 +345,22 @@ public class CalendarTimezoneTest {
     assertEquals("There should be one event", 1, testEvents.size());
 
     // Edit Test calendar timezone to Pacific
-    boolean edited = manager.editCalendar("Test", "timezone", "America/Los_Angeles");
+    boolean edited = manager.editCalendar("Test",
+            "timezone", "America/Los_Angeles");
     assertTrue("Editing timezone should succeed", edited);
 
     // Now copy another event to verify the timezone change is respected
     manager.useCalendar("NYC");
-    LocalDateTime nycTime2 = LocalDateTime.of(2023, 5, 16, 15, 0); // 3 PM EST
-    manager.getCurrentCalendar().createEvent("Second Meeting", nycTime2, nycTime2.plusHours(1),
+    LocalDateTime nycTime2 = LocalDateTime
+            .of(2023, 5, 16, 15, 0); // 3 PM EST
+    manager.getCurrentCalendar().createEvent("Second Meeting", nycTime2,
+            nycTime2.plusHours(1),
         true, "Follow-up", "Office", true);
 
-    LocalDateTime testTarget2 = LocalDateTime.of(2023, 5, 16, 15, 0); // 3 PM Pacific
-    boolean result2 = manager.copyEvent("Second Meeting", nycTime2, "Test", testTarget2);
+    LocalDateTime testTarget2 = LocalDateTime
+            .of(2023, 5, 16, 15, 0); // 3 PM Pacific
+    boolean result2 = manager.copyEvent("Second Meeting",
+            nycTime2, "Test", testTarget2);
     assertTrue("Copying to Test calendar after timezone change should succeed", result2);
 
     // Verify second copy with new timezone
@@ -325,12 +377,14 @@ public class CalendarTimezoneTest {
   public void testCopyToNonExistentCalendar() {
     // Create an event in NYC
     manager.useCalendar("NYC");
-    LocalDateTime nycTime = LocalDateTime.of(2023, 5, 15, 13, 0);
+    LocalDateTime nycTime = LocalDateTime
+            .of(2023, 5, 15, 13, 0);
     manager.getCurrentCalendar().createEvent("Meeting", nycTime, nycTime.plusHours(1),
         true, "Important meeting", "Office", true);
 
     // Try to copy to a non-existent calendar
-    boolean result = manager.copyEvent("Meeting", nycTime, "NonExistent", nycTime);
+    boolean result = manager.copyEvent("Meeting", nycTime,
+            "NonExistent", nycTime);
     assertFalse("Copying to non-existent calendar should fail", result);
   }
 
@@ -340,8 +394,10 @@ public class CalendarTimezoneTest {
     manager.useCalendar("NYC");
 
     // Try to copy non-existent event
-    LocalDateTime nycTime = LocalDateTime.of(2023, 5, 15, 13, 0);
-    boolean result = manager.copyEvent("Non-existent Meeting", nycTime, "LA", nycTime);
+    LocalDateTime nycTime = LocalDateTime
+            .of(2023, 5, 15, 13, 0);
+    boolean result = manager.copyEvent("Non-existent Meeting",
+            nycTime, "LA", nycTime);
     assertFalse("Copying non-existent event should fail", result);
   }
 }

@@ -2,13 +2,18 @@ import controller.CommandProcessor;
 import model.Calendar;
 import model.CalendarManager;
 import model.Event;
+
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+
 import view.TextUI;
 
 /**
@@ -40,17 +45,20 @@ public class EditTimezoneTest {
   public void testEditTimezoneRegularEvents() {
     // Create a few events in New York timezone
     Calendar calendar = manager.getCurrentCalendar();
-    LocalDateTime morning = LocalDateTime.of(2023, 7, 10, 9, 0);  // 9 AM ET
-    LocalDateTime noon = LocalDateTime.of(2023, 7, 10, 12, 0);    // 12 PM ET
+    LocalDateTime morning = LocalDateTime
+            .of(2023, 7, 10, 9, 0);  // 9 AM ET
+    LocalDateTime noon = LocalDateTime
+            .of(2023, 7, 10, 12, 0);    // 12 PM ET
 
     calendar.createEvent("Morning Meeting", morning, morning.plusHours(1),
-        true, "Morning brief", "Room 1", true);
+            true, "Morning brief", "Room 1", true);
     calendar.createEvent("Lunch", noon, noon.plusHours(1),
-        true, "Team lunch", "Cafeteria", true);
+            true, "Team lunch", "Cafeteria", true);
 
     // Verify events are created correctly in NY timezone
     List<Event> eventsBeforeChange = calendar.getEventsOn(morning);
-    assertEquals("Should find all events on the date", 2, eventsBeforeChange.size());
+    assertEquals("Should find all events on the date",
+            2, eventsBeforeChange.size());
 
     // Find events by name
     Event morningEvent = findEventByName(eventsBeforeChange, "Morning Meeting");
@@ -64,7 +72,8 @@ public class EditTimezoneTest {
     assertEquals(12, noonEvent.getStartDateTime().getHour());
 
     // Change the timezone to Los Angeles (3 hours behind NY)
-    boolean success = manager.editCalendar("Default", "timezone", "America/Los_Angeles");
+    boolean success = manager.editCalendar("Default",
+            "timezone", "America/Los_Angeles");
     assertTrue("Timezone change should succeed", success);
 
     // Verify calendar timezone changed
@@ -72,7 +81,8 @@ public class EditTimezoneTest {
 
     // Get events after timezone change - should maintain same wall clock time
     List<Event> eventsAfterChange = calendar.getEventsOn(morning.toLocalDate().atStartOfDay());
-    assertEquals("Should still find all events on the date", 2, eventsAfterChange.size());
+    assertEquals("Should still find all events on the date",
+            2, eventsAfterChange.size());
 
     // Find events by name again
     morningEvent = findEventByName(eventsAfterChange, "Morning Meeting");
@@ -98,7 +108,8 @@ public class EditTimezoneTest {
     LocalDateTime date = LocalDateTime.of(2023, 7, 10, 0, 0);
 
     calendar.createAllDayEvent("Company Holiday", date,
-        true, "Independence Day Observed", "Office Closed", true);
+            true, "Independence Day Observed",
+            "Office Closed", true);
 
     // Verify event is created correctly
     List<Event> eventsBeforeChange = calendar.getEventsOn(date);
@@ -108,7 +119,8 @@ public class EditTimezoneTest {
     assertEquals(0, holidayEvent.getStartDateTime().getHour());
 
     // Change the timezone to Tokyo (13-14 hours ahead of NY)
-    boolean success = manager.editCalendar("Default", "timezone", "Asia/Tokyo");
+    boolean success = manager.editCalendar("Default",
+            "timezone", "Asia/Tokyo");
     assertTrue("Timezone change should succeed", success);
 
     // Verify calendar timezone changed
@@ -116,11 +128,12 @@ public class EditTimezoneTest {
 
     // Get events after timezone change - all-day events should still be on the same date
     List<Event> eventsAfterChange = calendar.getEventsOn(date);
-    assertEquals("All-day events should remain on the same date", 1, eventsAfterChange.size());
+    assertEquals("All-day events should remain on the same date",
+            1, eventsAfterChange.size());
 
     Event eventAfterChange = eventsAfterChange.get(0);
     assertTrue("Event should still be an all-day event after timezone change",
-        eventAfterChange.isAllDay());
+            eventAfterChange.isAllDay());
 
     // For all-day events, the date should remain the same
     assertEquals(date.toLocalDate(), eventAfterChange.getStartDateTime().toLocalDate());
@@ -134,11 +147,14 @@ public class EditTimezoneTest {
   public void testEditTimezoneRecurringEvents() {
     // Create a recurring event in New York timezone (weekly on Mondays)
     Calendar calendar = manager.getCurrentCalendar();
-    LocalDateTime startDateTime = LocalDateTime.of(2023, 7, 10, 14, 0); // Monday, 2 PM ET
-    LocalDateTime endDateTime = LocalDateTime.of(2023, 7, 10, 15, 0);   // Monday, 3 PM ET
+    LocalDateTime startDateTime = LocalDateTime
+            .of(2023, 7, 10, 14, 0); // Monday, 2 PM ET
+    LocalDateTime endDateTime = LocalDateTime
+            .of(2023, 7, 10, 15, 0);   // Monday, 3 PM ET
 
     calendar.createRecurringEvent("Weekly Status", startDateTime, endDateTime,
-        "M", 4, null, true, "Weekly team status", "Conference Room", true);
+            "M", 4, null, true,
+            "Weekly team status", "Conference Room", true);
 
     // Verify the recurring event is created correctly
     List<Event> eventsBeforeChange = calendar.getEventsOn(startDateTime);
@@ -148,7 +164,8 @@ public class EditTimezoneTest {
     assertEquals(14, recurringEvent.getStartDateTime().getHour());
 
     // Change the timezone to London (5 hours ahead of NY)
-    boolean success = manager.editCalendar("Default", "timezone", "Europe/London");
+    boolean success = manager.editCalendar("Default",
+            "timezone", "Europe/London");
     assertTrue("Timezone change should succeed", success);
 
     // Verify calendar timezone changed
@@ -183,10 +200,11 @@ public class EditTimezoneTest {
   public void testEditTimezoneAcrossDateLine() {
     // Create an event at 8 PM in New York
     Calendar calendar = manager.getCurrentCalendar();
-    LocalDateTime eveningTime = LocalDateTime.of(2023, 7, 10, 20, 0);  // 8 PM ET
+    LocalDateTime eveningTime = LocalDateTime
+            .of(2023, 7, 10, 20, 0);  // 8 PM ET
 
     calendar.createEvent("Evening Call", eveningTime, eveningTime.plusHours(1),
-        true, "International call", "Phone", true);
+            true, "International call", "Phone", true);
 
     // Verify event is created correctly
     List<Event> eventsBeforeChange = calendar.getEventsOn(eveningTime);
@@ -197,20 +215,23 @@ public class EditTimezoneTest {
     assertEquals(10, eveningEvent.getStartDateTime().getDayOfMonth());
 
     // Change to Tokyo timezone (13-14 hours ahead of NY)
-    boolean success = manager.editCalendar("Default", "timezone", "Asia/Tokyo");
+    boolean success = manager.editCalendar("Default", "timezone",
+            "Asia/Tokyo");
     assertTrue("Timezone change should succeed", success);
 
     // 8 PM ET = 9 AM next day in Tokyo
     // The event now should be on July 11 at 9 AM in Tokyo
-    LocalDateTime nextDayMorning = LocalDateTime.of(2023, 7, 11, 9, 0);
-    //List<Event> eventsAfterChange = calendar.getEventsOn(nextDayMorning.toLocalDate());
+    LocalDateTime nextDayMorning = LocalDateTime
+            .of(2023, 7, 11, 9, 0);
+    List<Event> eventsAfterChange = calendar.getEventsOn(nextDayMorning);
 
-//    assertEquals("Event should be found on the next day", 1, eventsAfterChange.size());
-//    Event eventAfterChange = eventsAfterChange.get(0);
-//    assertEquals("Evening Call", eventAfterChange.getSubject());
-//    assertEquals(9, eventAfterChange.getStartDateTime().getHour());
-//    assertEquals(7, eventAfterChange.getStartDateTime().getMonthValue());
-//    assertEquals(11, eventAfterChange.getStartDateTime().getDayOfMonth());
+    assertEquals("Event should be found on the next day", 1,
+            eventsAfterChange.size());
+    Event eventAfterChange = eventsAfterChange.get(0);
+    assertEquals("Evening Call", eventAfterChange.getSubject());
+    assertEquals(9, eventAfterChange.getStartDateTime().getHour());
+    assertEquals(7, eventAfterChange.getStartDateTime().getMonthValue());
+    assertEquals(11, eventAfterChange.getStartDateTime().getDayOfMonth());
   }
 
   /**
@@ -228,15 +249,17 @@ public class EditTimezoneTest {
     // Create an event during DST (summer) - July 15, 2023 at 10 AM ET
     LocalDateTime summerTime = LocalDateTime.of(2023, 7, 15, 10, 0);
     calendar.createEvent("Summer Meeting", summerTime, summerTime.plusHours(1),
-        true, "Summer planning", "Conference Room", true);
+            true, "Summer planning", "Conference Room", true);
 
     // Create an event outside of DST (winter) - January 15, 2023 at 10 AM ET
-    LocalDateTime winterTime = LocalDateTime.of(2023, 1, 15, 10, 0);
+    LocalDateTime winterTime = LocalDateTime
+            .of(2023, 1, 15, 10, 0);
     calendar.createEvent("Winter Meeting", winterTime, winterTime.plusHours(1),
-        true, "Winter planning", "Conference Room", true);
+            true, "Winter planning", "Conference Room", true);
 
     // Change timezone to a region without DST (e.g., Phoenix, Arizona)
-    boolean success = manager.editCalendar("DST-Test", "timezone", "America/Phoenix");
+    boolean success = manager.editCalendar("DST-Test",
+            "timezone", "America/Phoenix");
     assertTrue("Timezone change should succeed", success);
 
     // Verify calendar timezone changed
@@ -244,16 +267,16 @@ public class EditTimezoneTest {
 
     // During summer, NY is on EDT (UTC-4), Phoenix is on MST (UTC-7) = 3 hour difference
     // During winter, NY is on EST (UTC-5), Phoenix is on MST (UTC-7) = 2 hour difference
-//
-//    // Check the summer event (should be at 7 AM in Phoenix)
-//    List<Event> summerEvents = calendar.getEventsOn(summerTime.toLocalDate());
-//    Event summerEvent = findEventByName(summerEvents, "Summer Meeting");
-//    assertEquals(7, summerEvent.getStartDateTime().getHour()); // 10 AM EDT = 7 AM MST
-//
-//    // Check the winter event (should be at 8 AM in Phoenix)
-//    List<Event> winterEvents = calendar.getEventsOn(winterTime.toLocalDate());
-//    Event winterEvent = findEventByName(winterEvents, "Winter Meeting");
-//    assertEquals(8, winterEvent.getStartDateTime().getHour()); // 10 AM EST = 8 AM MST
+
+    // Check the summer event (should be at 7 AM in Phoenix)
+    List<Event> summerEvents = calendar.getEventsOn(summerTime);
+    Event summerEvent = findEventByName(summerEvents, "Summer Meeting");
+    assertEquals(7, summerEvent.getStartDateTime().getHour()); // 10 AM EDT = 7 AM MST
+
+    // Check the winter event (should be at 8 AM in Phoenix)
+    List<Event> winterEvents = calendar.getEventsOn(winterTime);
+    Event winterEvent = findEventByName(winterEvents, "Winter Meeting");
+    assertEquals(8, winterEvent.getStartDateTime().getHour()); // 10 AM EST = 8 AM MST
   }
 
   /**
@@ -262,14 +285,17 @@ public class EditTimezoneTest {
   @Test
   public void testEditTimezoneViaCommand() {
     // Create events via the processor
-    mockUI.setNextCommand("create event \"Board Meeting\" from 2023-08-15T15:00 to 2023-08-15T16:30");
+    mockUI.setNextCommand("create event \"Board Meeting\" from 2023-08-15T15:00 " +
+            "to 2023-08-15T16:30");
     processor.processCommand(mockUI.getCommand());
 
-    mockUI.setNextCommand("create event \"Team Lunch\" from 2023-08-15T12:00 to 2023-08-15T13:00");
+    mockUI.setNextCommand("create event \"Team Lunch\" from 2023-08-15T12:00 " +
+            "to 2023-08-15T13:00");
     processor.processCommand(mockUI.getCommand());
 
     // Verify events were created with correct times in NY timezone
-    LocalDateTime checkDate = LocalDateTime.of(2023, 8, 15, 0, 0);
+    LocalDateTime checkDate = LocalDateTime
+            .of(2023, 8, 15, 0, 0);
     List<Event> eventsBeforeChange = manager.getCurrentCalendar().getEventsOn(checkDate);
     assertEquals(2, eventsBeforeChange.size());
 
@@ -302,8 +328,8 @@ public class EditTimezoneTest {
   private Event findEventByName(List<Event> events, String name) {
     for (Event event : events) {
       if (event.getSubject().equals(name) ||
-          event.getSubject().contains(name) ||
-          event.getSubject().replace(" [Recurring]", "").equals(name)) {
+              event.getSubject().contains(name) ||
+              event.getSubject().replace(" [Recurring]", "").equals(name)) {
         return event;
       }
     }
