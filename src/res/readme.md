@@ -32,10 +32,10 @@
 
 ```
 # For interactive mode
-java -jar calendar.jar --mode interactive
+java -jar Assignment4.jar --mode interactive
 
 # For headless mode with a commands file
-java -jar calendar.jar --mode headless commands.txt
+java -jar Assignment4.jar --mode headless commands.txt
 ```
 
 ## Functional Status
