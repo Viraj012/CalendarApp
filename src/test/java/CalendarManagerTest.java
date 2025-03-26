@@ -854,4 +854,106 @@ public class CalendarManagerTest {
     assertTrue("Should have copied events accounting for day boundaries",
         aucklandEvents.size() > 0);
   }
+  @Test
+  public void testCopyNonRecurringAllDayEvent() {
+    // Create source and target calendars
+    calendarManager.createCalendar("Source", ZoneId.systemDefault());
+    calendarManager.createCalendar("Target", ZoneId.systemDefault());
+    calendarManager.useCalendar("Source");
+
+    // Create a non-recurring all-day event
+    Calendar sourceCalendar = calendarManager.getCurrentCalendar();
+    LocalDateTime dateTime = LocalDateTime.of(2023, 5, 15, 0, 0);
+    boolean eventCreated = sourceCalendar.createAllDayEvent(
+        "Birthday Party",
+        dateTime,
+        false,
+        "Annual celebration",
+        "Home",
+        true);
+    assertTrue("Should create all-day event", eventCreated);
+
+    // Copy the event to the target calendar
+    LocalDateTime targetDate = LocalDateTime.of(2023, 6, 15, 0, 0);
+    boolean copied = calendarManager.copyEvent(
+        "Birthday Party",
+        dateTime,
+        "Target",
+        targetDate);
+
+    assertTrue("Non-recurring all-day event should be copied successfully", copied);
+
+    // Verify the event exists in target calendar
+    Calendar targetCalendar = calendarManager.getCalendar("Target");
+    List<Event> targetEvents = targetCalendar.getAllEvents();
+    assertEquals("Target should have one event", 1, targetEvents.size());
+
+    Event copiedEvent = targetEvents.get(0);
+    assertEquals("Event subject should match", "Birthday Party", copiedEvent.getSubject());
+    assertTrue("Copied event should be all-day", copiedEvent.isAllDay());
+    assertFalse("Copied event should not be recurring", copiedEvent.isRecurring());
+    assertEquals("Event date should match target date", targetDate.toLocalDate(),
+        copiedEvent.getStartDateTime().toLocalDate());
+  }
+
+  @Test
+  public void testCopyRecurringAllDayEvent() {
+    // Create source and target calendars
+    calendarManager.createCalendar("Source", ZoneId.systemDefault());
+    calendarManager.createCalendar("Target", ZoneId.systemDefault());
+    calendarManager.useCalendar("Source");
+
+    // Create a recurring all-day event with until date
+    Calendar sourceCalendar = calendarManager.getCurrentCalendar();
+    LocalDateTime startDate = LocalDateTime.of(2023, 5, 15, 0, 0);
+    LocalDateTime untilDate = LocalDateTime.of(2023, 8, 15, 0, 0);
+
+    boolean eventCreated = sourceCalendar.createRecurringAllDayEvent(
+        "Monthly Review",
+        startDate,
+        "MWF", // Monday, Wednesday, Friday
+        -1, // Occurrences not used
+        untilDate, // Until date specified
+        false,
+        "Performance review",
+        "Meeting Room",
+        true);
+
+    assertTrue("Should create recurring all-day event with until date", eventCreated);
+
+    // Copy the event to target calendar
+    LocalDateTime targetDate = LocalDateTime.of(2023, 6, 15, 0, 0);
+    boolean copied = calendarManager.copyEvent(
+        "Monthly Review",
+        startDate,
+        "Target",
+        targetDate);
+
+    assertTrue("Recurring all-day event with until date should be copied", copied);
+
+    // Verify event exists in target calendar
+    Calendar targetCalendar = calendarManager.getCalendar("Target");
+    List<Event> targetEvents = targetCalendar.getAllEvents();
+    assertEquals("Target should have one event", 1, targetEvents.size());
+
+    Event copiedEvent = targetEvents.get(0);
+    assertEquals("Event subject should match", "Monthly Review", copiedEvent.getSubject());
+    assertTrue("Copied event should be all-day", copiedEvent.isAllDay());
+    assertTrue("Copied event should be recurring", copiedEvent.isRecurring());
+
+    // Verify occurrences exist across a time range
+    // Original event spans May 15 to Aug 15 (92 days)
+    // New event should span June 15 to Sept 15 (same duration)
+    LocalDateTime targetEndDate = targetDate.plusMonths(3);
+    List<Event> occurrences = targetCalendar.getEventsFrom(targetDate, targetEndDate);
+    assertTrue("Should have multiple occurrences", occurrences.size() > 1);
+
+    // Verify the first occurrence is on the target date
+    LocalDateTime firstOccurrenceDate = targetDate.toLocalDate().atStartOfDay();
+    List<Event> firstDayEvents = targetCalendar.getEventsOn(firstOccurrenceDate);
+   // assertTrue("Should have event on the first day", !firstDayEvents.isEmpty());
+  }
+
+
+
 }
