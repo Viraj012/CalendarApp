@@ -447,8 +447,8 @@ public class CommandProcessorTest {
   @Test
   public void testEditEventsFrom() {
     processor.processCommand(
-        "create event Team Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 " +
-                "\repeats MWF for 5 times");
+        "create event Team Meeting from 2023-05-01T10:00 " +
+                "to 2023-05-01T11:00 repeats MWF for 5 times");
     textUI.reset();
 
     boolean result = processor.processCommand(
@@ -774,8 +774,10 @@ public class CommandProcessorTest {
     boolean result = processor.processCommand("print events on 2023-05-01");
     assertTrue(result);
 
-    String message = textUI.getLastMessage();
-
+    List<String> message = textUI.getAllMessages();
+    assertEquals( "1. Event1 - 2023-05-01 10:00 to 11:00", message.get(4));
+    assertEquals( "2. Event2 - 2023-05-01 14:00 to 15:00", message.get(5));
+    assertEquals( "3. Event3 - 2023-05-01 16:00 to 17:00", message.get(6));
   }
 
 
@@ -1456,15 +1458,16 @@ public class CommandProcessorTest {
 
 
   private static class TestTextUI implements TextUI {
-
     private String lastMessage;
     private String lastError;
     private final List<String> commands = new ArrayList<>();
+    private final List<String> allMessages = new ArrayList<>(); // Added list to store all messages
     private int commandIndex = 0;
 
     @Override
     public void displayMessage(String message) {
       lastMessage = message;
+      allMessages.add(message); // Store each message as it's displayed
     }
 
     @Override
@@ -1482,7 +1485,7 @@ public class CommandProcessorTest {
 
     @Override
     public void close() {
-      // close the ui
+      // Implementation unchanged
     }
 
     public void addCommand(String command) {
@@ -1500,8 +1503,18 @@ public class CommandProcessorTest {
     public void reset() {
       lastMessage = null;
       lastError = null;
+      // Don't clear allMessages here to allow checking after reset
+    }
+
+    // New method to get all messages
+    public List<String> getAllMessages() {
+      return new ArrayList<>(allMessages); // Return a copy to prevent modification
+    }
+
+    // Additional method to clear all messages if needed
+    public void clearAllMessages() {
+      allMessages.clear();
     }
   }
-
 
 }

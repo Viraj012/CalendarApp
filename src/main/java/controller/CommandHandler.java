@@ -3,6 +3,7 @@ package controller;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -13,6 +14,7 @@ import model.EventImpl;
 import model.RecurrencePattern;
 import view.TextUI;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -334,27 +336,8 @@ class CommandHandler {
    * @param events the events to print
    */
   private void printEvents(List<Event> events) {
-    // Sort events by start time for better readability
-    events.sort((e1, e2) -> {
-      // First sort by date
-      int dateCompare
-              = e1.getStartDateTime()
-              .toLocalDate()
-              .compareTo(e2.getStartDateTime().toLocalDate());
-      if (dateCompare != 0) {
-        return dateCompare;
-      }
-
-      // Then sort all-day events before timed events
-      if (e1.isAllDay() && !e2.isAllDay()) {
-        return -1;
-      } else if (!e1.isAllDay() && e2.isAllDay()) {
-        return 1;
-      }
-
-      // Finally sort by start time for timed events
-      return e1.getStartDateTime().compareTo(e2.getStartDateTime());
-    });
+    // Sort events by start date and time
+    events.sort(Comparator.comparing(Event::getStartDateTime));
 
     int eventNumber = 1;
     for (Event event : events) {
@@ -362,6 +345,7 @@ class CommandHandler {
       eventNumber++;
     }
   }
+
 
   /**
    * Handle an export command.
@@ -393,48 +377,32 @@ class CommandHandler {
 
     try (FileWriter writer = new FileWriter(file)) {
       // Write CSV header
-      writer.write(
-              "Subject,Start Date,Start Time,End Date,End Time," +
-                      "All Day Event,Description,Location,Private,Calendar,Timezone\n");
+      writer.write("Subject,Start Date,Start Time,End Date,End Time," +
+              "All Day Event,Description,Location,Private,Calendar,Timezone\n");
 
       DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
       DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
 
       for (Event event : events) {
-        if (event.isRecurring()) {
-          // Handle recurring events
-          RecurrencePattern pattern = ((EventImpl) event).getRecurrence();
-          List<LocalDateTime> occurrences
-                  = pattern.calculateRecurrences(event.getStartDateTime());
+        List<LocalDateTime> occurrences = event.isRecurring()
+                ? ((EventImpl) event).getRecurrence().calculateRecurrences(event.getStartDateTime())
+                : List.of(event.getStartDateTime());
 
-          for (LocalDateTime occurrence : occurrences) {
-            LocalDateTime occurrenceEndTime = null;
-            if (!event.isAllDay() && event.getEndDateTime() != null) {
-              // Calculate end time for this occurrence
-              long hoursDifference
-                      = event.getEndDateTime().getHour() - event.getStartDateTime().getHour();
-              long minutesDifference
-                      = event.getEndDateTime().getMinute() - event.getStartDateTime().getMinute();
-              occurrenceEndTime
-                      = occurrence.plusHours(hoursDifference).plusMinutes(minutesDifference);
-            }
+        for (LocalDateTime occurrence : occurrences) {
+          LocalDateTime occurrenceEndTime = (event.isAllDay() || event.getEndDateTime() == null)
+                  ? null
+                  : occurrence.plus(Duration.between(event.getStartDateTime(), event.getEndDateTime()));
 
-            writeSingleEventToCSV(writer, event, occurrence, occurrenceEndTime,
-                    dateFormatter, timeFormatter, calendar);
-          }
-        } else {
-          // Handle single events
-          writeSingleEventToCSV(writer, event, event.getStartDateTime(), event.getEndDateTime(),
-                  dateFormatter, timeFormatter, calendar);
+          writeSingleEventToCSV(writer, event, occurrence, occurrenceEndTime, dateFormatter, timeFormatter, calendar);
         }
       }
 
       return file.getAbsolutePath();
     } catch (IOException e) {
-      e.printStackTrace();
       return null;
     }
   }
+
 
   /**
    * Helper method to write a single event entry to the CSV file.
