@@ -1,38 +1,34 @@
-create event Algorithms Lecture from 2023-06-01T09:00 to 2023-06-01T10:30
-create event Study Break from 2023-06-01T12:00 to 2023-06-01T13:00 --private
-create event Database Systems Lab from 2023-06-01T14:00 to 2023-06-01T16:00 --description "Lab session for SQL queries" --location "Shillman Hall 305"
-create event Spring Graduation on 2023-06-05
-create event Summer Break Starts on 2023-06-19 --private
-create event AI Research Group from 2023-06-02T15:00 to 2023-06-02T17:00 repeats F until 2023-06-30 --autoDecline
-create event Thesis Meeting from 2023-06-06T13:00 to 2023-06-06T14:30 --description "Progress update with advisor" --location "West Village H 366" --private
-create event TA Office Hours from 2023-06-08T11:00 to 2023-06-08T13:00 --location "Snell Library" --description "Help with ML assignments"
-create event Morning Workout from 2023-06-01T07:00 to 2023-06-01T08:00
-create event Coding Club from 2023-06-01T17:00 to 2023-06-01T18:30
-create event "Machine Learning Lecture" from 2023-05-15T09:00 to 2023-05-15T10:30
-create event "Lunch with Classmates" from 2023-05-15T12:00 to 2023-05-15T13:00
-create event "Cloud Computing Workshop" from 2023-05-15T14:00 to 2023-05-15T15:30
-print events on 2023-06-01
-print events on 2023-06-02
-print events from 2023-06-01 to 2023-06-07
-print events from 2023-06-05 to 2023-06-12
+create calendar --name Work --timezone America/New_York
+create calendar --name Personal --timezone Europe/London
+create calendar --name Travel --timezone Asia/Tokyo
+use calendar --name Work
+create event "Team Meeting" from 2023-05-15T09:00 to 2023-05-15T10:00 --description "Weekly team sync" --location "Conference Room A"
+create event "Client Call" from 2023-05-15T14:00 to 2023-05-15T15:00 --private --location "Phone Booth 1"
+create event "Office Closed" on 2023-05-20 --description "Building maintenance"
+create event "Daily Standup" from 2023-05-16T09:30 to 2023-05-16T09:45 repeats MTWRF for 10 times
+create event "Weekly Review" from 2023-05-19T16:00 to 2023-05-19T17:00 repeats F until 2023-06-30
 print events on 2023-05-15
-show status on 2023-06-01T08:30
-show status on 2023-06-01T09:30
-show status on 2023-06-05T10:00
-edit event name Algorithms Lecture from 2023-06-01T09:00 to 2023-06-01T10:30 with "Advanced Algorithms"
-edit event location "Advanced Algorithms" from 2023-06-01T09:00 to 2023-06-01T10:30 with "Online Zoom Class"
-edit event description "Advanced Algorithms" from 2023-06-01T09:00 to 2023-06-01T10:30 with "Focus on graph algorithms"
-edit events name "TA Office Hours" "CS5800 Office Hours"
-edit events location "Thesis Meeting" "Professor's Office"
-create event Advisor Meeting from 2023-06-13T14:00 to 2023-06-13T14:30 repeats T for 3 times --autoDecline
-create event CS Career Fair from 2023-06-15T11:00 to 2023-06-15T15:00 --description "Summer internship opportunities" --location "Curry Student Center"
-print events from 2023-06-13 to 2023-06-20
-edit event startdate "Machine Learning Lecture" from 2023-05-15T09:00 to 2023-05-15T10:30 with 2023-05-15T08:30
-print events on 2023-05-15
-edit event enddate "Lunch with Classmates" from 2023-05-15T12:00 to 2023-05-15T13:00 with 2023-05-15T13:30
-print events on 2023-05-15
-edit event startdate "Cloud Computing Workshop" from 2023-05-15T14:00 to 2023-05-15T15:30 with 2023-05-15T14:30
-edit event enddate "Cloud Computing Workshop" from 2023-05-15T14:30 to 2023-05-15T15:30 with 2023-05-15T16:00
-print events on 2023-05-15
-export cal calendar_export.csv
+print events from 2023-05-15 to 2023-05-20
+show status on 2023-05-15T09:30
+show status on 2023-05-15T11:00
+edit event name "Team Meeting" from 2023-05-15T09:00 to 2023-05-15T10:00 with "All Hands Meeting"
+edit event location "All Hands Meeting" from 2023-05-15T09:00 to 2023-05-15T10:00 with "Main Auditorium"
+edit event description "All Hands Meeting" from 2023-05-15T09:00 to 2023-05-15T10:00 with "Company-wide quarterly update"
+edit event starttime "All Hands Meeting" from 2023-05-15T09:00 to 2023-05-15T10:00 with "2023-05-15T08:30"
+edit event endtime "All Hands Meeting" from 2023-05-15T08:30 to 2023-05-15T10:00 with "2023-05-15T10:30"
+use calendar --name Personal
+create event "Gym" from 2023-05-15T18:00 to 2023-05-15T19:30 --description "Cardio day"
+create event "Dinner with Friends" from 2023-05-16T19:00 to 2023-05-16T21:00 --location "Joe's Restaurant"
+create event "Weekend Getaway" from 2023-05-19T17:00 to 2023-05-21T20:00
+copy event "Gym" on 2023-05-15T18:00 --target Work to 2023-05-17T18:00
+copy events on 2023-05-16 --target Work to 2023-05-18
+use calendar --name Travel
+create event "Flight to Tokyo" from 2023-06-01T10:00 to 2023-06-01T22:00
+create event "Sightseeing" from 2023-06-02T09:00 to 2023-06-02T17:00
+create event "Business Meeting" from 2023-06-03T14:00 to 2023-06-03T16:00
+copy events between 2023-06-01 and 2023-06-03 --target Work to 2023-06-15
+edit calendar --name Personal --property timezone Europe/Paris
+use calendar --name Work
+export cal events.csv
+print events from 2023-05-15 to 2023-06-30
 exit

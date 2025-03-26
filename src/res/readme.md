@@ -1,135 +1,69 @@
-## How to Run
+# Calendar Application
 
-1. Compile all Java files:
-   ```
-   javac -d out *.java controller/*.java model/*.java view/*.java
-   ```
+## Design Changes
 
-2. Run the application:
-   ```
-   java -cp out CalendarApp --mode interactive
-   ```
-   or
-   ```
-   java -cp out CalendarApp --mode headless commands.txt
-   ```
+### 1. Multiple Calendar Support
+- **Added**: `CalendarManager` class to manage multiple calendars
+- **Added**: Calendar creation, editing, and switching functionality
+- **Justification**: Allows users to maintain separate calendars for different purposes (work, personal, etc.)
 
-## Features and Functionality
+### 2. Cross-Calendar Operations
+- **Added**: Ability to copy events between calendars
+- **Added**: Support for copying single events, day events, and date ranges
+- **Added**: Automatic timezone conversion during copying
+- **Justification**: Enhances productivity by allowing events to be reused across calendars
 
-### Event Creation
-- **Regular Events**: Create events with specific start and end times
-    - Automatically checks for conflicts with existing events
-    - Supports adding description, location, and privacy settings
-- **All-Day Events**: Create events that occupy an entire day
-    - No specific start/end time needed
-- **Recurring Events**: Create events that repeat on specific days of the week
-    - Can specify number of occurrences or an end date
-    - Checks for conflicts across all occurrences
-    - Supports patterns like daily, specific weekdays (MTWRFSU format)
+### 3. Timezone Management
+- **Added**: Support for creating calendars with different timezones
+- **Added**: Automatic event time adjustment when changing calendar timezone
+- **Justification**: Improves usability for users who work across multiple timezones
 
-### Event Management
-- **Edit Single Event**: Modify properties of a specific event instance
-    - Can change name, description, location, start/end times, privacy
-    - When editing date/time properties, the system does NOT check for conflicts
-    - Time range validation ensures end time is always after start time
-- **Edit Events From Date**: Modify all future occurrences of a recurring event
-    - Preserves past occurrences with original properties
-    - Updates only specified occurrences from the given date
-- **Edit All Events**: Modify all events with the same name
-    - Applies changes to both recurring and non-recurring events
+### 4. Improved Event Conflict Management
+- **Modified**: Enhanced conflict detection for recurring events
+- **Modified**: Added conflict checking when editing event date/time properties
+- **Justification**: Prevents scheduling errors and improves reliability
 
-### Event Viewing
-- **Daily View**: Shows all events scheduled for a specific date
-    - Includes one-time events and recurring event occurrences
-- **Date Range View**: Shows all events within a specified time period
-    - Sorted chronologically for easy reading
 
-### Conflict Management
-- **Auto-Decline**: Optional flag that rejects event creation if conflicts exist
-- **Conflict Detection**: Prevents scheduling overlapping events when enabled
-- **Availability Check**: Query whether you're busy or free at a specific time
 
-### Other Functions
-- **CSV Export**: Export entire calendar to standard CSV format
-    - Compatible with other calendar applications
-- **Interactive and Batch Modes**: Run commands interactively or from a file
+## How to Run the Program
 
-### Command Processing
-- **Input Validation**: Robust error handling for malformed commands
-- **Error Handling**:
-    - In interactive mode, errors are displayed and you can continue entering new commands
-    - In headless mode, the program exits when encountering an error
-- **Graceful Exit**: Properly closes resources when exiting
+1. Navigate to the directory containing the JAR file
+2. Run the program using one of the following commands:
+
+```
+# For interactive mode
+java -jar calendar.jar --mode interactive
+
+# For headless mode with a commands file
+java -jar calendar.jar --mode headless commands.txt
+```
+
+## Functional Status
+
+### Working Features
+- All calendar management functions (create, edit, use)
+- Event copying between calendars (single events, days, date ranges)
+- Automatic timezone conversion for events
+- All previously implemented features (event creation, editing, viewing, etc.)
+
+### Known Issues
+- None
 
 ## Team Contributions
 
-- **Vishal Rajpurohit**:
-    - Implemented Calendar interface and CalendarImpl class
-    - Developed Event interface and EventImpl class
-    - Created RecurrencePattern class for handling repeating events
-    - Implemented conflict detection and resolution for events
+### Vishal Rajpurohit
+- Implemented event copying functionality
+- Enhanced conflict detection and resolution for events
+- Implemented testing for event copying functionality
 
-- **Sanskar Sharma**:
-    - Developed command parsing and processing framework
-    - Implemented all UI classes (InteractiveUI and HeadlessUI)
-    - Created the DateTimeUtil class for date/time operations
-    - Integrated components and implemented the main application
+### Sanskar Sharma
+- Developed calendar management system
+- Implemented timezone handling and conversion
+- Created inter-calendar operations framework
+- Integrated new features with existing codebase
 
-## Notes for Graders
+## Additional Notes for Graders
 
-- The application follows MVC architecture
-- Dates use ISO format (YYYY-MM-DDThh:mm)
-- Weekdays for recurrence use: M=Monday, T=Tuesday, W=Wednesday, R=Thursday, F=Friday, S=Saturday, U=Sunday# Calendar Application
-
-
-## Command Examples
-
-### Creating Events
-```
-# Regular event
-create event <eventName> from <dateTimeString> to <dateTimeString>
-create event --autoDecline <eventName> from <dateTimeString> to <dateTimeString>
-
-# All-day event
-create event <eventName> on <dateString>
-create event --autoDecline <eventName> on <dateString>
-
-# Recurring event with number of occurrences
-create event <eventName> from <dateTimeString> to <dateTimeString> repeats <weekdays> for <number> times
-
-# Recurring event with end date
-create event <eventName> from <dateTimeString> to <dateTimeString> repeats <weekdays> until <dateString>
-
-# Event with additional parameters
-create event --autoDecline <eventName> from <dateTimeString> to <dateTimeString> --description "<description>" --location "<location>" --private
-```
-
-### Editing Events
-```
-# Edit a specific event
-edit event <property> <eventName> from <dateTimeString> to <dateTimeString> with "<newValue>"
-
-# Edit all future occurrences from a date
-edit events <property> <eventName> from <dateTimeString> with "<newValue>"
-
-# Edit all events with a name
-edit events <property> "<eventName>" with "<newValue>"
-```
-
-### Viewing & Managing Events
-```
-# View events on a specific day
-print events on <dateString>
-
-# View events in a date range
-print events from <dateString> to <dateString>
-
-# Check availability
-show status on <dateTimeString>
-
-# Export calendar
-export cal <fileName>
-
-# Exit application
-exit
-```
+- The application maintains backward compatibility with all commands from the previous version
+- We've extensively tested timezone conversion to ensure accuracy across different time zones
+- The design follows the MVC architecture established in the previous version

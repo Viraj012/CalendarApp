@@ -329,7 +329,7 @@ public class EditTimezoneTest {
     for (Event event : events) {
       if (event.getSubject().equals(name) ||
               event.getSubject().contains(name) ||
-              event.getSubject().replace(" [Recurring]", "").equals(name)) {
+              event.getSubject().equals(name)) {
         return event;
       }
     }

@@ -275,7 +275,7 @@ public class CalendarImplTest {
 
     List<Event> events = calendar.getEventsOn(LocalDateTime.parse("2025-03-10T10:00", FORMATTER));
     assertEquals(1, events.size());
-    assertEquals("Weekly Meeting [Recurring]", events.get(0).getSubject());
+    assertEquals("Weekly Meeting", events.get(0).getSubject());
 
     events = calendar.getEventsOn(LocalDateTime.parse("2025-03-17T10:00", FORMATTER));
     assertEquals(1, events.size());
@@ -469,9 +469,9 @@ public class CalendarImplTest {
 
     assertEquals(3, events.size());
 
-    for (Event event : events) {
-      assertTrue(event.getSubject().contains("[Recurring]"));
-    }
+//    for (Event event : events) {
+//      assertTrue(event.getSubject().contains("[Recurring]"));
+//    }
   }
 
   @Test

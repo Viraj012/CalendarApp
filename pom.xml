@@ -44,6 +44,12 @@
             <param>CommandHandlerTest</param>
             <param>CommandProcessorTest</param>
             <param>CalendarAppTest</param>
+            <params>CalendarManagerTest</params>
+            <params>CalendarManagerCopyTest</params>
+            <params>CopyEventTest</params>
+            <params>EditTimezoneTest</params>
+            <params>CalendarManagerTest</params>
+            <params>CalendarManagerCopyEventDebugTest</params>
           </targetTests>
         </configuration>
       </plugin>
