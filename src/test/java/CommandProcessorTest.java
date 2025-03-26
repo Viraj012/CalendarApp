@@ -1455,6 +1455,252 @@ public class CommandProcessorTest {
             textUI.getLastError());
   }
 
+  @Test
+  public void testCopyEventsBetweenWithInvalidFormat() {
+    boolean result = processor.processCommand(
+            "copy events between 2023-05-01"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertEquals("Correct error message should be displayed",
+            "Invalid copy events command format. Expected: " +
+                    "copy events on <dateString> --target <calendarName> to <dateString> " +
+                    "OR copy events between <dateString> and <dateString> " +
+                    "--target <calendarName> to <dateString>",
+            textUI.getLastError());
+  }
+
+  @Test
+  public void testCopyEventsBetweenWithIncompleteCommand() {
+    boolean result = processor.processCommand(
+            "copy events between 2023-05-01 and 2023-05-05"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertEquals("Correct error message should be displayed",
+            "Invalid copy events command format. Expected: " +
+                    "copy events on <dateString> --target <calendarName> to <dateString> " +
+                    "OR copy events between <dateString> and <dateString> " +
+                    "--target <calendarName> to <dateString>",
+            textUI.getLastError());
+  }
+
+  @Test
+  public void testCopyEventsBetweenWithInvalidStartDate() {
+    boolean result = processor.processCommand(
+            "copy events between invalid-date and 2023-05-05 --target TargetCal to 2023-06-05"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Error should be displayed for invalid start date", textUI.getLastError());
+  }
+
+  @Test
+  public void testCopyEventsBetweenWithInvalidEndDate() {
+    boolean result = processor.processCommand(
+            "copy events between 2023-05-01 and invalid-date --target TargetCal to 2023-06-05"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Error should be displayed for invalid end date", textUI.getLastError());
+  }
+
+  @Test
+  public void testCopyEventsBetweenWithInvalidTargetDate() {
+    boolean result = processor.processCommand(
+            "copy events between 2023-05-01 and 2023-05-05 --target TargetCal to invalid-date"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Error should be displayed for invalid target date", textUI.getLastError());
+  }
+
+  @Test
+  public void testCopyEventsBetweenWithStartDateAfterEndDate() {
+    boolean result = processor.processCommand(
+            "copy events between 2023-05-10 and 2023-05-05 --target TargetCal to 2023-06-05"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Error should be displayed when start date is after end date", textUI.getLastError());
+  }
+
+  @Test
+  public void testCopyEventsBetweenWithInvalidTargetCalendar() {
+    boolean result = processor.processCommand(
+            "copy events between 2023-05-01 and 2023-05-05 --target NonExistentCal to 2023-06-05"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Error should be displayed for non-existent target calendar", textUI.getLastError());
+  }
+
+  @Test
+  public void testCopyEventsBetweenWithSameStartAndEndDate() {
+    boolean result = processor.processCommand(
+            "copy events between 2023-05-01 and 2023-05-01 --target WorkCal to 2023-06-05"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Command should be processed without errors", textUI.getLastError());
+  }
+
+  @Test
+  public void testCopyEventsBetweenWithLongDateRange() {
+    boolean result = processor.processCommand(
+            "copy events between 2023-01-01 and 2023-12-31 --target WorkCal to 2024-01-01"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Command should be processed without errors for long date range", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditEventName() {
+    // First create the event
+    boolean createResult = processor.processCommand(
+            "create event \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00"
+    );
+    assertTrue("Event creation should succeed", createResult);
+
+    // Then edit the event
+    boolean result = processor.processCommand(
+            "edit event name \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"All Hands Meeting\""
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNull("No error should be displayed", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditEventLocation() {
+    // First create the event
+    boolean createResult = processor.processCommand(
+            "create event \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00"
+    );
+    assertTrue("Event creation should succeed", createResult);
+
+    // Then edit the event
+    boolean result = processor.processCommand(
+            "edit event location \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"Main Auditorium\""
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNull("No error should be displayed", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditEventDescription() {
+    // First create the event
+    boolean createResult = processor.processCommand(
+            "create event \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00"
+    );
+    assertTrue("Event creation should succeed", createResult);
+
+    // Then edit the event
+    boolean result = processor.processCommand(
+            "edit event description \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"Updated team sync description\""
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNull("No error should be displayed", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditEventStartTime() {
+    // First create the event
+    boolean createResult = processor.processCommand(
+            "create event \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00"
+    );
+    assertTrue("Event creation should succeed", createResult);
+
+    // Then edit the event
+    boolean result = processor.processCommand(
+            "edit event starttime \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with 2023-05-15T08:30"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNull("No error should be displayed", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditEventEndTime() {
+    // First create the event
+    boolean createResult = processor.processCommand(
+            "create event \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00"
+    );
+    assertTrue("Event creation should succeed", createResult);
+
+    // Then edit the event
+    boolean result = processor.processCommand(
+            "edit event endtime \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with 2023-05-15T10:30"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNull("No error should be displayed", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditEventWithQuotedNewValue() {
+    // First create the event
+    boolean createResult = processor.processCommand(
+            "create event \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00"
+    );
+    assertTrue("Event creation should succeed", createResult);
+
+    // Then edit the event
+    boolean result = processor.processCommand(
+            "edit event name \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"All Hands Meeting\""
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNull("No error should be displayed", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditEventWithInvalidEventName() {
+    // No need to create an event for this test as it specifically checks non-existent event
+
+    boolean result = processor.processCommand(
+            "edit event name \"Nonexistent Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"New Meeting Name\""
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Error should be displayed for nonexistent event", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditEventWithInvalidDateRange() {
+    // First create the event
+    boolean createResult = processor.processCommand(
+            "create event \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00"
+    );
+    assertTrue("Event creation should succeed", createResult);
+
+    // Then attempt to edit with an incorrect date range
+    boolean result = processor.processCommand(
+            "edit event name \"Team Meeting\" from 2023-05-16T09:00 to 2023-05-16T10:00 with \"Different Meeting\""
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Error should be displayed for invalid date range", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditEventWithInvalidProperty() {
+    // First create the event
+    boolean createResult = processor.processCommand(
+            "create event \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00"
+    );
+    assertTrue("Event creation should succeed", createResult);
+
+    // Then attempt to edit with an invalid property
+    boolean result = processor.processCommand(
+            "edit event priority \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"High\""
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Error should be displayed for invalid property", textUI.getLastError());
+  }
+
+  @Test
+  public void testEditEventWithInvalidDateFormat() {
+    // First create the event
+    boolean createResult = processor.processCommand(
+            "create event \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00"
+    );
+    assertTrue("Event creation should succeed", createResult);
+
+    // Then attempt to edit with an invalid date format
+    boolean result = processor.processCommand(
+            "edit event starttime \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with invalid-date"
+    );
+    assertTrue("Command should return true to continue processing", result);
+    assertNotNull("Error should be displayed for invalid date format", textUI.getLastError());
+  }
+
 
 
   private static class TestTextUI implements TextUI {
