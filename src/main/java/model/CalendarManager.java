@@ -27,7 +27,7 @@ public class CalendarManager {
    * @param name     the unique name for the calendar
    * @param timezone the timezone for the calendar
    * @return true if the calendar was created successfully, false if a calendar with the same name
-   * already exists
+   *     already exists
    */
   public boolean createCalendar(String name, ZoneId timezone) {
     if (calendars.containsKey(name)) {
@@ -89,7 +89,7 @@ public class CalendarManager {
    * @param property     the property to edit ("name" or "timezone")
    * @param newValue     the new value for the property
    * @return true if the property was successfully updated, false if the calendar doesn't exist, the
-   * property is invalid, or the new value is invalid
+   *     property is invalid, or the new value is invalid
    */
 
   public boolean editCalendar(String calendarName, String property, String newValue) {
@@ -213,7 +213,7 @@ public class CalendarManager {
    * @param targetCalendarName the name of the calendar to copy the event to
    * @param targetDateTime     the new start date and time for the copied event
    * @return true if the event was successfully copied, false if the current calendar is not set,
-   * the target calendar doesn't exist, or the event is not found
+   *     the target calendar doesn't exist, or the event is not found
    */
 
   public boolean copyEvent(String eventName, LocalDateTime startDateTime,
@@ -409,7 +409,7 @@ public class CalendarManager {
    * @param targetCalendarName the name of the calendar to copy events to
    * @param targetDate         the target date for the copied events
    * @return true if at least one event was copied successfully, false if the current calendar is
-   * not set, the target calendar doesn't exist, or no events exist on the source date
+   *     not set, the target calendar doesn't exist, or no events exist on the source date
    */
   public boolean copyEventsOnDay(LocalDateTime sourceDate, String targetCalendarName,
       LocalDateTime targetDate) {
@@ -480,7 +480,7 @@ public class CalendarManager {
    * @param targetCalendarName the name of the calendar to copy events to
    * @param targetStartDate    the target start date for the copied events
    * @return true if at least one event was copied successfully, false if the current calendar is
-   * not set, the target calendar doesn't exist, or no events exist in the source range
+   *     not set, the target calendar doesn't exist, or no events exist in the source range
    */
 
   public boolean copyEventsInRange(LocalDateTime startDate, LocalDateTime endDate,

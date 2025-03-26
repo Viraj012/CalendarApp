@@ -11,20 +11,37 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of the Calendar interface.
+ */
 public class CalendarImpl implements Calendar {
 
   private String name;
   private ZoneId timezone;
   private List<Event> events;
 
+  /**
+   * Creates a new calendar with default timezone.
+   */
   public CalendarImpl() {
     this("Default", ZoneId.systemDefault());
   }
 
+  /**
+   * Creates a new calendar with specified name and default timezone.
+   *
+   * @param name the name of the calendar
+   */
   public CalendarImpl(String name) {
     this(name, ZoneId.systemDefault());
   }
 
+  /**
+   * Creates a new calendar with specified name and timezone.
+   *
+   * @param name     the name of the calendar
+   * @param timezone the timezone for the calendar
+   */
   public CalendarImpl(String name, ZoneId timezone) {
     this.name = name;
     this.timezone = timezone;
@@ -339,7 +356,9 @@ public class CalendarImpl implements Calendar {
 
   private boolean updateEventWithConflictCheck(EventImpl event, String property, String newValue) {
     EventImpl copy = createEventCopy(event);
-    if (!updateEventProperty(copy, property, newValue)) return false;
+    if (!updateEventProperty(copy, property, newValue)) {
+      return false;
+    }
 
     if (isTimeProperty(property) && hasConflictsExcluding(
         copy.getStartDateTime(), copy.getEndDateTime(),
@@ -585,7 +604,8 @@ public class CalendarImpl implements Calendar {
     if (original.isAllDay()) {
       copy = new EventImpl(original.getSubject(), original.getStartDateTime());
     } else {
-      copy = new EventImpl(original.getSubject(), original.getStartDateTime(), original.getEndDateTime());
+      copy = new EventImpl(original.getSubject(),
+              original.getStartDateTime(), original.getEndDateTime());
     }
 
     copy.setDescription(original.getDescription());
@@ -613,20 +633,20 @@ public class CalendarImpl implements Calendar {
       }
     }
 
-//    // Check without [Recurring] suffix
-//    if (!nameMatches && storedSubject.contains(" [Recurring]")) {
-//      String nameWithoutSuffix = storedSubject.replace(" [Recurring]", "");
-//      if (nameWithoutSuffix.equals(eventName) || nameWithoutSuffix.equals(unquotedName)) {
-//        nameMatches = true;
-//      }
-//
-//      // Also check with quotes
-//      if (!nameMatches && !eventName.startsWith("\"") && !eventName.endsWith("\"")) {
-//        if (nameWithoutSuffix.equals("\"" + eventName + "\"")) {
-//          nameMatches = true;
-//        }
-//      }
-//    }
+    //    // Check without [Recurring] suffix
+    //    if (!nameMatches && storedSubject.contains(" [Recurring]")) {
+    //      String nameWithoutSuffix = storedSubject.replace(" [Recurring]", "");
+    //      if (nameWithoutSuffix.equals(eventName) || nameWithoutSuffix.equals(unquotedName)) {
+    //        nameMatches = true;
+    //      }
+    //
+    //      // Also check with quotes
+    //      if (!nameMatches && !eventName.startsWith("\"") && !eventName.endsWith("\"")) {
+    //        if (nameWithoutSuffix.equals("\"" + eventName + "\"")) {
+    //          nameMatches = true;
+    //        }
+    //      }
+    //    }
 
     if (!nameMatches) {
       return false;
@@ -686,7 +706,8 @@ public class CalendarImpl implements Calendar {
         .anyMatch(e -> checkEventConflict(e, start, end, allDay));
   }
 
-  private boolean checkEventConflict(Event e, LocalDateTime start, LocalDateTime end, boolean allDay) {
+  private boolean checkEventConflict(Event e, LocalDateTime start,
+                                     LocalDateTime end, boolean allDay) {
     if (e.isRecurring()) {
       return ((EventImpl) e).getRecurrence().calculateRecurrences(e.getStartDateTime()).stream()
           .anyMatch(d -> checkOccurrenceConflict(d, e, start, end, allDay));
@@ -726,10 +747,10 @@ public class CalendarImpl implements Calendar {
     occ.setLocation(original.getLocation());
     occ.setPublic(original.isPublic());
 
-//    String subject = occ.getSubject();
-//    if (!subject.contains("[Recurring]")) {
-//      occ.setSubject(subject + " [Recurring]");
-//    }
+    //    String subject = occ.getSubject();
+    //    if (!subject.contains("[Recurring]")) {
+    //      occ.setSubject(subject + " [Recurring]");
+    //    }
 
     return occ;
   }

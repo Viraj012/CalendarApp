@@ -1,7 +1,6 @@
 import controller.CommandProcessor;
 import model.Calendar;
 import model.CalendarImpl;
-import model.Event;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,13 +23,12 @@ import static org.junit.Assert.assertTrue;
  */
 public class CommandProcessorTest {
 
-  private Calendar calendar;
   private TestTextUI textUI;
   private CommandProcessor processor;
 
   @Before
   public void setUp() {
-    calendar = new CalendarImpl();
+    Calendar calendar = new CalendarImpl();
     textUI = new TestTextUI();
     processor = new CommandProcessor(calendar, textUI);
   }
@@ -67,7 +65,8 @@ public class CommandProcessorTest {
   public void testInvalidCreateCommand() {
     boolean result = processor.processCommand("create something");
     assertTrue(result);
-    assertEquals("Invalid create command. Expected 'create event' or 'create calendar'", textUI.getLastError());
+    assertEquals("Invalid create command. Expected 'create event' or 'create calendar'",
+            textUI.getLastError());
   }
 
   @Test
@@ -89,7 +88,8 @@ public class CommandProcessorTest {
   public void testInvalidEditCommand() {
     boolean result = processor.processCommand("edit something");
     assertTrue(result);
-    assertEquals("Invalid edit command. Expected 'edit event', 'edit events', or 'edit calendar'",
+    assertEquals("Invalid edit command. Expected 'edit event', 'edit events', " +
+                    "or 'edit calendar'",
         textUI.getLastError());
   }
 
@@ -280,7 +280,8 @@ public class CommandProcessorTest {
         "edit event invalidproperty Meeting from 2023-03-15T10:00 "
             + "to 2023-03-15T11:00 with \"New Value\"");
     assertTrue(result);
-    assertEquals( "Failed to update event (not found, invalid property, or would create conflict)", textUI.getLastError());
+    assertEquals( "Failed to update event (not found, invalid property, " +
+            "or would create conflict)", textUI.getLastError());
   }
 
   @Test
@@ -289,7 +290,8 @@ public class CommandProcessorTest {
         "edit event description \"Non-Existent Meeting\" from 2023-03-15T10:00 "
             + "to 2023-03-15T11:00 with \"Updated description\"");
     assertTrue(result);
-    assertEquals("Failed to update event (not found, invalid property, or would create conflict)", textUI.getLastError());
+    assertEquals("Failed to update event (not found, invalid property, " +
+            "or would create conflict)", textUI.getLastError());
   }
 
   @Test
@@ -347,33 +349,6 @@ public class CommandProcessorTest {
     assertEquals("available", textUI.getLastMessage());
   }
 
-//  @Test
-//  public void testEditCreatingConflict() {
-//
-//    processor.processCommand("create event \"Meeting A\" "
-//        + "from 2023-05-15T09:00 to 2023-05-15T10:00");
-//    processor.processCommand("create event \"Meeting B\" "
-//        + "from 2023-05-15T11:00 to 2023-05-15T12:00");
-//
-//    textUI.reset();
-//    processor.processCommand("edit event startdate \"Meeting A\" "
-//        + "from 2023-05-15T09:00 to 2023-05-15T10:00 with 2023-05-15T08:30");
-//
-//    assertTrue(textUI.getLastMessage().contains("Event updated successfully"));
-//
-//    LocalDateTime date = LocalDateTime.of(2023, 5, 15, 0, 0);
-//    List<Event> events = calendar.getEventsOn(date);
-//    assertEquals(1, events.size());
-//
-//    for (Event event : events) {
-//      if (event.getSubject().equals("Meeting B")) {
-//        assertEquals(LocalDateTime.of(2023, 5, 15, 11, 0), event.getStartDateTime());
-//        assertEquals(LocalDateTime.of(2023, 5, 15, 12, 0), event.getEndDateTime());
-//      }
-//    }
-//  }
-
-
   @Test
   public void testCreateAllDayEvent() {
     boolean result = processor.processCommand("create event Meeting on 2023-05-01");
@@ -384,7 +359,8 @@ public class CommandProcessorTest {
   @Test
   public void testCreateEventWithOptions() {
     boolean result = processor.processCommand(
-        "create event Meeting on 2023-05-01 --autoDecline --description \"Important discussion\" --location \"Conference Room\" --private");
+        "create event Meeting on 2023-05-01 --autoDecline --description " +
+                "\"Important discussion\" --location \"Conference Room\" --private");
     assertTrue(result);
     assertTrue(textUI.getLastMessage().contains("All-day event created successfully"));
   }
@@ -416,7 +392,8 @@ public class CommandProcessorTest {
   @Test
   public void testCreateRecurringEvent() {
     boolean result = processor.processCommand(
-        "create event Weekly Meeting from 2023-05-01T09:00 to 2023-05-01T10:30 repeats MTW for 5 times");
+        "create event Weekly Meeting from 2023-05-01T09:00 to 2023-05-01T10:30 " +
+                "repeats MTW for 5 times");
     assertTrue(result);
     assertTrue(textUI.getLastMessage().contains("Recurring event created successfully"));
   }
@@ -424,7 +401,8 @@ public class CommandProcessorTest {
   @Test
   public void testCreateRecurringEventWithUntil() {
     boolean result = processor.processCommand(
-        "create event Weekly Meeting from 2023-05-01T09:00 to 2023-05-01T10:30 repeats W until 2023-06-01");
+        "create event Weekly Meeting from 2023-05-01T09:00 to 2023-05-01T10:30 " +
+                "repeats W until 2023-06-01");
     assertTrue(result);
     assertTrue(textUI.getLastMessage().contains("Recurring event created successfully"));
     textUI.reset();
@@ -433,13 +411,6 @@ public class CommandProcessorTest {
     assertEquals("1. Weekly Meeting - 2023-05-03 09:00 to 10:30", textUI.getLastMessage());
   }
 
-//  @Test
-//  public void testCreateRecurringEventWithUntilError() {
-//    boolean result = processor.processCommand(
-//            "create event \"\" from 2023-05-01T09:00 to 2023-05-01T10:30 repeats W until 2023-06-01");
-//    assertTrue(result);
-//    assertEquals("", textUI.getLastMessage());
-//  }
 
   @Test
   public void testCreateEventInvalid() {
@@ -476,7 +447,8 @@ public class CommandProcessorTest {
   @Test
   public void testEditEventsFrom() {
     processor.processCommand(
-        "create event Team Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 repeats MWF for 5 times");
+        "create event Team Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 " +
+                "\repeats MWF for 5 times");
     textUI.reset();
 
     boolean result = processor.processCommand(
@@ -495,11 +467,13 @@ public class CommandProcessorTest {
     assertTrue(result);
     assertEquals("All events updated successfully", textUI.getLastMessage());
   }
+
   @Test
   public void testEditInvalid() {
     boolean result = processor.processCommand("edit something name Meeting with \"New Name\"");
     assertTrue(result);
-    assertEquals("Invalid edit command. Expected 'edit event', 'edit events', or 'edit calendar'",
+    assertEquals("Invalid edit command. Expected 'edit event', " +
+                    "'edit events', or 'edit calendar'",
         textUI.getLastError());
 
     result = processor.processCommand("edit event name");
@@ -643,17 +617,21 @@ public class CommandProcessorTest {
     processor.processCommand("create event Meeting from 2023-03-15T10:00 to 2023-03-15T11:00");
     textUI.reset();
     boolean result = processor.processCommand(
-        "edit event invalidproperty Meeting from 2023-03-15T10:00 to 2023-03-15T11:00 with \"New Value\"");
+        "edit event invalidproperty Meeting from 2023-03-15T10:00 " +
+                "to 2023-03-15T11:00 with \"New Value\"");
     assertTrue(result);
-    assertEquals("Failed to update event (not found, invalid property, or would create conflict)", textUI.getLastError());
+    assertEquals("Failed to update event (not found, invalid property, " +
+            "or would create conflict)", textUI.getLastError());
   }
 
   @Test
   public void testHandleEditWithNonExistentEvent() {
     boolean result = processor.processCommand(
-        "edit event description \"Non-Existent Meeting\" from 2023-03-15T10:00 to 2023-03-15T11:00 with \"Updated description\"");
+        "edit event description \"Non-Existent Meeting\" from 2023-03-15T10:00 " +
+                "to 2023-03-15T11:00 with \"Updated description\"");
     assertTrue(result);
-    assertEquals("Failed to update event (not found, invalid property, or would create conflict)", textUI.getLastError());
+    assertEquals("Failed to update event (not found, invalid property, " +
+            "or would create conflict)", textUI.getLastError());
   }
 
 
@@ -702,7 +680,8 @@ public class CommandProcessorTest {
     textUI.reset();
 
     boolean result = processor.processCommand(
-        "edit event STARTDATE Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"2023-06-01\"");
+        "edit event STARTDATE Meeting from 2023-05-01T10:00 " +
+                "to 2023-05-01T11:00 with \"2023-06-01\"");
     assertTrue(result);
   }
 
@@ -886,7 +865,8 @@ public class CommandProcessorTest {
   public void testParseEditSingleEventCommandWithMissingToOrWith() {
 
     boolean result = processor.processCommand(
-        "edit event name Meeting from 2023-05-01T10:00 something 2023-05-01T11:00 something \"New Name\"");
+        "edit event name Meeting from 2023-05-01T10:00 something " +
+                "2023-05-01T11:00 something \"New Name\"");
     assertTrue(result);
     assertEquals("Invalid edit command format", textUI.getLastError());
   }
@@ -899,7 +879,8 @@ public class CommandProcessorTest {
     textUI.reset();
 
     boolean result = processor.processCommand(
-        "edit event name \"Team Meeting\" from 2023-05-01T10:00 to 2023-05-01T11:00 with \"Product Discussion\"");
+        "edit event name \"Team Meeting\" from 2023-05-01T10:00 to " +
+                "2023-05-01T11:00 with \"Product Discussion\"");
     assertTrue(result);
     assertEquals("Event updated successfully", textUI.getLastMessage());
   }
@@ -911,7 +892,8 @@ public class CommandProcessorTest {
     textUI.reset();
 
     boolean result = processor.processCommand(
-        "edit event description Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 with \"This is a \"special\" meeting\"");
+        "edit event description Meeting from 2023-05-01T10:00 to 2023-05-01T11:00 " +
+                "with \"This is a \"special\" meeting\"");
     assertTrue(result);
     assertEquals("Event updated successfully", textUI.getLastMessage());
   }
@@ -937,7 +919,8 @@ public class CommandProcessorTest {
     textUI.reset();
 
     boolean result = processor.processCommand(
-        "edit event description \"Important Meeting\" from 2023-05-01T10:00 to 2023-05-01T11:00 with \"This is a \"critical\" update\"");
+        "edit event description \"Important Meeting\" from 2023-05-01T10:00 " +
+                "to 2023-05-01T11:00 with \"This is a \"critical\" update\"");
     assertTrue(result);
     assertEquals("Event updated successfully", textUI.getLastMessage());
 
@@ -1010,15 +993,19 @@ public class CommandProcessorTest {
 
     // Create event
     processor.processCommand(
-            "create event \"International Meeting\" from 2023-03-21T13:00 to 2023-03-21T14:30 " +
-                    "--description \"Conference call with London office\" --location \"Conference Room A\""
+            "create event \"International Meeting\" from 2023-03-21T13:00 " +
+                    "to 2023-03-21T14:30 " +
+                    "--description \"Conference call with London office\" " +
+                    "--location \"Conference Room A\""
     );
-    assertEquals("Event created successfully: \"International Meeting\"", textUI.getLastMessage());
+    assertEquals("Event created successfully: \"International Meeting\"",
+            textUI.getLastMessage());
     textUI.reset();
 
     // Copy event
     boolean result = processor.processCommand(
-            "copy event \"International Meeting\" on 2023-03-21T13:00 --target London to 2023-03-21T13:00"
+            "copy event \"International Meeting\" on 2023-03-21T13:00 --target " +
+                    "London to 2023-03-21T13:00"
     );
 
     // Verify success message and result
@@ -1041,20 +1028,24 @@ public class CommandProcessorTest {
     // Create event
     processor.processCommand(
             "create event \"International Meeting\" from 2023-03-21T13:00 to 2023-03-21T14:30 " +
-                    "--description \"Conference call with London office\" --location \"Conference Room A\""
+                    "--description \"Conference call with London office\" " +
+                    "--location \"Conference Room A\""
     );
-    assertEquals("Event created successfully: \"International Meeting\"", textUI.getLastMessage());
+    assertEquals("Event created successfully: \"International Meeting\"",
+            textUI.getLastMessage());
     textUI.reset();
 
     // Attempt to copy to non-existent calendar
     boolean result = processor.processCommand(
-            "copy event \"International Meeting\" on 2023-03-21T13:00 --target Nonexistent to 2023-03-21T13:00"
+            "copy event \"International Meeting\" on 2023-03-21T13:00 --target " +
+                    "Nonexistent to 2023-03-21T13:00"
     );
 
     // Verify error message
     assertTrue("Command should return true", result);
     assertEquals(
-            "Failed to copy event (event not found, target calendar not found, or would create conflict)",
+            "Failed to copy event (event not found, target calendar not found, " +
+                    "or would create conflict)",
             textUI.getLastError()
     );
   }
@@ -1077,14 +1068,16 @@ public class CommandProcessorTest {
             "create event \"Morning Meeting\" from 2023-03-21T09:00 to 2023-03-21T10:00 " +
                     "--description \"Daily standup\""
     );
-    assertEquals("Event created successfully: \"Morning Meeting\"", textUI.getLastMessage());
+    assertEquals("Event created successfully: \"Morning Meeting\"",
+            textUI.getLastMessage());
     textUI.reset();
 
     processor.processCommand(
             "create event \"Afternoon Meeting\" from 2023-03-21T14:00 to 2023-03-21T15:00 " +
                     "--description \"Project review\""
     );
-    assertEquals("Event created successfully: \"Afternoon Meeting\"", textUI.getLastMessage());
+    assertEquals("Event created successfully: \"Afternoon Meeting\"",
+            textUI.getLastMessage());
     textUI.reset();
 
     // Copy events to London calendar
@@ -1115,7 +1108,8 @@ public class CommandProcessorTest {
   @Test
   public void testEditCalendarFailureMessage() {
     // Attempt to edit non-existent calendar
-    processor.processCommand("edit calendar --name Nonexistent --property timezone --value Europe/London");
+    processor.processCommand("edit calendar --name Nonexistent --property " +
+            "timezone --value Europe/London");
 
     // Verify error message
     assertEquals(
@@ -1150,7 +1144,8 @@ public class CommandProcessorTest {
 
     // Attempt to edit non-existent event
     processor.processCommand(
-            "edit event name \"Original Meeting\" from 2023-04-25T10:00 to 2023-04-25T11:00 with \"Updated Meeting\""
+            "edit event name \"Original Meeting\" from 2023-04-25T10:00 " +
+                    "to 2023-04-25T11:00 with \"Updated Meeting\""
     );
 
     // Verify error message
@@ -1193,7 +1188,8 @@ public class CommandProcessorTest {
 
     // Verify failure message
     assertEquals(
-            "Failed to copy events (no events found on that day, target calendar not found, or would create conflicts)",
+            "Failed to copy events (no events found on that day, " +
+                    "target calendar not found, or would create conflicts)",
             textUI.getLastError()
     );
   }
@@ -1209,7 +1205,8 @@ public class CommandProcessorTest {
 
   @Test
   public void testCreateCalendarWithValidParameters() {
-    boolean result = processor.processCommand("create calendar --name WorkCalendar --timezone America/New_York");
+    boolean result = processor.processCommand("create calendar --name " +
+            "WorkCalendar --timezone America/New_York");
 
     assertTrue("Command should return true to continue processing", result);
     assertNull("No error should be displayed", textUI.getLastError());
@@ -1222,7 +1219,8 @@ public class CommandProcessorTest {
 
     assertTrue("Command should return true to continue processing", result);
     assertEquals("Correct error message should be displayed",
-            "Invalid create calendar command format. Expected: create calendar --name <calName> --timezone area/location",
+            "Invalid create calendar command format. Expected: " +
+                    "create calendar --name <calName> --timezone area/location",
             textUI.getLastError());
   }
 
@@ -1233,7 +1231,8 @@ public class CommandProcessorTest {
 
     assertTrue("Command should return true to continue processing", result);
     assertEquals("Correct error message should be displayed",
-            "Invalid create calendar command format. Expected: create calendar --name <calName> --timezone area/location",
+            "Invalid create calendar command format. Expected: " +
+                    "create calendar --name <calName> --timezone area/location",
             textUI.getLastError());
   }
 
@@ -1244,7 +1243,8 @@ public class CommandProcessorTest {
     processor.processCommand("create calendar --name OriginalCal --timezone America/Chicago");
     textUI.reset();
 
-    boolean result = processor.processCommand("edit calendar --name OriginalCal --property name NewCalendarName");
+    boolean result = processor.processCommand("edit calendar --name OriginalCal " +
+            "--property name NewCalendarName");
 
     assertTrue("Command should return true to continue processing", result);
     assertNull("No error should be displayed", textUI.getLastError());
@@ -1257,7 +1257,9 @@ public class CommandProcessorTest {
 
     assertTrue("Command should return true to continue processing", result);
     assertEquals("Correct error message should be displayed",
-            "Invalid edit calendar command format. Expected: edit calendar --name <name-of-calendar> --property <property-name> <new-property-value>",
+            "Invalid edit calendar command format. Expected: " +
+                    "edit calendar --name <name-of-calendar> --property " +
+                    "<property-name> <new-property-value>",
             textUI.getLastError());
   }
 
@@ -1292,7 +1294,8 @@ public class CommandProcessorTest {
 
     assertTrue("Command should return true to continue processing", result);
     assertEquals("Correct error message should be displayed",
-            "Invalid use calendar command format. Expected: use calendar --name <name-of-calendar>",
+            "Invalid use calendar command format. Expected: " +
+                    "use calendar --name <name-of-calendar>",
             textUI.getLastError());
   }
 
@@ -1304,7 +1307,8 @@ public class CommandProcessorTest {
     textUI.reset();
 
     // Edit calendar name and verify
-    boolean result = processor.processCommand("edit calendar --name WorkCal --property name PersonalCal");
+    boolean result = processor.processCommand("edit calendar --name " +
+            "WorkCal --property name PersonalCal");
     assertTrue("Command should return true to continue processing", result);
     assertNull("No error should be displayed", textUI.getLastError());
   }
@@ -1324,11 +1328,14 @@ public class CommandProcessorTest {
     );
     textUI.reset();
     processor.processCommand(
-            "create event \"International Meeting\" from 2023-03-21T13:00 to 2023-03-21T14:30 --description \"Conference call with London office\" --location \"Conference Room A\""
+            "create event \"International Meeting\" from 2023-03-21T13:00 " +
+                    "to 2023-03-21T14:30 --description \"Conference call with London office\" " +
+                    "--location \"Conference Room A\""
     );
     textUI.reset();
     boolean result = processor.processCommand(
-            "copy event \"International Meeting\" on 2023-03-21T13:00 --target London to 2023-03-21T13:00"
+            "copy event \"International Meeting\" on 2023-03-21T13:00 " +
+                    "--target London to 2023-03-21T13:00"
     );
 
     assertEquals(
@@ -1348,7 +1355,9 @@ public class CommandProcessorTest {
 
     assertTrue("Command should return true to continue processing", result);
     assertEquals("Correct error message should be displayed",
-            "Invalid copy event command format. Expected: copy event <eventName> on <dateStringTtimeString> --target <calendarName> to <dateStringTtimeString>",
+            "Invalid copy event command format. Expected: " +
+                    "copy event <eventName> on <dateStringTtimeString> " +
+                    "--target <calendarName> to <dateStringTtimeString>",
             textUI.getLastError());
   }
 
@@ -1361,7 +1370,10 @@ public class CommandProcessorTest {
 
     assertTrue("Command should return true to continue processing", result);
     assertEquals("Correct error message should be displayed",
-            "Invalid copy events command format. Expected: copy events on <dateString> --target <calendarName> to <dateString> OR copy events between <dateString> and <dateString> --target <calendarName> to <dateString>",
+            "Invalid copy events command format. Expected: " +
+                    "copy events on <dateString> --target <calendarName> to <dateString> " +
+                    "OR copy events between <dateString> and <dateString> " +
+                    "--target <calendarName> to <dateString>",
             textUI.getLastError());
   }
 
@@ -1409,7 +1421,8 @@ public class CommandProcessorTest {
   public void testInvalidEditEventCommandErrorMessage() {
     boolean result = processor.processCommand("edit");
     assertTrue("Command should return true to continue processing", result);
-    assertEquals("Invalid edit command. Expected 'edit event', 'edit events', or 'edit calendar'",
+    assertEquals("Invalid edit command. Expected 'edit event', " +
+                    "'edit events', or 'edit calendar'",
             textUI.getLastError());
   }
 
@@ -1469,7 +1482,7 @@ public class CommandProcessorTest {
 
     @Override
     public void close() {
-
+      // close the ui
     }
 
     public void addCommand(String command) {

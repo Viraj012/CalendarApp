@@ -10,7 +10,13 @@ import java.util.List;
  */
 public class CalendarManagerCopyEventDebugTest {
 
-
+  /**
+   * Main method to execute a diagnostic test for the calendar application's event copying feature.
+   * Initializes the calendar manager, test UI, and command processor, then runs a series of
+   * commands to create, copy, and verify events across different calendars.
+   *
+   * @param args Command-line arguments (not used).
+   */
   public static void main(String[] args) {
 
     CalendarManager manager = new CalendarManager();
@@ -98,7 +104,7 @@ public class CalendarManagerCopyEventDebugTest {
 
     @Override
     public void close() {
-
+      // close the ui
     }
 
     public void setNextCommand(String command) {

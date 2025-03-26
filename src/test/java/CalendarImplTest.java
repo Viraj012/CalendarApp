@@ -468,10 +468,6 @@ public class CalendarImplTest {
             LocalDateTime.parse("2025-03-14T23:59", FORMATTER));
 
     assertEquals(3, events.size());
-
-//    for (Event event : events) {
-//      assertTrue(event.getSubject().contains("[Recurring]"));
-//    }
   }
 
   @Test
