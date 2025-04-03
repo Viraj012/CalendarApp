@@ -157,6 +157,8 @@ public class CalendarImpl implements Calendar {
     return true;
   }
 
+
+
   @Override
   public boolean editEvent(String property, String eventName,
       LocalDateTime startDateTime, LocalDateTime endDateTime,
@@ -164,10 +166,31 @@ public class CalendarImpl implements Calendar {
     String unquotedName = removeQuotes(eventName);
     for (Event event : events) {
       if (isMatchingEvent(event, eventName, unquotedName, startDateTime, endDateTime)) {
-        return updateEventWithConflictCheck((EventImpl) event, property, newValue);
+        EventImpl eventImpl = (EventImpl) event;
+        EventImpl copy = createEventCopy(eventImpl);
+
+        // First attempt to update the copy
+        if (!updateEventProperty(copy, property, newValue)) {
+          return false; // Property update failed
+        }
+
+        // If this is a time-related property, check for conflicts with OTHER events
+        if (isTimeProperty(property)) {
+          // Check for conflicts EXCLUDING the current event being edited
+          if (hasConflictsExcluding(
+              copy.getStartDateTime(),
+              copy.getEndDateTime(),
+              copy.isAllDay(),
+              event)) {
+            return false; // Conflict detected with another event
+          }
+        }
+
+        // If we get here, it's safe to update the real event
+        return updateEventProperty(eventImpl, property, newValue);
       }
     }
-    return false;
+    return false; // Event not found
   }
 
   @Override
@@ -368,6 +391,8 @@ public class CalendarImpl implements Calendar {
 
     return updateEventProperty(event, property, newValue);
   }
+
+
 
   private boolean updateEventProperty(EventImpl eventImpl, String property, String newValue) {
     switch (property.toLowerCase()) {
@@ -746,14 +771,13 @@ public class CalendarImpl implements Calendar {
     occ.setDescription(original.getDescription());
     occ.setLocation(original.getLocation());
     occ.setPublic(original.isPublic());
+    occ.copyRecurrencePattern(original);
 
-    //    String subject = occ.getSubject();
-    //    if (!subject.contains("[Recurring]")) {
-    //      occ.setSubject(subject + " [Recurring]");
-    //    }
 
     return occ;
   }
+
+
 
   private String weekdaysToString(Set<DayOfWeek> weekdays) {
     StringBuilder sb = new StringBuilder();
@@ -794,4 +818,6 @@ public class CalendarImpl implements Calendar {
   void addEvent(Event e) {
     events.add(e);
   }
+
+
 }

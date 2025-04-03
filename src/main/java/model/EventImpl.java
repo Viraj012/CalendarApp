@@ -15,7 +15,7 @@ public class EventImpl implements Event {
   private String location;
   private boolean isPublic;
   private final boolean isAllDay;
-  private final RecurrencePattern recurrence; // null for non-recurring events
+  private RecurrencePattern recurrence; // null for non-recurring events
 
   /**
    * Constructor for a single event.
@@ -295,6 +295,10 @@ public class EventImpl implements Event {
     //    }
 
     return sb.toString();
+  }
+
+  public void copyRecurrencePattern(EventImpl source) {
+    this.recurrence = source.getRecurrence();
   }
 
   /**

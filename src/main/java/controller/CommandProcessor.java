@@ -157,8 +157,14 @@ public class CommandProcessor {
             return true;
           }
 
+        case "import":
+          handleImport(command);
+          return true;
+
         case "exit":
           return false;
+
+
 
         default:
           view.displayError("Unknown command: " + parts[0]);
@@ -341,6 +347,39 @@ public class CommandProcessor {
               "Expected: copy events on <dateString> --target <calendarName> to <dateString> " +
               "OR copy events between <dateString> and <dateString> " +
               "--target <calendarName> to <dateString>");
+    }
+  }
+
+  /**
+   * Handle import command.
+   *
+   * @param command the import command string
+   */
+  private void handleImport(String command) {
+    String[] parts = command.split("\\s+", 2);
+
+    if (parts.length < 2) {
+      view.displayError("Invalid import command. Expected: import file.csv");
+      return;
+    }
+
+    String filePath = parts[1].trim();
+
+    if (calendarManager.getCurrentCalendar() == null) {
+      view.displayError("No calendar selected. Please use a calendar first.");
+      return;
+    }
+
+    int count = CSVImporter.importFromCSV(
+        filePath,
+        calendarManager,
+        calendarManager.getCurrentCalendar().getName()
+    );
+
+    if (count >= 0) {
+      view.displayMessage("Successfully imported " + count + " events.");
+    } else {
+      view.displayError("Failed to import events from " + filePath);
     }
   }
 }

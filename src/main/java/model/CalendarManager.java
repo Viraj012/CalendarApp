@@ -554,4 +554,13 @@ public class CalendarManager {
 
     return atLeastOneCopied;
   }
+
+  /**
+   * Gets a list of all calendar names.
+   *
+   * @return a list of calendar names
+   */
+  public java.util.List<String> getCalendarNames() {
+    return new java.util.ArrayList<>(calendars.keySet());
+  }
 }
