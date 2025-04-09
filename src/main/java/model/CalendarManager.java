@@ -29,12 +29,33 @@ public class CalendarManager {
    * @return true if the calendar was created successfully, false if a calendar with the same name
    *     already exists
    */
+  /**
+   * Creates a new calendar with the specified name and timezone.
+   *
+   * @param name     the unique name for the calendar
+   * @param timezone the timezone for the calendar
+   * @return true if the calendar was created successfully, false if a calendar with the same name
+   *     already exists or if the timezone is invalid
+   */
   public boolean createCalendar(String name, ZoneId timezone) {
     if (calendars.containsKey(name)) {
       return false;
     }
-    calendars.put(name, new CalendarImpl(name, timezone));
-    return true;
+
+    try {
+      if (timezone == null) {
+        throw new NullPointerException("Timezone cannot be null");
+      }
+      if (!ZoneId.getAvailableZoneIds().contains(timezone.getId())) {
+        return false;
+      }
+
+      calendars.put(name, new CalendarImpl(name, timezone));
+      return true;
+    } catch (Exception e) {
+      System.err.println("Error creating calendar: " + e.getMessage());
+      return false;
+    }
   }
 
   /**
@@ -113,12 +134,22 @@ public class CalendarManager {
 
       case "timezone":
         try {
-          ZoneId oldZone = calendar.getTimezone();
+          if (newValue == null || newValue.trim().isEmpty()) {
+            return false;
+          }
+
           ZoneId newZone = ZoneId.of(newValue);
+
+          if (!ZoneId.getAvailableZoneIds().contains(newZone.getId())) {
+            return false;
+          }
+
+          ZoneId oldZone = calendar.getTimezone();
           updateEventsForTimezoneChange((CalendarImpl) calendar, oldZone, newZone);
           ((CalendarImpl) calendar).setTimezone(newZone);
           return true;
         } catch (Exception e) {
+          System.err.println("Error updating calendar timezone: " + e.getMessage());
           return false;
         }
 

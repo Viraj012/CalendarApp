@@ -1,5 +1,6 @@
 package controller;
 
+import java.time.ZoneId;
 import model.Calendar;
 import model.CalendarManager;
 import view.TextUI;
@@ -8,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import view.gui.SwingUI;
 
 /**
  * Processes user commands and interacts with the Calendar model.
@@ -46,6 +48,12 @@ public class CommandProcessor {
     this.view = view;
     this.parser = new CommandParser();
     this.handler = new CommandHandler(calendarManager, view);
+
+    // Initialize default calendar if none exists
+    if (calendarManager.getCalendarNames().isEmpty()) {
+      calendarManager.createCalendar("Default", ZoneId.systemDefault());
+      calendarManager.useCalendar("Default");
+    }
   }
 
   /**
@@ -378,6 +386,12 @@ public class CommandProcessor {
 
     if (count >= 0) {
       view.displayMessage("Successfully imported " + count + " events.");
+
+      // Signal the GUI to refresh if we're in GUI mode
+      if (view instanceof SwingUI) {
+        SwingUI swingUI = (SwingUI) view;
+        swingUI.refreshCalendarView();
+      }
     } else {
       view.displayError("Failed to import events from " + filePath);
     }

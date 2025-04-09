@@ -10,6 +10,10 @@ import java.awt.*;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
+
+// And make sure you don't have this import
+// import java.awt.List;
 
 /**
  * Panel that represents a calendar, including its events and controls.
@@ -170,12 +174,16 @@ public class CalendarPanel extends JPanel {
     calendarSelector.removeAllItems();
 
     // Add all calendars
-    for (String calName : calendarManager.getCalendarNames()) {
+    List<String> calendarNames = calendarManager.getCalendarNames();
+    for (String calName : calendarNames) {
       calendarSelector.addItem(calName);
     }
 
-    // Try to reselect the previously selected calendar
-    if (selectedCalendar != null && calendarManager.calendarExists(selectedCalendar)) {
+    // Try to select the previously selected calendar or the current calendar
+    Calendar currentCal = calendarManager.getCurrentCalendar();
+    if (currentCal != null && calendarManager.calendarExists(currentCal.getName())) {
+      calendarSelector.setSelectedItem(currentCal.getName());
+    } else if (selectedCalendar != null && calendarManager.calendarExists(selectedCalendar)) {
       calendarSelector.setSelectedItem(selectedCalendar);
     } else if (calendarSelector.getItemCount() > 0) {
       calendarSelector.setSelectedIndex(0);

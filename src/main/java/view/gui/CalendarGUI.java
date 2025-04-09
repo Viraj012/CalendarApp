@@ -50,6 +50,11 @@ public class CalendarGUI extends JFrame {
     createMenuBar();
     initializeComponents();
 
+    // Make sure calendar panel is updated with existing calendars
+    if (calendarPanel != null) {
+      calendarPanel.refreshCalendars();
+    }
+
     pack();
     setLocationRelativeTo(null); // Center on screen
   }
@@ -63,6 +68,7 @@ public class CalendarGUI extends JFrame {
     this.swingUI = swingUI;
     if (calendarPanel != null) {
       calendarPanel.refreshCalendars();
+      refreshView();
     }
   }
 

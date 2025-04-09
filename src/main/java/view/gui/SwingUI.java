@@ -90,4 +90,16 @@ public class SwingUI implements TextUI {
   public JTextArea getOutputArea() {
     return outputArea;
   }
+
+  /**
+   * Refreshes the calendar view to show newly added events.
+   * This method is called after importing events.
+   */
+  public void refreshCalendarView() {
+    if (gui != null) {
+      SwingUtilities.invokeLater(() -> {
+        gui.refreshView();
+      });
+    }
+  }
 }
