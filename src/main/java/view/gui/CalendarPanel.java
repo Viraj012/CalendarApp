@@ -130,6 +130,7 @@ public class CalendarPanel extends JPanel {
     viewPanel.add(mainGUI.getMonthView(), BorderLayout.CENTER);
     monthViewButton.setSelected(true);
     updateView(mainGUI.getDisplayDate());
+    mainGUI.setViewMode(true);  // Set month view mode
     viewPanel.revalidate();
     viewPanel.repaint();
   }
@@ -142,6 +143,7 @@ public class CalendarPanel extends JPanel {
     viewPanel.add(mainGUI.getDayView(), BorderLayout.CENTER);
     dayViewButton.setSelected(true);
     updateView(mainGUI.getDisplayDate());
+    mainGUI.setViewMode(false);  // Set day view mode
     viewPanel.revalidate();
     viewPanel.repaint();
   }

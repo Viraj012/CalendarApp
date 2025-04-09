@@ -815,7 +815,7 @@ public class CalendarImpl implements Calendar {
     events.clear();
   }
 
-  void addEvent(Event e) {
+  public void addEvent(Event e) {
     events.add(e);
   }
 

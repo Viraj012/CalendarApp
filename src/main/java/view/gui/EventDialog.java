@@ -1,6 +1,7 @@
 package view.gui;
 
 import model.Calendar;
+import model.CalendarImpl;
 import model.CalendarManager;
 import model.Event;
 
@@ -16,6 +17,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -430,9 +432,9 @@ public class EventDialog extends JDialog {
     String subject = subjectField.getText().trim();
     if (subject.isEmpty()) {
       JOptionPane.showMessageDialog(this,
-          "Subject cannot be empty",
-          "Error",
-          JOptionPane.ERROR_MESSAGE);
+              "Subject cannot be empty",
+              "Error",
+              JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -440,17 +442,17 @@ public class EventDialog extends JDialog {
     Calendar calendar = calendarManager.getCurrentCalendar();
     if (calendar == null) {
       JOptionPane.showMessageDialog(this,
-          "No calendar selected",
-          "Error",
-          JOptionPane.ERROR_MESSAGE);
+              "No calendar selected",
+              "Error",
+              JOptionPane.ERROR_MESSAGE);
       return;
     }
 
     // Get date and times
     java.util.Date dateValue = (java.util.Date) dateSpinner.getValue();
     LocalDate localDate = dateValue.toInstant()
-        .atZone(java.time.ZoneId.systemDefault())
-        .toLocalDate();
+            .atZone(java.time.ZoneId.systemDefault())
+            .toLocalDate();
 
     boolean isAllDay = allDayCheckBox.isSelected();
     boolean isPublic = !privateCheckBox.isSelected();
@@ -466,13 +468,13 @@ public class EventDialog extends JDialog {
     } else {
       java.util.Date startTimeValue = (java.util.Date) startTimeSpinner.getValue();
       LocalTime startTime = startTimeValue.toInstant()
-          .atZone(java.time.ZoneId.systemDefault())
-          .toLocalTime();
+              .atZone(java.time.ZoneId.systemDefault())
+              .toLocalTime();
 
       java.util.Date endTimeValue = (java.util.Date) endTimeSpinner.getValue();
       LocalTime endTime = endTimeValue.toInstant()
-          .atZone(java.time.ZoneId.systemDefault())
-          .toLocalTime();
+              .atZone(java.time.ZoneId.systemDefault())
+              .toLocalTime();
 
       startDateTime = LocalDateTime.of(localDate, startTime);
       endDateTime = LocalDateTime.of(localDate, endTime);
@@ -480,84 +482,274 @@ public class EventDialog extends JDialog {
       // Validate end time is after start time
       if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
         JOptionPane.showMessageDialog(this,
-            "End time must be after start time",
-            "Error",
-            JOptionPane.ERROR_MESSAGE);
+                "End time must be after start time",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
         return;
       }
     }
 
     boolean success = false;
 
-    // Handle event creation or update
-    if (isRecurring) {
-      String weekdays = parseWeekdays();
-      if (weekdays.isEmpty()) {
-        JOptionPane.showMessageDialog(this,
-            "Please select at least one day of the week for recurring events",
-            "Error",
-            JOptionPane.ERROR_MESSAGE);
-        return;
-      }
+    if (eventToEdit != null) {
+      // We're editing an existing event
 
-      int occurrences = -1;
-      LocalDateTime untilDate = null;
+      // For recurring events, editing becomes more complex
+      // We'll use a different approach - delete and recreate
+      if (eventToEdit.isRecurring() || isRecurring) {
+        // Get all events from the calendar
+        List<Event> calendarEvents = calendar.getAllEvents();
 
-      if (occurrencesRadio.isSelected()) {
-        occurrences = (Integer) occurrencesSpinner.getValue();
+        // Find and remove our event
+        for (int i = 0; i < calendarEvents.size(); i++) {
+          Event event = calendarEvents.get(i);
+          if (event == eventToEdit) {
+            // Handle this through the CalendarImpl class directly
+            ((CalendarImpl)calendar).getAllEvents().remove(i);
+            break;
+          }
+        }
+
+        // Now create a new event with the updated properties
+        if (isRecurring) {
+          String weekdays = parseWeekdays();
+          if (weekdays.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Please select at least one day of the week for recurring events",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+
+          int occurrences = -1;
+          LocalDateTime untilDate = null;
+
+          if (occurrencesRadio.isSelected()) {
+            occurrences = (Integer) occurrencesSpinner.getValue();
+          } else {
+            java.util.Date untilDateValue = (java.util.Date) untilDateSpinner.getValue();
+            untilDate = untilDateValue.toInstant()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime();
+          }
+
+          if (isAllDay) {
+            success = calendar.createRecurringAllDayEvent(
+                    subject,
+                    startDateTime,
+                    weekdays,
+                    occurrences,
+                    untilDate,
+                    true, // Auto decline is always true
+                    description,
+                    location,
+                    isPublic
+            );
+          } else {
+            success = calendar.createRecurringEvent(
+                    subject,
+                    startDateTime,
+                    endDateTime,
+                    weekdays,
+                    occurrences,
+                    untilDate,
+                    true, // Auto decline is always true
+                    description,
+                    location,
+                    isPublic
+            );
+          }
+        } else {
+          if (isAllDay) {
+            success = calendar.createAllDayEvent(
+                    subject,
+                    startDateTime,
+                    true, // Auto decline is always true
+                    description,
+                    location,
+                    isPublic
+            );
+          } else {
+            success = calendar.createEvent(
+                    subject,
+                    startDateTime,
+                    endDateTime,
+                    true, // Auto decline is always true
+                    description,
+                    location,
+                    isPublic
+            );
+          }
+        }
+
+        // If creation failed, put back the original event
+        if (!success) {
+          ((CalendarImpl)calendar).addEvent(eventToEdit);
+        }
       } else {
-        java.util.Date untilDateValue = (java.util.Date) untilDateSpinner.getValue();
-        untilDate = untilDateValue.toInstant()
-            .atZone(java.time.ZoneId.systemDefault())
-            .toLocalDateTime();
-      }
+        // For non-recurring events, use the edit methods
+        // Start with the subject
+        boolean subjectUpdated = true;
+        if (!eventToEdit.getSubject().equals(subject)) {
+          subjectUpdated = calendar.editEvent(
+                  "subject",
+                  eventToEdit.getSubject(),
+                  eventToEdit.getStartDateTime(),
+                  eventToEdit.getEndDateTime(),
+                  subject
+          );
 
-      if (isAllDay) {
-        success = calendar.createRecurringAllDayEvent(
-            subject,
-            startDateTime,
-            weekdays,
-            occurrences,
-            untilDate,
-            true, // Auto decline is always true
-            description,
-            location,
-            isPublic
+          if (!subjectUpdated) {
+            JOptionPane.showMessageDialog(this,
+                    "Failed to update subject.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+        }
+
+        // Update description
+        boolean descUpdated = calendar.editEvent(
+                "description",
+                subjectUpdated ? subject : eventToEdit.getSubject(),
+                eventToEdit.getStartDateTime(),
+                eventToEdit.getEndDateTime(),
+                description
         );
-      } else {
-        success = calendar.createRecurringEvent(
-            subject,
-            startDateTime,
-            endDateTime,
-            weekdays,
-            occurrences,
-            untilDate,
-            true, // Auto decline is always true
-            description,
-            location,
-            isPublic
+
+        // Update location
+        boolean locUpdated = calendar.editEvent(
+                "location",
+                subjectUpdated ? subject : eventToEdit.getSubject(),
+                eventToEdit.getStartDateTime(),
+                eventToEdit.getEndDateTime(),
+                location
         );
+
+        // Update public/private status
+        boolean publicUpdated = calendar.editEvent(
+                "public",
+                subjectUpdated ? subject : eventToEdit.getSubject(),
+                eventToEdit.getStartDateTime(),
+                eventToEdit.getEndDateTime(),
+                String.valueOf(isPublic)
+        );
+
+        // Update start time
+        boolean startTimeUpdated = true;
+        if (!eventToEdit.getStartDateTime().equals(startDateTime)) {
+          startTimeUpdated = calendar.editEvent(
+                  "starttime",
+                  subjectUpdated ? subject : eventToEdit.getSubject(),
+                  eventToEdit.getStartDateTime(),
+                  eventToEdit.getEndDateTime(),
+                  startDateTime.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+          );
+
+          if (!startTimeUpdated) {
+            JOptionPane.showMessageDialog(this,
+                    "Failed to update start time. There may be a conflict with another event.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+        }
+
+        // Update end time for non-all-day events
+        boolean endTimeUpdated = true;
+        if (!isAllDay && endDateTime != null &&
+                (eventToEdit.getEndDateTime() == null ||
+                        !endDateTime.equals(eventToEdit.getEndDateTime()))) {
+          endTimeUpdated = calendar.editEvent(
+                  "endtime",
+                  subjectUpdated ? subject : eventToEdit.getSubject(),
+                  startTimeUpdated ? startDateTime : eventToEdit.getStartDateTime(),
+                  eventToEdit.getEndDateTime(),
+                  endDateTime.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+          );
+
+          if (!endTimeUpdated) {
+            JOptionPane.showMessageDialog(this,
+                    "Failed to update end time. There may be a conflict with another event.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+        }
+
+        success = descUpdated && locUpdated && publicUpdated && startTimeUpdated && endTimeUpdated;
       }
     } else {
-      if (isAllDay) {
-        success = calendar.createAllDayEvent(
-            subject,
-            startDateTime,
-            true, // Auto decline is always true
-            description,
-            location,
-            isPublic
-        );
+      // Creating a new event
+      if (isRecurring) {
+        String weekdays = parseWeekdays();
+        if (weekdays.isEmpty()) {
+          JOptionPane.showMessageDialog(this,
+                  "Please select at least one day of the week for recurring events",
+                  "Error",
+                  JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+
+        int occurrences = -1;
+        LocalDateTime untilDate = null;
+
+        if (occurrencesRadio.isSelected()) {
+          occurrences = (Integer) occurrencesSpinner.getValue();
+        } else {
+          java.util.Date untilDateValue = (java.util.Date) untilDateSpinner.getValue();
+          untilDate = untilDateValue.toInstant()
+                  .atZone(java.time.ZoneId.systemDefault())
+                  .toLocalDateTime();
+        }
+
+        if (isAllDay) {
+          success = calendar.createRecurringAllDayEvent(
+                  subject,
+                  startDateTime,
+                  weekdays,
+                  occurrences,
+                  untilDate,
+                  true, // Auto decline is always true
+                  description,
+                  location,
+                  isPublic
+          );
+        } else {
+          success = calendar.createRecurringEvent(
+                  subject,
+                  startDateTime,
+                  endDateTime,
+                  weekdays,
+                  occurrences,
+                  untilDate,
+                  true, // Auto decline is always true
+                  description,
+                  location,
+                  isPublic
+          );
+        }
       } else {
-        success = calendar.createEvent(
-            subject,
-            startDateTime,
-            endDateTime,
-            true, // Auto decline is always true
-            description,
-            location,
-            isPublic
-        );
+        if (isAllDay) {
+          success = calendar.createAllDayEvent(
+                  subject,
+                  startDateTime,
+                  true, // Auto decline is always true
+                  description,
+                  location,
+                  isPublic
+          );
+        } else {
+          success = calendar.createEvent(
+                  subject,
+                  startDateTime,
+                  endDateTime,
+                  true, // Auto decline is always true
+                  description,
+                  location,
+                  isPublic
+          );
+        }
       }
     }
 
@@ -566,9 +758,9 @@ public class EventDialog extends JDialog {
       dispose();
     } else {
       JOptionPane.showMessageDialog(this,
-          "Failed to create event. There may be a conflict with another event.",
-          "Error",
-          JOptionPane.ERROR_MESSAGE);
+              "Failed to create event. There may be a conflict with another event.",
+              "Error",
+              JOptionPane.ERROR_MESSAGE);
     }
   }
 }
