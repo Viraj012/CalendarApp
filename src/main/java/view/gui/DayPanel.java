@@ -1,12 +1,25 @@
 package view.gui;
 
-import model.Calendar;
 import model.CalendarManager;
 import model.Event;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Dimension;
+import java.awt.BorderLayout;
+import java.awt.BasicStroke;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
@@ -25,7 +38,6 @@ public class DayPanel extends JPanel {
   private CalendarManager calendarManager;
   private CalendarGUI mainGUI;
   private LocalDate currentDate;
-  private JPanel hoursPanel;
   private JPanel eventsPanel;
   private Map<Event, JPanel> eventPanelMap;
 
@@ -49,6 +61,14 @@ public class DayPanel extends JPanel {
   private static final Font EVENT_TITLE_FONT = new Font("Segoe UI", Font.BOLD, 13);
   private static final Font EVENT_DETAIL_FONT = new Font("Segoe UI", Font.PLAIN, 12);
 
+  /**
+   * Creates a new day view panel with hour-by-hour display of events.
+   * Initializes the UI with timeline, event areas, and scrollable view.
+   * Sets up the current date to today by default.
+   *
+   * @param calendarManager The manager providing access to calendar data
+   * @param mainGUI The parent GUI for handling user interactions
+   */
   public DayPanel(CalendarManager calendarManager, CalendarGUI mainGUI) {
     this.calendarManager = calendarManager;
     this.mainGUI = mainGUI;
@@ -66,7 +86,7 @@ public class DayPanel extends JPanel {
     JPanel dayViewPanel = new JPanel(new BorderLayout());
     dayViewPanel.setBackground(Color.WHITE);
 
-    hoursPanel = createHoursPanel();
+    JPanel hoursPanel = createHoursPanel();
     dayViewPanel.add(hoursPanel, BorderLayout.WEST);
 
     eventsPanel = createEventsPanel();
@@ -169,7 +189,9 @@ public class DayPanel extends JPanel {
     g2d.setColor(LIGHT_GRID_COLOR);
 
     float[] dash = {2f, 4f};
-    g2d.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f));
+    g2d.setStroke(new BasicStroke(
+            1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER
+            , 10.0f, dash, 0.0f));
     for (int hour = 0; hour < HOURS_IN_DAY; hour++) {
       int yPos = hour * HOUR_HEIGHT + HALF_HOUR_HEIGHT;
       g2d.drawLine(0, yPos, getWidth(), yPos);
@@ -178,7 +200,9 @@ public class DayPanel extends JPanel {
   }
 
   private void drawCurrentTimeLine(Graphics g) {
-    if (!currentDate.equals(LocalDate.now())) return;
+    if (!currentDate.equals(LocalDate.now())) {
+      return;
+    }
     LocalTime now = LocalTime.now();
     int minutes = now.getHour() * 60 + now.getMinute();
     int yPos = (minutes * HOUR_HEIGHT) / 60;
@@ -205,6 +229,14 @@ public class DayPanel extends JPanel {
     return LocalTime.of(hour, minute);
   }
 
+  /**
+   * Updates the day view to display events for the specified date.
+   * Clears existing event panels and repopulates with events from the current calendar.
+   * Handles both all-day events (shown in the top section) and timed events,
+   *     placing them according to their scheduled times with appropriate visual formatting.
+   *
+   * @param date The date to display events for
+   */
   public void updateView(LocalDate date) {
     this.currentDate = date;
     eventsPanel.removeAll();
@@ -263,7 +295,8 @@ public class DayPanel extends JPanel {
       protected void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setColor(new Color(eventColor.getRed(), eventColor.getGreen(), eventColor.getBlue(), isAllDay ? 40 : 60));
+        g2d.setColor(new Color(eventColor.getRed(), eventColor.getGreen()
+                , eventColor.getBlue(), isAllDay ? 40 : 60));
         g2d.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
 
         g2d.setColor(eventColor);

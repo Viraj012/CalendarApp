@@ -27,14 +27,6 @@ public class CalendarManager {
    * @param name     the unique name for the calendar
    * @param timezone the timezone for the calendar
    * @return true if the calendar was created successfully, false if a calendar with the same name
-   *     already exists
-   */
-  /**
-   * Creates a new calendar with the specified name and timezone.
-   *
-   * @param name     the unique name for the calendar
-   * @param timezone the timezone for the calendar
-   * @return true if the calendar was created successfully, false if a calendar with the same name
    *     already exists or if the timezone is invalid
    */
   public boolean createCalendar(String name, ZoneId timezone) {
@@ -44,7 +36,7 @@ public class CalendarManager {
 
     try {
       if (timezone == null) {
-        throw new NullPointerException("Timezone cannot be null");
+        throw new IllegalArgumentException("Timezone cannot be null");
       }
       if (!ZoneId.getAvailableZoneIds().contains(timezone.getId())) {
         return false;

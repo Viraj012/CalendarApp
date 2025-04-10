@@ -11,7 +11,6 @@ import model.Calendar;
 import model.CalendarManager;
 import model.Event;
 import model.EventImpl;
-import model.RecurrencePattern;
 import view.TextUI;
 
 import java.util.Comparator;
@@ -391,9 +390,11 @@ class CommandHandler {
         for (LocalDateTime occurrence : occurrences) {
           LocalDateTime occurrenceEndTime = (event.isAllDay() || event.getEndDateTime() == null)
                   ? null
-                  : occurrence.plus(Duration.between(event.getStartDateTime(), event.getEndDateTime()));
+                  : occurrence.plus(Duration.between(event.getStartDateTime()
+                  , event.getEndDateTime()));
 
-          writeSingleEventToCSV(writer, event, occurrence, occurrenceEndTime, dateFormatter, timeFormatter, calendar);
+          writeSingleEventToCSV(writer, event, occurrence, occurrenceEndTime
+                  , dateFormatter, timeFormatter, calendar);
         }
       }
 

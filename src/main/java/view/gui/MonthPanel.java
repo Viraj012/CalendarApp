@@ -1,12 +1,25 @@
 package view.gui;
 
-import model.Calendar;
 import model.CalendarManager;
 import model.Event;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
@@ -77,6 +90,14 @@ public class MonthPanel extends JPanel {
       new Color(241, 196, 15)
   };
 
+  /**
+   * Creates a new month view panel displaying a grid of days with events.
+   * Initializes the calendar grid structure, sets up day cells, and prepares event display areas.
+   * Sets the current month and selected date to today by default.
+   *
+   * @param calendarManager The manager providing access to calendar data
+   * @param mainGUI The parent GUI for handling user interactions
+   */
   public MonthPanel(CalendarManager calendarManager, CalendarGUI mainGUI) {
     this.calendarManager = calendarManager;
     this.mainGUI = mainGUI;
@@ -111,6 +132,11 @@ public class MonthPanel extends JPanel {
     }
   }
 
+  /**
+   * Refreshes the calendar color mapping when calendars are added or removed.
+   * Assigns a unique color to each calendar from the predefined color palette,
+   *     cycling through colors if there are more calendars than colors.
+   */
   public void updateCalendarColors() {
     calendarColors.clear();
     List<String> calendarNames = calendarManager.getCalendarNames();
@@ -174,7 +200,8 @@ public class MonthPanel extends JPanel {
 
         eventScrollPanes[index] = new JScrollPane(eventPanels[index]);
         eventScrollPanes[index].setBorder(null);
-        eventScrollPanes[index].setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        eventScrollPanes[index].setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         eventScrollPanes[index].getViewport().setOpaque(false);
         eventScrollPanes[index].setOpaque(false);
 
@@ -195,7 +222,8 @@ public class MonthPanel extends JPanel {
         eventScrollPanes[index].addMouseListener(new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
-            MouseEvent newEvent = SwingUtilities.convertMouseEvent(eventScrollPanes[index], e, dayCells[r][c]);
+            MouseEvent newEvent = SwingUtilities.convertMouseEvent(
+                    eventScrollPanes[index], e, dayCells[r][c]);
             dayCells[r][c].dispatchEvent(newEvent);
           }
         });
@@ -204,7 +232,8 @@ public class MonthPanel extends JPanel {
         eventScrollPanes[index].getViewport().addMouseListener(new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
-            MouseEvent newEvent = SwingUtilities.convertMouseEvent(eventScrollPanes[index].getViewport(), e, dayCells[r][c]);
+            MouseEvent newEvent = SwingUtilities.convertMouseEvent(
+                    eventScrollPanes[index].getViewport(), e, dayCells[r][c]);
             dayCells[r][c].dispatchEvent(newEvent);
           }
         });
@@ -214,6 +243,14 @@ public class MonthPanel extends JPanel {
     }
   }
 
+  /**
+   * Updates the month view display based on the provided date.
+   * Renders the calendar grid showing days of the current month,
+   *     adjacent months' days where needed, and all events for each day.
+   * Applies special styling for today, weekends, and the selected date.
+   *
+   * @param date The date to center the month view around
+   */
   public void updateView(LocalDate date) {
     this.currentMonthDate = date.withDayOfMonth(1);
 
@@ -297,7 +334,9 @@ public class MonthPanel extends JPanel {
   }
 
   private void loadEvents(LocalDate date, JPanel eventPanel) {
-    if (calendarManager.getCurrentCalendar() == null) return;
+    if (calendarManager.getCurrentCalendar() == null) {
+      return;
+    }
 
     LocalDateTime startOfDay = date.atStartOfDay();
     List<Event> events = calendarManager.getCurrentCalendar().getEventsOn(startOfDay);

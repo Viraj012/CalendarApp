@@ -1,6 +1,7 @@
 import model.Calendar;
 import model.CalendarManager;
 import model.Event;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,14 +62,14 @@ public class CalendarManagerTest {
     Calendar currentCalendar = calendarManager.getCurrentCalendar();
     assertNotNull("Current calendar should not be null after setting", currentCalendar);
     assertEquals("Current calendar should have the correct name", "Test",
-        currentCalendar.getName());
+            currentCalendar.getName());
   }
 
   @Test
   public void testCalendarExists() {
 
     assertFalse("Should return false for non-existent calendar",
-        calendarManager.calendarExists("Test"));
+            calendarManager.calendarExists("Test"));
 
     calendarManager.createCalendar("Test", ZoneId.systemDefault());
 
@@ -168,24 +169,24 @@ public class CalendarManagerTest {
     LocalDateTime startTime = LocalDateTime.of(2023, 1, 1, 12, 0);
     LocalDateTime endTime = LocalDateTime.of(2023, 1, 1, 13, 0);
     boolean eventCreated = calendar.createEvent("Regular Event", startTime, endTime, true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create regular event", eventCreated);
 
     LocalDateTime allDayDate = LocalDateTime.of(2023, 1, 2, 0, 0);
     eventCreated = calendar.createAllDayEvent("All-day Event", allDayDate, true, "Description",
-        "Location", true);
+            "Location", true);
     assertTrue("Should create all-day event", eventCreated);
 
     LocalDateTime recurringStart = LocalDateTime.of(2023, 1, 3, 14, 0);
     LocalDateTime recurringEnd = LocalDateTime.of(2023, 1, 3, 15, 0);
     LocalDateTime untilDate = LocalDateTime.of(2023, 1, 31, 0, 0);
     eventCreated = calendar.createRecurringEvent("Recurring Event", recurringStart, recurringEnd,
-        "MWF", -1, untilDate, true, "Description", "Location", true);
+            "MWF", -1, untilDate, true, "Description", "Location", true);
     assertTrue("Should create recurring event", eventCreated);
 
     LocalDateTime recurringAllDayDate = LocalDateTime.of(2023, 1, 4, 0, 0);
     eventCreated = calendar.createRecurringAllDayEvent("Recurring All-day Event",
-        recurringAllDayDate, "TR", 4, null, true, "Description", "Location", true);
+            recurringAllDayDate, "TR", 4, null, true, "Description", "Location", true);
     assertTrue("Should create recurring all-day event", eventCreated);
 
     ZoneId newZone = ZoneId.of("Europe/London");
@@ -208,7 +209,7 @@ public class CalendarManagerTest {
     LocalDateTime tokyoTime = LocalDateTime.of(2023, 1, 1, 10, 0);
     LocalDateTime tokyoEndTime = LocalDateTime.of(2023, 1, 1, 11, 0);
     boolean eventCreated = calendar.createEvent("Tokyo Event", tokyoTime, tokyoEndTime, true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create event in Tokyo timezone", eventCreated);
 
     ZoneId londonZone = ZoneId.of("Europe/London");
@@ -221,9 +222,9 @@ public class CalendarManagerTest {
     Event adjustedEvent = events.get(0);
 
     assertEquals("Hour should be adjusted to 1:00 (London time)", 1,
-        adjustedEvent.getStartDateTime().getHour());
+            adjustedEvent.getStartDateTime().getHour());
     assertEquals("End hour should be adjusted to 2:00 (London time)", 2,
-        adjustedEvent.getEndDateTime().getHour());
+            adjustedEvent.getEndDateTime().getHour());
   }
 
   @Test
@@ -239,16 +240,16 @@ public class CalendarManagerTest {
     LocalDateTime tokyoUntilDate = LocalDateTime.of(2023, 1, 31, 10, 0);
 
     boolean eventCreated = calendar.createRecurringEvent(
-        "Tokyo Recurring Event",
-        tokyoTime,
-        tokyoEndTime,
-        "MWF",
-        -1,
-        tokyoUntilDate,
-        true,
-        "Description",
-        "Location",
-        true);
+            "Tokyo Recurring Event",
+            tokyoTime,
+            tokyoEndTime,
+            "MWF",
+            -1,
+            tokyoUntilDate,
+            true,
+            "Description",
+            "Location",
+            true);
     assertTrue("Should create recurring event in Tokyo timezone", eventCreated);
 
     ZoneId londonZone = ZoneId.of("Europe/London");
@@ -263,8 +264,8 @@ public class CalendarManagerTest {
     assertTrue("Event should still be recurring", adjustedEvent.isRecurring());
 
     List<Event> occurrences = calendar.getEventsFrom(
-        adjustedEvent.getStartDateTime(),
-        LocalDateTime.of(2023, 1, 31, 23, 59));
+            adjustedEvent.getStartDateTime(),
+            LocalDateTime.of(2023, 1, 31, 23, 59));
 
     assertTrue("Should have multiple occurrences", occurrences.size() > 1);
   }
@@ -281,7 +282,7 @@ public class CalendarManagerTest {
     LocalDateTime startTime = LocalDateTime.of(2023, 1, 1, 12, 0);
     LocalDateTime endTime = LocalDateTime.of(2023, 1, 1, 13, 0);
     boolean eventCreated = sourceCalendar.createEvent("Test Event", startTime, endTime, true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create event", eventCreated);
 
     LocalDateTime targetTime = LocalDateTime.of(2023, 2, 1, 12, 0);
@@ -294,9 +295,9 @@ public class CalendarManagerTest {
     Event copiedEvent = targetEvents.get(0);
     assertEquals("Event subject should match", "Test Event", copiedEvent.getSubject());
     assertEquals("Event start time should match target time", targetTime,
-        copiedEvent.getStartDateTime());
+            copiedEvent.getStartDateTime());
     assertEquals("Event description should be preserved", "Description",
-        copiedEvent.getDescription());
+            copiedEvent.getDescription());
     assertEquals("Event location should be preserved", "Location", copiedEvent.getLocation());
     assertTrue("Event should maintain public status", copiedEvent.isPublic());
   }
@@ -311,7 +312,7 @@ public class CalendarManagerTest {
     Calendar sourceCalendar = calendarManager.getCurrentCalendar();
     LocalDateTime dateTime = LocalDateTime.of(2023, 1, 1, 0, 0);
     boolean eventCreated = sourceCalendar.createAllDayEvent("All-day Event", dateTime, true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create all-day event", eventCreated);
 
     LocalDateTime targetDate = LocalDateTime.of(2023, 2, 1, 0, 0);
@@ -324,7 +325,7 @@ public class CalendarManagerTest {
     Event copiedEvent = targetEvents.get(0);
     assertTrue("Copied event should be all-day", copiedEvent.isAllDay());
     assertEquals("Event date should match target date", targetDate.toLocalDate(),
-        copiedEvent.getStartDateTime().toLocalDate());
+            copiedEvent.getStartDateTime().toLocalDate());
   }
 
 
@@ -338,7 +339,7 @@ public class CalendarManagerTest {
     LocalDateTime startTime = LocalDateTime.of(2023, 1, 1, 12, 0);
     LocalDateTime endTime = LocalDateTime.of(2023, 1, 1, 13, 0);
     boolean eventCreated = sourceCalendar.createEvent("Test Event", startTime, endTime, true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create event", eventCreated);
 
     LocalDateTime targetTime = LocalDateTime.of(2023, 2, 1, 12, 0);
@@ -379,7 +380,7 @@ public class CalendarManagerTest {
     LocalDateTime startTime = LocalDateTime.of(2023, 1, 1, 12, 0);
     LocalDateTime endTime = LocalDateTime.of(2023, 1, 1, 13, 0);
     boolean created = calendar.createEvent("Test Event", startTime, endTime, true, "Description",
-        "Location", true);
+            "Location", true);
     assertTrue("Should create event", created);
 
     LocalDateTime targetTime = LocalDateTime.of(2023, 2, 1, 12, 0);
@@ -397,7 +398,7 @@ public class CalendarManagerTest {
     LocalDateTime startTime = LocalDateTime.of(2023, 1, 1, 12, 0);
     LocalDateTime endTime = LocalDateTime.of(2023, 1, 1, 13, 0);
     boolean created = calendar.createEvent("\"Quoted Event\"", startTime, endTime, true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create event with quoted name", created);
 
     LocalDateTime targetTime = LocalDateTime.of(2023, 2, 1, 12, 0);
@@ -415,7 +416,7 @@ public class CalendarManagerTest {
     LocalDateTime startTime = LocalDateTime.of(2023, 1, 1, 12, 0);
     LocalDateTime endTime = LocalDateTime.of(2023, 1, 1, 13, 0);
     boolean created = calendar.createEvent("Unquoted Event", startTime, endTime, true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create event with unquoted name", created);
 
     LocalDateTime targetTime = LocalDateTime.of(2023, 2, 1, 12, 0);
@@ -434,7 +435,7 @@ public class CalendarManagerTest {
     LocalDateTime endTime = LocalDateTime.of(2023, 1, 1, 13, 0);
     LocalDateTime untilDate = LocalDateTime.of(2023, 1, 31, 0, 0);
     boolean created = calendar.createRecurringEvent("Recurring Event", startTime, endTime, "MWF",
-        -1, untilDate, true, "Description", "Location", true);
+            -1, untilDate, true, "Description", "Location", true);
     assertTrue("Should create recurring event", created);
 
     List<Event> events = calendar.getEventsOn(startTime);
@@ -455,7 +456,7 @@ public class CalendarManagerTest {
     LocalDateTime endTime = LocalDateTime.of(2023, 1, 1, 13, 0);
     LocalDateTime untilDate = LocalDateTime.of(2023, 1, 31, 0, 0);
     boolean created = calendar.createRecurringEvent("\"Complex Recurring Event\"", startTime,
-        endTime, "MWF", -1, untilDate, true, "Description", "Location", true);
+            endTime, "MWF", -1, untilDate, true, "Description", "Location", true);
     assertTrue("Should create recurring event with quoted name", created);
 
     List<Event> events = calendar.getEventsOn(startTime);
@@ -463,7 +464,7 @@ public class CalendarManagerTest {
     LocalDateTime targetTime = LocalDateTime.of(2023, 2, 1, 12, 0);
 
     boolean copied = calendarManager.copyEvent("Complex Recurring Event", startTime, "Test",
-        targetTime);
+            targetTime);
 
   }
 
@@ -479,15 +480,15 @@ public class CalendarManagerTest {
     LocalDateTime date = LocalDateTime.of(2023, 1, 1, 0, 0);
 
     boolean created = sourceCalendar.createEvent("Event 1", date.withHour(9), date.withHour(10),
-        true, "Description", "Location", true);
+            true, "Description", "Location", true);
     assertTrue("Should create event 1", created);
 
     created = sourceCalendar.createEvent("Event 2", date.withHour(14), date.withHour(15), true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create event 2", created);
 
     created = sourceCalendar.createAllDayEvent("All-day Event", date, true, "Description",
-        "Location", true);
+            "Location", true);
 
     LocalDateTime targetDate = LocalDateTime.of(2023, 2, 1, 0, 0);
     boolean copied = calendarManager.copyEventsOnDay(date, "Target", targetDate);
@@ -520,7 +521,7 @@ public class CalendarManagerTest {
     Calendar sourceCalendar = calendarManager.getCurrentCalendar();
     LocalDateTime date = LocalDateTime.of(2023, 1, 1, 0, 0);
     boolean created = sourceCalendar.createEvent("Event", date.withHour(9), date.withHour(10), true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create event", created);
 
     LocalDateTime targetDate = LocalDateTime.of(2023, 2, 1, 0, 0);
@@ -552,12 +553,12 @@ public class CalendarManagerTest {
     LocalDateTime sourceDateTime = LocalDateTime.of(2023, 1, 1, 12, 0);
     LocalDateTime sourceEndTime = LocalDateTime.of(2023, 1, 1, 13, 0);
     boolean created = sourceCalendar.createEvent("Timezone Test", sourceDateTime, sourceEndTime,
-        true, "Description", "Location", true);
+            true, "Description", "Location", true);
     assertTrue("Should create event", created);
 
     LocalDateTime targetDateTime = LocalDateTime.of(2023, 2, 1, 12, 0);
     boolean copied = calendarManager.copyEvent("Timezone Test", sourceDateTime, "Target",
-        targetDateTime);
+            targetDateTime);
     assertTrue("Should copy event with timezone conversion", copied);
 
     Calendar targetCalendar = calendarManager.getCalendar("Target");
@@ -581,13 +582,13 @@ public class CalendarManagerTest {
     LocalDateTime sourceLateNight = LocalDateTime.of(2023, 1, 1, 23, 0);
     LocalDateTime sourceEndTime = LocalDateTime.of(2023, 1, 2, 0, 0);
     boolean created = sourceCalendar.createEvent("Late Night Event", sourceLateNight, sourceEndTime,
-        true, "Description", "Location", true);
+            true, "Description", "Location", true);
     assertTrue("Should create late night event", created);
 
     LocalDateTime sourceEarlyMorning = LocalDateTime.of(2023, 1, 2, 7, 0);
     LocalDateTime sourceEarlyEnd = LocalDateTime.of(2023, 1, 2, 8, 0);
     created = sourceCalendar.createEvent("Early Morning Event", sourceEarlyMorning, sourceEarlyEnd,
-        true, "Description", "Location", true);
+            true, "Description", "Location", true);
     assertTrue("Should create early morning event", created);
 
     LocalDateTime targetDate = LocalDateTime.of(2023, 2, 1, 0, 0);
@@ -614,7 +615,7 @@ public class CalendarManagerTest {
     LocalDateTime sourceEarlyMorning = LocalDateTime.of(2023, 1, 2, 7, 0);
     LocalDateTime sourceEndTime = LocalDateTime.of(2023, 1, 2, 8, 0);
     boolean created = sourceCalendar.createEvent("Early Morning Event", sourceEarlyMorning,
-        sourceEndTime, true, "Description", "Location", true);
+            sourceEndTime, true, "Description", "Location", true);
     assertTrue("Should create early morning event", created);
 
     LocalDateTime targetDate = LocalDateTime.of(2023, 2, 1, 0, 0);
@@ -637,17 +638,17 @@ public class CalendarManagerTest {
 
     LocalDateTime day1 = LocalDateTime.of(2023, 1, 1, 0, 0);
     boolean created = sourceCalendar.createEvent("Day 1 Event", day1.withHour(9), day1.withHour(10),
-        true, "Description", "Location", true);
+            true, "Description", "Location", true);
     assertTrue("Should create day 1 event", created);
 
     LocalDateTime day2 = LocalDateTime.of(2023, 1, 2, 0, 0);
     created = sourceCalendar.createEvent("Day 2 Event", day2.withHour(14), day2.withHour(15), true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create day 2 event", created);
 
     LocalDateTime day3 = LocalDateTime.of(2023, 1, 3, 0, 0);
     created = sourceCalendar.createAllDayEvent("Day 3 All-day Event", day3, true, "Description",
-        "Location", true);
+            "Location", true);
     assertTrue("Should create day 3 all-day event", created);
 
     LocalDateTime targetStart = LocalDateTime.of(2023, 2, 1, 0, 0);
@@ -689,7 +690,7 @@ public class CalendarManagerTest {
     Calendar sourceCalendar = calendarManager.getCurrentCalendar();
     LocalDateTime date = LocalDateTime.of(2023, 1, 1, 0, 0);
     boolean created = sourceCalendar.createEvent("Event", date.withHour(9), date.withHour(10), true,
-        "Description", "Location", true);
+            "Description", "Location", true);
     assertTrue("Should create event", created);
 
     LocalDateTime endDate = LocalDateTime.of(2023, 1, 7, 0, 0);
@@ -721,12 +722,12 @@ public class CalendarManagerTest {
     LocalDateTime endTime = LocalDateTime.of(2023, 1, 1, 13, 0);
 
     boolean created = sourceCalendar.createRecurringEvent("All Weekdays Event", startTime, endTime,
-        "MTWRFSU", 7, null, true, "Description", "Location", true);
+            "MTWRFSU", 7, null, true, "Description", "Location", true);
     assertTrue("Should create recurring event with all weekdays", created);
 
     LocalDateTime targetTime = LocalDateTime.of(2023, 2, 1, 12, 0);
     boolean copied = calendarManager.copyEvent("All Weekdays Event", startTime, "Target",
-        targetTime);
+            targetTime);
     assertTrue("Should copy recurring event with all weekdays", copied);
 
     Calendar targetCalendar = calendarManager.getCalendar("Target");
@@ -737,10 +738,10 @@ public class CalendarManagerTest {
 
     for (String weekdays : new String[]{"M", "W", "F", "MWF", "TR", "MTWRF", "SU"}) {
       created = sourceCalendar.createRecurringEvent("Weekdays " + weekdays, startTime.plusHours(1),
-          endTime.plusHours(1), weekdays, 4, null, true, "Description", "Location", true);
+              endTime.plusHours(1), weekdays, 4, null, true, "Description", "Location", true);
 
       copied = calendarManager.copyEvent("Weekdays " + weekdays, startTime.plusHours(1), "Target",
-          targetTime.plusHours(1));
+              targetTime.plusHours(1));
 
     }
   }
@@ -760,13 +761,13 @@ public class CalendarManagerTest {
     LocalDateTime midnight = LocalDateTime.of(2023, 1, 1, 0, 0, 0);
     LocalDateTime endTime = LocalDateTime.of(2023, 1, 1, 1, 0);
     boolean created = nyCalendar.createEvent("Midnight Event", midnight, endTime, true, "", "",
-        true);
+            true);
     assertTrue(created);
 
     LocalDateTime almostMidnight = LocalDateTime.of(2023, 1, 1, 23, 59, 59);
     LocalDateTime endTime2 = LocalDateTime.of(2023, 1, 2, 0, 30);
     created = nyCalendar.createEvent("Almost Midnight Event", almostMidnight, endTime2, true, "",
-        "", true);
+            "", true);
     assertTrue(created);
 
     boolean copied = calendarManager.copyEventsOnDay(midnight, "Tokyo", midnight.plusMonths(1));
@@ -802,11 +803,11 @@ public class CalendarManagerTest {
     LocalDateTime rangeEnd = LocalDateTime.of(2023, 1, 7, 23, 59, 59);
 
     boolean created = sourceCalendar.createEvent("Start Event", rangeStart, rangeStart.plusHours(1),
-        true, "", "", true);
+            true, "", "", true);
     assertTrue(created);
 
     created = sourceCalendar.createEvent("End Event", rangeEnd.minusHours(1), rangeEnd, true, "",
-        "", true);
+            "", true);
     assertTrue(created);
 
     LocalDateTime targetStart = LocalDateTime.of(2023, 2, 1, 0, 0);
@@ -819,11 +820,11 @@ public class CalendarManagerTest {
 
     LocalDateTime singleDay = LocalDateTime.of(2023, 3, 15, 12, 0);
     created = sourceCalendar.createEvent("Single Day Event", singleDay, singleDay.plusHours(1),
-        true, "", "", true);
+            true, "", "", true);
     assertTrue(created);
 
     copied = calendarManager.copyEventsInRange(singleDay, singleDay, "Target",
-        targetStart.plusMonths(1));
+            targetStart.plusMonths(1));
     assertTrue("Should copy events when range is a single point in time", copied);
   }
 
@@ -841,7 +842,7 @@ public class CalendarManagerTest {
     LocalDateTime lateHawaii = LocalDateTime.of(2023, 1, 1, 23, 0);
     LocalDateTime endHawaii = LocalDateTime.of(2023, 1, 2, 1, 0);
     boolean created = hawaiiCalendar.createEvent("Late Night Event", lateHawaii, endHawaii, true,
-        "", "", true);
+            "", "", true);
     assertTrue(created);
 
     LocalDateTime targetDay = LocalDateTime.of(2023, 2, 1, 0, 0);
@@ -852,8 +853,9 @@ public class CalendarManagerTest {
     Calendar aucklandCalendar = calendarManager.getCalendar("Auckland");
     List<Event> aucklandEvents = aucklandCalendar.getAllEvents();
     assertTrue("Should have copied events accounting for day boundaries",
-        aucklandEvents.size() > 0);
+            aucklandEvents.size() > 0);
   }
+
   @Test
   public void testCopyNonRecurringAllDayEvent() {
     // Create source and target calendars
@@ -865,21 +867,21 @@ public class CalendarManagerTest {
     Calendar sourceCalendar = calendarManager.getCurrentCalendar();
     LocalDateTime dateTime = LocalDateTime.of(2023, 5, 15, 0, 0);
     boolean eventCreated = sourceCalendar.createAllDayEvent(
-        "Birthday Party",
-        dateTime,
-        false,
-        "Annual celebration",
-        "Home",
-        true);
+            "Birthday Party",
+            dateTime,
+            false,
+            "Annual celebration",
+            "Home",
+            true);
     assertTrue("Should create all-day event", eventCreated);
 
     // Copy the event to the target calendar
     LocalDateTime targetDate = LocalDateTime.of(2023, 6, 15, 0, 0);
     boolean copied = calendarManager.copyEvent(
-        "Birthday Party",
-        dateTime,
-        "Target",
-        targetDate);
+            "Birthday Party",
+            dateTime,
+            "Target",
+            targetDate);
 
     assertTrue("Non-recurring all-day event should be copied successfully", copied);
 
@@ -893,7 +895,7 @@ public class CalendarManagerTest {
     assertTrue("Copied event should be all-day", copiedEvent.isAllDay());
     assertFalse("Copied event should not be recurring", copiedEvent.isRecurring());
     assertEquals("Event date should match target date", targetDate.toLocalDate(),
-        copiedEvent.getStartDateTime().toLocalDate());
+            copiedEvent.getStartDateTime().toLocalDate());
   }
 
   @Test
@@ -909,25 +911,25 @@ public class CalendarManagerTest {
     LocalDateTime untilDate = LocalDateTime.of(2023, 8, 15, 0, 0);
 
     boolean eventCreated = sourceCalendar.createRecurringAllDayEvent(
-        "Monthly Review",
-        startDate,
-        "MWF", // Monday, Wednesday, Friday
-        -1, // Occurrences not used
-        untilDate, // Until date specified
-        false,
-        "Performance review",
-        "Meeting Room",
-        true);
+            "Monthly Review",
+            startDate,
+            "MWF", // Monday, Wednesday, Friday
+            -1, // Occurrences not used
+            untilDate, // Until date specified
+            false,
+            "Performance review",
+            "Meeting Room",
+            true);
 
     assertTrue("Should create recurring all-day event with until date", eventCreated);
 
     // Copy the event to target calendar
     LocalDateTime targetDate = LocalDateTime.of(2023, 6, 15, 0, 0);
     boolean copied = calendarManager.copyEvent(
-        "Monthly Review",
-        startDate,
-        "Target",
-        targetDate);
+            "Monthly Review",
+            startDate,
+            "Target",
+            targetDate);
 
     assertTrue("Recurring all-day event with until date should be copied", copied);
 
@@ -951,9 +953,6 @@ public class CalendarManagerTest {
     // Verify the first occurrence is on the target date
     LocalDateTime firstOccurrenceDate = targetDate.toLocalDate().atStartOfDay();
     List<Event> firstDayEvents = targetCalendar.getEventsOn(firstOccurrenceDate);
-   // assertTrue("Should have event on the first day", !firstDayEvents.isEmpty());
+    // assertTrue("Should have event on the first day", !firstDayEvents.isEmpty());
   }
-
-
-
 }

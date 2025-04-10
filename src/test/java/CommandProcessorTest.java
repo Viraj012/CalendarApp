@@ -1528,7 +1528,8 @@ public class CommandProcessorTest {
     assertTrue("Event creation should succeed", createResult);
 
     boolean result = processor.processCommand(
-        "edit event name \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"All Hands Meeting\""
+        "edit event name \"Team Meeting\" from 2023-05-15T09:00 " +
+                "to 2023-05-15T10:00 with \"All Hands Meeting\""
     );
     assertTrue("Command should return true to continue processing", result);
     assertNull("No error should be displayed", textUI.getLastError());
@@ -1543,7 +1544,8 @@ public class CommandProcessorTest {
     assertTrue("Event creation should succeed", createResult);
 
     boolean result = processor.processCommand(
-        "edit event location \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"Main Auditorium\""
+        "edit event location \"Team Meeting\" from 2023-05-15T09:00 " +
+                "to 2023-05-15T10:00 with \"Main Auditorium\""
     );
     assertTrue("Command should return true to continue processing", result);
     assertNull("No error should be displayed", textUI.getLastError());
@@ -1558,7 +1560,8 @@ public class CommandProcessorTest {
     assertTrue("Event creation should succeed", createResult);
 
     boolean result = processor.processCommand(
-        "edit event description \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"Updated team sync description\""
+        "edit event description \"Team Meeting\" from 2023-05-15T09:00 " +
+                "to 2023-05-15T10:00 with \"Updated team sync description\""
     );
     assertTrue("Command should return true to continue processing", result);
     assertNull("No error should be displayed", textUI.getLastError());
@@ -1573,7 +1576,8 @@ public class CommandProcessorTest {
     assertTrue("Event creation should succeed", createResult);
 
     boolean result = processor.processCommand(
-        "edit event starttime \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with 2023-05-15T08:30"
+        "edit event starttime \"Team Meeting\" from 2023-05-15T09:00 " +
+                "to 2023-05-15T10:00 with 2023-05-15T08:30"
     );
     assertTrue("Command should return true to continue processing", result);
     assertNull("No error should be displayed", textUI.getLastError());
@@ -1588,7 +1592,8 @@ public class CommandProcessorTest {
     assertTrue("Event creation should succeed", createResult);
 
     boolean result = processor.processCommand(
-        "edit event endtime \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with 2023-05-15T10:30"
+        "edit event endtime \"Team Meeting\" from 2023-05-15T09:00 " +
+                "to 2023-05-15T10:00 with 2023-05-15T10:30"
     );
     assertTrue("Command should return true to continue processing", result);
     assertNull("No error should be displayed", textUI.getLastError());
@@ -1603,7 +1608,8 @@ public class CommandProcessorTest {
     assertTrue("Event creation should succeed", createResult);
 
     boolean result = processor.processCommand(
-        "edit event name \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"All Hands Meeting\""
+        "edit event name \"Team Meeting\" from 2023-05-15T09:00 " +
+                "to 2023-05-15T10:00 with \"All Hands Meeting\""
     );
     assertTrue("Command should return true to continue processing", result);
     assertNull("No error should be displayed", textUI.getLastError());
@@ -1613,7 +1619,8 @@ public class CommandProcessorTest {
   public void testEditEventWithInvalidEventName() {
 
     boolean result = processor.processCommand(
-        "edit event name \"Nonexistent Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"New Meeting Name\""
+        "edit event name \"Nonexistent Meeting\" from 2023-05-15T09:00 " +
+                "to 2023-05-15T10:00 with \"New Meeting Name\""
     );
     assertTrue("Command should return true to continue processing", result);
     assertNotNull("Error should be displayed for nonexistent event", textUI.getLastError());
@@ -1628,7 +1635,8 @@ public class CommandProcessorTest {
     assertTrue("Event creation should succeed", createResult);
 
     boolean result = processor.processCommand(
-        "edit event name \"Team Meeting\" from 2023-05-16T09:00 to 2023-05-16T10:00 with \"Different Meeting\""
+        "edit event name \"Team Meeting\" from 2023-05-16T09:00 " +
+                "to 2023-05-16T10:00 with \"Different Meeting\""
     );
     assertTrue("Command should return true to continue processing", result);
     assertNotNull("Error should be displayed for invalid date range", textUI.getLastError());
@@ -1643,7 +1651,8 @@ public class CommandProcessorTest {
     assertTrue("Event creation should succeed", createResult);
 
     boolean result = processor.processCommand(
-        "edit event priority \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with \"High\""
+        "edit event priority \"Team Meeting\" from 2023-05-15T09:00 " +
+                "to 2023-05-15T10:00 with \"High\""
     );
     assertTrue("Command should return true to continue processing", result);
     assertNotNull("Error should be displayed for invalid property", textUI.getLastError());
@@ -1658,7 +1667,8 @@ public class CommandProcessorTest {
     assertTrue("Event creation should succeed", createResult);
 
     boolean result = processor.processCommand(
-        "edit event starttime \"Team Meeting\" from 2023-05-15T09:00 to 2023-05-15T10:00 with invalid-date"
+        "edit event starttime \"Team Meeting\" from 2023-05-15T09:00 " +
+                "to 2023-05-15T10:00 with invalid-date"
     );
     assertTrue("Command should return true to continue processing", result);
     assertNotNull("Error should be displayed for invalid date format", textUI.getLastError());
@@ -1694,7 +1704,7 @@ public class CommandProcessorTest {
 
     @Override
     public void close() {
-
+      // closes the ui
     }
 
     public void addCommand(String command) {

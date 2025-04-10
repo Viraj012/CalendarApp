@@ -6,9 +6,9 @@ import view.TextUI;
 import view.gui.CalendarGUI;
 import view.gui.SwingUI;
 
-import javax.swing.*;
+import javax.swing.UIManager;
+import javax.swing.SwingUtilities;
 import java.io.IOException;
-import java.time.ZoneId;
 
 /**
  * Main entry point for the Calendar application.

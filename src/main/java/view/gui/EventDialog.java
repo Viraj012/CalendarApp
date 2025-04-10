@@ -5,20 +5,36 @@ import model.CalendarImpl;
 import model.CalendarManager;
 import model.Event;
 
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JTextArea;
+import javax.swing.JCheckBox;
+import javax.swing.JSpinner;
+import javax.swing.JScrollPane;
+import javax.swing.JRadioButton;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.SpinnerDateModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.time.DayOfWeek;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import java.awt.Window;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Dialog for creating and editing calendar events.
@@ -41,7 +57,6 @@ public class EventDialog extends JDialog {
   private JPanel recurringPanel;
   private JCheckBox[] weekdayCheckboxes;
   private JRadioButton occurrencesRadio;
-  private JRadioButton untilDateRadio;
   private JSpinner occurrencesSpinner;
   private JSpinner untilDateSpinner;
 
@@ -302,7 +317,7 @@ public class EventDialog extends JDialog {
 
     gbc.gridx = 0;
     gbc.gridy = 1;
-    untilDateRadio = new JRadioButton("End by:");
+    JRadioButton untilDateRadio = new JRadioButton("End by:");
     endGroup.add(untilDateRadio);
     endPanel.add(untilDateRadio, gbc);
 

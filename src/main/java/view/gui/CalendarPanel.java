@@ -3,17 +3,26 @@ package view.gui;
 import model.Calendar;
 import model.CalendarManager;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-
-// And make sure you don't have this import
-// import java.awt.List;
 
 /**
  * Panel that represents a calendar, including its events and controls.
@@ -27,8 +36,6 @@ public class CalendarPanel extends JPanel {
   private JToggleButton monthViewButton;
   private JToggleButton dayViewButton;
   private JLabel currentCalendarLabel;
-  private JButton exportButton;
-  private JButton importButton;
 
   /**
    * Constructor for CalendarPanel.
@@ -115,11 +122,11 @@ public class CalendarPanel extends JPanel {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     panel.setBorder(new EmptyBorder(10, 0, 0, 0));
 
-    importButton = new JButton("Import from CSV");
+    JButton importButton = new JButton("Import from CSV");
     importButton.addActionListener(e -> importFromCSV());
     panel.add(importButton);
 
-    exportButton = new JButton("Export to CSV");
+    JButton exportButton = new JButton("Export to CSV");
     exportButton.addActionListener(e -> exportToCSV());
     panel.add(exportButton);
 
@@ -303,7 +310,8 @@ public class CalendarPanel extends JPanel {
     JComboBox<String> propertyCombo = new JComboBox<>(properties);
 
     JTextField valueField = new JTextField(20);
-    JComboBox<String> timezoneCombo = new JComboBox<>(ZoneId.getAvailableZoneIds().toArray(new String[0]));
+    JComboBox<String> timezoneCombo = new JComboBox<>(
+            ZoneId.getAvailableZoneIds().toArray(new String[0]));
     timezoneCombo.setSelectedItem(currentCal.getTimezone().toString());
 
     JPanel valuePanel = new JPanel(new CardLayout());

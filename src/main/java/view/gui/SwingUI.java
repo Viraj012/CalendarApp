@@ -2,7 +2,9 @@ package view.gui;
 
 import view.TextUI;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 

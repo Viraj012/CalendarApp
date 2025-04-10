@@ -28,7 +28,8 @@ public class CSVImporter {
    * @param calendarName the name of the calendar to import into
    * @return the number of events successfully imported, or -1 if an error occurred
    */
-  public static int importFromCSV(String filename, CalendarManager calendarManager, String calendarName) {
+  public static int importFromCSV(
+          String filename, CalendarManager calendarManager, String calendarName) {
     if (!calendarManager.calendarExists(calendarName)) {
       return -1;  // Calendar doesn't exist
     }

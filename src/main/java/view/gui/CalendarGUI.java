@@ -3,9 +3,21 @@ package view.gui;
 import model.CalendarManager;
 import model.Event;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.Box;
+import javax.swing.SwingConstants;
+import javax.swing.JOptionPane;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+
+import java.awt.Dimension;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,21 +29,15 @@ import java.util.Locale;
  */
 public class CalendarGUI extends JFrame {
   private CalendarManager calendarManager;
-  private JPanel mainPanel;
   private JLabel monthYearLabel;
   private JLabel currentDateLabel;
   private MonthPanel monthView;
   private DayPanel dayView;
   private CalendarPanel calendarPanel;
-  private JButton prevButton;
-  private JButton nextButton;
   private JButton prevDayButton;
   private JButton nextDayButton;
-  private JButton todayButton;
-  private JButton newEventButton;
   private LocalDate currentDisplayDate;
   private SwingUI swingUI;
-  private boolean isMonthView = true;
 
   /**
    * Constructor for the GUI.
@@ -140,7 +146,7 @@ public class CalendarGUI extends JFrame {
    * Initializes all UI components.
    */
   private void initializeComponents() {
-    mainPanel = new JPanel(new BorderLayout());
+    JPanel mainPanel = new JPanel(new BorderLayout());
     mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
     // Top control panel
@@ -148,14 +154,14 @@ public class CalendarGUI extends JFrame {
     JPanel navigationPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
     // Month navigation
-    prevButton = new JButton("<<");
+    JButton prevButton = new JButton("<<");
     prevButton.setToolTipText("Previous Month");
     prevButton.addActionListener(e -> navigateToPreviousMonth());
 
     monthYearLabel = new JLabel("", SwingConstants.CENTER);
     updateMonthYearLabel();
 
-    nextButton = new JButton(">>");
+    JButton nextButton = new JButton(">>");
     nextButton.setToolTipText("Next Month");
     nextButton.addActionListener(e -> navigateToNextMonth());
 
@@ -174,7 +180,7 @@ public class CalendarGUI extends JFrame {
     nextDayButton.setToolTipText("Next Day");
     nextDayButton.addActionListener(e -> navigateToNextDay());
 
-    todayButton = new JButton("Today");
+    JButton todayButton = new JButton("Today");
     todayButton.addActionListener(e -> goToToday());
 
     // Month navigation
@@ -197,7 +203,7 @@ public class CalendarGUI extends JFrame {
 
     // Bottom button panel
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    newEventButton = new JButton("New Event");
+    JButton newEventButton = new JButton("New Event");
     newEventButton.addActionListener(e -> createNewEvent());
     buttonPanel.add(newEventButton);
 
@@ -224,7 +230,8 @@ public class CalendarGUI extends JFrame {
    * Updates the month/year label based on the current display date.
    */
   private void updateMonthYearLabel() {
-    String month = currentDisplayDate.getMonth().getDisplayName(TextStyle.FULL, Locale.getDefault());
+    String month = currentDisplayDate.getMonth()
+            .getDisplayName(TextStyle.FULL, Locale.getDefault());
     int year = currentDisplayDate.getYear();
     monthYearLabel.setText(month + " " + year);
   }
@@ -320,7 +327,6 @@ public class CalendarGUI extends JFrame {
    * @param isMonthView true if month view, false if day view
    */
   public void setViewMode(boolean isMonthView) {
-    this.isMonthView = isMonthView;
 
     // In day view, show the day navigation buttons and currentDateLabel
     // In month view, hide them
