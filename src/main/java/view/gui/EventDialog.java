@@ -34,6 +34,7 @@ import java.awt.Window;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -509,33 +510,37 @@ public class EventDialog extends JDialog {
     if (eventToEdit != null) {
       // We're editing an existing event
 
-      // For recurring events, editing becomes more complex
-      // We'll use a different approach - delete and recreate
-      if (eventToEdit.isRecurring() || isRecurring) {
-        // Get all events from the calendar
-        List<Event> calendarEvents = calendar.getAllEvents();
+      // Cast to CalendarImpl to get direct access to the events list
+      CalendarImpl calendarImpl = (CalendarImpl) calendar;
 
-        // Find and remove our event
-        for (int i = 0; i < calendarEvents.size(); i++) {
-          Event event = calendarEvents.get(i);
-          if (event == eventToEdit) {
-            // Handle this through the CalendarImpl class directly
-            ((CalendarImpl)calendar).getAllEvents().remove(i);
-            break;
-          }
+      // 1. First, validate any inputs before attempting to remove the original event
+      if (isRecurring) {
+        String weekdays = parseWeekdays();
+        if (weekdays.isEmpty()) {
+          JOptionPane.showMessageDialog(this,
+                  "Please select at least one day of the week for recurring events",
+                  "Error",
+                  JOptionPane.ERROR_MESSAGE);
+          return;
         }
+      }
 
-        // Now create a new event with the updated properties
+      // 2. Store a copy of the event list before modification
+      List<Event> originalEvents = new ArrayList<>(calendarImpl.getAllEvents());
+
+      // 3. Explicitly remove the event before creating a new one
+      calendarImpl.clearEvents();
+
+      // 4. Add back all events EXCEPT the one we're editing
+      for (Event e : originalEvents) {
+        if (e != eventToEdit) {
+          calendarImpl.addEvent(e);
+        }
+      }
+
+      // 5. Now create the new event with updated properties
+      try {
         if (isRecurring) {
-          String weekdays = parseWeekdays();
-          if (weekdays.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Please select at least one day of the week for recurring events",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-          }
-
           int occurrences = -1;
           LocalDateTime untilDate = null;
 
@@ -547,6 +552,8 @@ public class EventDialog extends JDialog {
                     .atZone(java.time.ZoneId.systemDefault())
                     .toLocalDateTime();
           }
+
+          String weekdays = parseWeekdays();
 
           if (isAllDay) {
             success = calendar.createRecurringAllDayEvent(
@@ -597,102 +604,20 @@ public class EventDialog extends JDialog {
           }
         }
 
-        // If creation failed, put back the original event
+        // 6. If creation failed, restore the original events
         if (!success) {
-          ((CalendarImpl)calendar).addEvent(eventToEdit);
-        }
-      } else {
-        // For non-recurring events, use the edit methods
-        // Start with the subject
-        boolean subjectUpdated = true;
-        if (!eventToEdit.getSubject().equals(subject)) {
-          subjectUpdated = calendar.editEvent(
-                  "subject",
-                  eventToEdit.getSubject(),
-                  eventToEdit.getStartDateTime(),
-                  eventToEdit.getEndDateTime(),
-                  subject
-          );
-
-          if (!subjectUpdated) {
-            JOptionPane.showMessageDialog(this,
-                    "Failed to update subject.",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
+          calendarImpl.clearEvents();
+          for (Event e : originalEvents) {
+            calendarImpl.addEvent(e);
           }
         }
-
-        // Update description
-        boolean descUpdated = calendar.editEvent(
-                "description",
-                subjectUpdated ? subject : eventToEdit.getSubject(),
-                eventToEdit.getStartDateTime(),
-                eventToEdit.getEndDateTime(),
-                description
-        );
-
-        // Update location
-        boolean locUpdated = calendar.editEvent(
-                "location",
-                subjectUpdated ? subject : eventToEdit.getSubject(),
-                eventToEdit.getStartDateTime(),
-                eventToEdit.getEndDateTime(),
-                location
-        );
-
-        // Update public/private status
-        boolean publicUpdated = calendar.editEvent(
-                "public",
-                subjectUpdated ? subject : eventToEdit.getSubject(),
-                eventToEdit.getStartDateTime(),
-                eventToEdit.getEndDateTime(),
-                String.valueOf(isPublic)
-        );
-
-        // Update start time
-        boolean startTimeUpdated = true;
-        if (!eventToEdit.getStartDateTime().equals(startDateTime)) {
-          startTimeUpdated = calendar.editEvent(
-                  "starttime",
-                  subjectUpdated ? subject : eventToEdit.getSubject(),
-                  eventToEdit.getStartDateTime(),
-                  eventToEdit.getEndDateTime(),
-                  startDateTime.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-          );
-
-          if (!startTimeUpdated) {
-            JOptionPane.showMessageDialog(this,
-                    "Failed to update start time. There may be a conflict with another event.",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-          }
+      } catch (Exception e) {
+        // If any error occurs, restore the original events
+        calendarImpl.clearEvents();
+        for (Event ev : originalEvents) {
+          calendarImpl.addEvent(ev);
         }
-
-        // Update end time for non-all-day events
-        boolean endTimeUpdated = true;
-        if (!isAllDay && endDateTime != null &&
-                (eventToEdit.getEndDateTime() == null ||
-                        !endDateTime.equals(eventToEdit.getEndDateTime()))) {
-          endTimeUpdated = calendar.editEvent(
-                  "endtime",
-                  subjectUpdated ? subject : eventToEdit.getSubject(),
-                  startTimeUpdated ? startDateTime : eventToEdit.getStartDateTime(),
-                  eventToEdit.getEndDateTime(),
-                  endDateTime.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-          );
-
-          if (!endTimeUpdated) {
-            JOptionPane.showMessageDialog(this,
-                    "Failed to update end time. There may be a conflict with another event.",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-          }
-        }
-
-        success = descUpdated && locUpdated && publicUpdated && startTimeUpdated && endTimeUpdated;
+        success = false;
       }
     } else {
       // Creating a new event
@@ -773,7 +698,7 @@ public class EventDialog extends JDialog {
       dispose();
     } else {
       JOptionPane.showMessageDialog(this,
-              "Failed to create event. There may be a conflict with another event.",
+              "Failed to create or update event. There may be a conflict with another event.",
               "Error",
               JOptionPane.ERROR_MESSAGE);
     }

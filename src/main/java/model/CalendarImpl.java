@@ -811,7 +811,7 @@ public class CalendarImpl implements Calendar {
     return sb.toString();
   }
 
-  void clearEvents() {
+  public void clearEvents() {
     events.clear();
   }
 
