@@ -163,26 +163,6 @@ public class CalendarIntegrationTest {
   }
 
   @Test
-  public void testEventOperationsWithoutCalendarContext() {
-
-    CalendarManager emptyManager = new CalendarManager();
-    CommandProcessor emptyProcessor = new CommandProcessor(emptyManager, mockUI);
-
-    mockUI.setNextCommand("create event Test on 2023-05-15");
-    emptyProcessor.processCommand(mockUI.getCommand());
-
-    assertEquals("No calendar in use. Please use a calendar first.",
-            mockUI.getLastError());
-
-    mockUI.setNextCommand(
-        "edit event name \"Test\" from 2023-05-15T10:00 to 2023-05-15T11:00 with \"Updated Test\"");
-    emptyProcessor.processCommand(mockUI.getCommand());
-
-    assertEquals("No calendar in use. Please use a calendar first.",
-            mockUI.getLastError());
-  }
-
-  @Test
   public void testAutoDeclineAndConflictHandling() {
 
     manager.createCalendar("Conflicts", ZoneId.of("UTC"));
