@@ -1,5 +1,6 @@
 package view.gui;
 
+import javax.swing.SwingUtilities;
 import model.Calendar;
 import model.CalendarManager;
 
@@ -154,9 +155,17 @@ public class CalendarPanel extends JPanel {
     viewPanel.add(mainGUI.getDayView(), BorderLayout.CENTER);
     dayViewButton.setSelected(true);
     updateView(mainGUI.getDisplayDate());
-    mainGUI.setViewMode(false);  // Set day view mode
+    mainGUI.setViewMode(false);
     viewPanel.revalidate();
     viewPanel.repaint();
+    mainGUI.refreshView();
+    LocalDate currentDate = mainGUI.getDisplayDate();
+    mainGUI.getDayView().updateView(currentDate);
+
+    SwingUtilities.invokeLater(() -> {
+      mainGUI.refreshView();
+      viewPanel.repaint();
+    });
   }
 
   /**
