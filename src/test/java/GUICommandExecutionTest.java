@@ -30,6 +30,7 @@ public class GUICommandExecutionTest {
   @Before
   public void setUp() {
 
+
     calendarManager = new CalendarManager();
     calendarManager.createCalendar("TestCalendar", ZoneId.systemDefault());
     calendarManager.useCalendar("TestCalendar");
