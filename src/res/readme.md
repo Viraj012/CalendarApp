@@ -1,29 +1,33 @@
-# Calendar Application
+# Calendar Application - GUI Implementation
 
 ## Design Changes
 
-### 1. Multiple Calendar Support
-- **Added**: `CalendarManager` class to manage multiple calendars
-- **Added**: Calendar creation, editing, and switching functionality
-- **Justification**: Allows users to maintain separate calendars for different purposes (work, personal, etc.)
+### 1. Graphical User Interface Implementation
+- **Added**: Complete GUI implementation using Java Swing
+- **Added**: Intuitive visual calendar representation
+- **Justification**: Provides a user-friendly alternative to command-line interaction
 
-### 2. Cross-Calendar Operations
-- **Added**: Ability to copy events between calendars
-- **Added**: Support for copying single events, day events, and date ranges
-- **Added**: Automatic timezone conversion during copying
-- **Justification**: Enhances productivity by allowing events to be reused across calendars
+### 2. Multiple View Support
+- **Added**: Month view showing calendar grid with events
+- **Added**: Day view showing detailed timeline of events
+- **Added**: Seamless switching between views
+- **Justification**: Allows users to choose the most appropriate view for their needs
 
-### 3. Timezone Management
-- **Added**: Support for creating calendars with different timezones
-- **Added**: Automatic event time adjustment when changing calendar timezone
-- **Justification**: Improves usability for users who work across multiple timezones
+### 3. Interactive Event Management
+- **Added**: Visual event creation through double-clicking on calendar
+- **Added**: Event editing dialog with form-based interface
+- **Added**: Visual representation of events with color coding
+- **Justification**: Makes event management more intuitive and accessible
 
-### 4. Improved Event Conflict Management
-- **Modified**: Enhanced conflict detection for recurring events
-- **Modified**: Added conflict checking when editing event date/time properties
-- **Justification**: Prevents scheduling errors and improves reliability
+### 4. Calendar Management UI
+- **Added**: Calendar selection dropdown
+- **Added**: Calendar creation and editing dialogs
+- **Justification**: Simplifies working with multiple calendars
 
-
+### 5. Import/Export Integration
+- **Added**: File chooser dialogs for import/export operations
+- **Added**: Visual feedback for import/export operations
+- **Justification**: Streamlines data exchange with other applications
 
 ## How to Run the Program
 
@@ -31,20 +35,27 @@
 2. Run the program using one of the following commands:
 
 ```
-# For interactive mode
-java -jar Assignment4.jar --mode interactive
+# For GUI mode (default)
+java -jar CalendarApp.jar
 
-# For headless mode with a commands file
-java -jar Assignment4.jar --mode headless commands.txt
+# You can also explicitly specify GUI mode
+java -jar CalendarApp.jar --mode gui
 ```
+
+Alternatively, simply double-click the JAR file to launch in GUI mode.
 
 ## Functional Status
 
-### Working Features
-- All calendar management functions (create, edit, use)
-- Event copying between calendars (single events, days, date ranges)
-- Automatic timezone conversion for events
-- All previously implemented features (event creation, editing, viewing, etc.)
+### Working GUI Features
+- Month view calendar with event display
+- Day view with timeline visualization
+- Event creation, editing, and viewing
+- Calendar management (create, edit, switch)
+- Import/export functionality with file dialogs
+- Visual navigation between dates
+- Event color coding by type
+- Time zone support in the interface
+- Background command processing
 
 ### Known Issues
 - None
@@ -52,18 +63,24 @@ java -jar Assignment4.jar --mode headless commands.txt
 ## Team Contributions
 
 ### Vishal Rajpurohit
-- Implemented event copying functionality
-- Enhanced conflict detection and resolution for events
-- Implemented testing for event copying functionality
+- Implemented day view visualization
+- Created event editing dialog
+- Implemented event color coding
+- Developed event detail display
+- Created recurring event interface
 
 ### Sanskar Sharma
-- Developed calendar management system
-- Implemented timezone handling and conversion
-- Created inter-calendar operations framework
-- Integrated new features with existing codebase
+- Created overall GUI framework
+- Implemented month view calendar grid
+- Developed calendar management UI components
+- Created import/export dialogs
+- Integrated command processing with GUI
+- Implemented navigation controls
 
 ## Additional Notes for Graders
 
-- The application maintains backward compatibility with all commands from the previous version
-- We've extensively tested timezone conversion to ensure accuracy across different time zones
-- The design follows the MVC architecture established in the previous version
+- The GUI is fully integrated with the existing command structure through a bridge design pattern using SwingUI
+- All existing command-line functionality remains accessible through the GUI
+- The design follows proper MVC architecture with clear separation between the interface and model
+- Added unit tests for verifying GUI command execution
+- Used appropriate thread management for background command processing
