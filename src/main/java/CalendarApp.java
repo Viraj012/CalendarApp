@@ -16,28 +16,40 @@ import java.io.IOException;
 public class CalendarApp {
 
   /**
-   * Main method for running the Calendar application.
-   * Accepts command-line arguments to choose the mode of operation:
+   * Main method for running the Calendar application. Accepts command-line arguments to choose the
+   * mode of operation:
    * <ul>
    *   <li>interactive - for interactive console mode</li>
    *   <li>headless FILE - for headless mode with a commands file</li>
    *   <li>gui - for graphical user interface mode</li>
    * </ul>
-   * Exits with an error if arguments are incorrect.
+   * When run without arguments, GUI mode is launched by default.
    */
   public static void main(String[] args) {
-    if (args.length < 2) {
-      System.err.println("Usage: java CalendarApp --mode [interactive|headless commands.txt|gui]");
-      System.exit(1);
+
+    CalendarManager calendarManager = new CalendarManager();
+
+    calendarManager.createCalendar("Default", java.time.ZoneId.systemDefault());
+    calendarManager.useCalendar("Default");
+
+    if (args.length < 1) {
+      launchGUI(calendarManager);
+      return;
     }
 
     if (!args[0].equalsIgnoreCase("--mode")) {
       System.err.println("Expected '--mode' as first argument");
+      System.err.println("Usage: java CalendarApp --mode [interactive|headless commands.txt|gui]");
+      System.err.println("       java CalendarApp (launches GUI by default)");
       System.exit(1);
     }
 
-    // Create calendar manager
-    CalendarManager calendarManager = new CalendarManager();
+    if (args.length < 2) {
+      System.err.println("Missing mode argument after --mode");
+      System.err.println("Usage: java CalendarApp --mode [interactive|headless commands.txt|gui]");
+      System.err.println("       java CalendarApp (launches GUI by default)");
+      System.exit(1);
+    }
 
     if (args[1].equalsIgnoreCase("interactive")) {
       TextUI ui = new InteractiveUI();
@@ -54,6 +66,8 @@ public class CalendarApp {
       launchGUI(calendarManager);
     } else {
       System.err.println("Invalid mode. Use 'interactive', 'headless FILE', or 'gui'");
+      System.err.println("Usage: java CalendarApp --mode [interactive|headless commands.txt|gui]");
+      System.err.println("       java CalendarApp (launches GUI by default)");
       System.exit(1);
     }
   }
@@ -79,7 +93,7 @@ public class CalendarApp {
    * Launches the GUI version of the application.
    */
   private static void launchGUI(CalendarManager calendarManager) {
-    // Use the system look and feel
+
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
     } catch (Exception e) {
@@ -87,7 +101,6 @@ public class CalendarApp {
     }
 
     SwingUtilities.invokeLater(() -> {
-      CommandProcessor processor = new CommandProcessor(calendarManager, null);
 
       CalendarGUI gui = new CalendarGUI(calendarManager);
 
@@ -96,13 +109,13 @@ public class CalendarApp {
       gui.setSwingUI(swingUI);
 
       Thread processorThread = new Thread(() -> {
-        CommandProcessor threadProcessor = new CommandProcessor(calendarManager, swingUI);
+        CommandProcessor processor = new CommandProcessor(calendarManager, swingUI);
 
         try {
           boolean keepRunning = true;
           while (keepRunning) {
             String command = swingUI.getCommand();
-            keepRunning = threadProcessor.processCommand(command);
+            keepRunning = processor.processCommand(command);
           }
         } finally {
           swingUI.close();

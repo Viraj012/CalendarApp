@@ -1,5 +1,12 @@
 package view.gui;
 
+import java.awt.Component;
+import java.awt.Font;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
 import model.CalendarManager;
 import model.Event;
 
@@ -28,6 +35,7 @@ import java.util.Locale;
  * Main GUI frame for the Calendar application.
  */
 public class CalendarGUI extends JFrame {
+
   private CalendarManager calendarManager;
   private JLabel monthYearLabel;
   private JLabel currentDateLabel;
@@ -130,8 +138,11 @@ public class CalendarGUI extends JFrame {
     // Help menu
     JMenu helpMenu = new JMenu("Help");
     JMenuItem aboutItem = new JMenuItem("About");
+    JMenuItem instructionsItem = new JMenuItem("Instructions");
     aboutItem.addActionListener(e -> showAboutDialog());
+    instructionsItem.addActionListener(e -> showInstructionsDialog());
     helpMenu.add(aboutItem);
+    helpMenu.add(instructionsItem);
 
     menuBar.add(fileMenu);
     menuBar.add(calendarMenu);
@@ -231,7 +242,7 @@ public class CalendarGUI extends JFrame {
    */
   private void updateMonthYearLabel() {
     String month = currentDisplayDate.getMonth()
-            .getDisplayName(TextStyle.FULL, Locale.getDefault());
+        .getDisplayName(TextStyle.FULL, Locale.getDefault());
     int year = currentDisplayDate.getYear();
     monthYearLabel.setText(month + " " + year);
   }
@@ -321,8 +332,7 @@ public class CalendarGUI extends JFrame {
   }
 
   /**
-   * Set the current view mode.
-   * This method is called by CalendarPanel when the view is changed.
+   * Set the current view mode. This method is called by CalendarPanel when the view is changed.
    *
    * @param isMonthView true if month view, false if day view
    */
@@ -419,9 +429,92 @@ public class CalendarGUI extends JFrame {
    */
   private void showAboutDialog() {
     JOptionPane.showMessageDialog(this,
-            "Calendar Application\nVersion 1.0\n\nA Java Swing calendar application.",
-            "About",
-            JOptionPane.INFORMATION_MESSAGE);
+        "Calendar Application\nVersion 1.0\n\nA Java Swing calendar application.",
+        "About",
+        JOptionPane.INFORMATION_MESSAGE);
+  }
+
+  /**
+   * Shows the Instructions dialog.
+   */
+  private void showInstructionsDialog() {
+    JPanel instructionsPanel = new JPanel();
+    instructionsPanel.setLayout(new BoxLayout(instructionsPanel, BoxLayout.Y_AXIS));
+
+    JLabel titleLabel = new JLabel("Calendar Application - User Guide");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+    titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    JTextArea instructionsText = new JTextArea();
+    instructionsText.setEditable(false);
+    instructionsText.setWrapStyleWord(true);
+    instructionsText.setLineWrap(true);
+    instructionsText.setBackground(UIManager.getColor("Panel.background"));
+    instructionsText.setBorder
+        (BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    instructionsText.setText(
+        "CALENDAR BASICS\n\n" +
+            "• Navigation: Use the << and >> buttons to move between months.\n" +
+            "• Views: Toggle between Month View and Day View "
+            + "using the buttons in the top-right corner.\n"
+            +
+            "• Today: Click the 'Today' button to jump to the current date.\n\n" +
+
+            "MANAGING EVENTS\n\n" +
+            "• Create Event: Double-click on any day cell or click the 'New Event' button.\n" +
+            "• Edit Event: Click on any existing event to open it for editing.\n" +
+            "• All-day Events: Check 'All-day event' when creating an "
+            + "event to make it span the entire day.\n"
+            +
+            "• Recurring Events: Check 'Recurring event' to make an "
+            + "event repeat on specific days of the week.\n"
+            +
+
+            "CALENDAR MANAGEMENT\n\n" +
+            "• Create Calendar: Click 'New Calendar' to create a "
+            + "new calendar with its own timezone.\n"
+            +
+            "• Switch Calendars: Use the calendar "
+            + "dropdown to switch between different calendars.\n"
+            +
+            "• Edit Calendar: Click 'Edit Calendar' to change a calendar's name or timezone.\n\n" +
+
+            "IMPORT & EXPORT\n\n" +
+            "• Export: Click 'Export to CSV' to save your calendar events to a CSV file.\n" +
+            "• Import: Click 'Import from CSV' to load events from a CSV file. File must follow"
+            + " Google Calendar CSV format.\n\n"
+            +
+
+            "EVENT COLOR CODING\n\n" +
+            "• Blue: Regular single events\n" +
+            "• Green: All-day events\n" +
+            "• Orange: Recurring events\n" +
+            "• Purple: All-day recurring events\n\n"
+
+    );
+
+    JScrollPane scrollPane = new JScrollPane(instructionsText);
+    scrollPane.setPreferredSize(new Dimension(500, 400));
+
+    instructionsPanel.add(titleLabel);
+    instructionsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+    instructionsPanel.add(scrollPane);
+
+    JOptionPane.showMessageDialog(
+        this,
+        instructionsPanel,
+        "Calendar Application - Instructions",
+        JOptionPane.INFORMATION_MESSAGE
+    );
+  }
+
+  /**
+   * Gets the current display date.
+   *
+   * @return the current display date
+   */
+  public LocalDate getDisplayDate() {
+    return currentDisplayDate;
   }
 
   /**
@@ -434,15 +527,6 @@ public class CalendarGUI extends JFrame {
     updateMonthYearLabel();
     updateCurrentDateLabel();
     refreshView();
-  }
-
-  /**
-   * Gets the current display date.
-   *
-   * @return the current display date
-   */
-  public LocalDate getDisplayDate() {
-    return currentDisplayDate;
   }
 
   /**
