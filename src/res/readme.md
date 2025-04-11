@@ -79,6 +79,7 @@ Alternatively, simply double-click the JAR file to launch in GUI mode.
 
 ## Additional Notes for Graders
 
+- Please see the Instructions section in the help menu
 - The GUI is fully integrated with the existing command structure through a bridge design pattern using SwingUI
 - All existing command-line functionality remains accessible through the GUI
 - The design follows proper MVC architecture with clear separation between the interface and model
